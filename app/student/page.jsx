@@ -14,7 +14,7 @@ const page = () => {
             <main className="flex-1 bg-gray-100 dark:bg-gray-800 p-6 md:p-10">
                 <div className="container mx-auto py-8 px-4 md:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="bg-white rounded-lg shadow-md p-6">
+                        <div className="bg-white rounded-lg shadow-md p-10 flex flex-col justify-between">
                             <div className="flex items-center space-x-4">
                                 <Avatar className="h-16 w-16">
                                 <AvatarImage src="/placeholder-user.jpg" />

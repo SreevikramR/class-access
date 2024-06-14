@@ -1,5 +1,6 @@
+"use client"
 import React from 'react'
-import Link from "next/link"
+import { useRouter } from 'next/navigation'
 import Header from '@/components/page_components/header'
 import Footer from '@/components/page_components/footer'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -107,8 +108,9 @@ const page = () => {
 }
 
 const UserRow = () => {
+	const router = useRouter();
 	return(
-		<TableRow>
+		<TableRow onClick={() => {router.push(`/student`)}} className="cursor-pointer">
 			<TableCell>
 				<div className="flex items-center gap-2">
 					<Avatar className="w-8 h-8">
@@ -130,8 +132,9 @@ const UserRow = () => {
 }
 
 const UserRow2 = () => {
+	const router = useRouter();
 	return(
-		<TableRow>
+		<TableRow onClick={() => {router.push(`/student`)}} className="cursor-pointer">
 			<TableCell>
 				<div className="flex items-center gap-2">
 					<Avatar className="w-8 h-8">
@@ -153,8 +156,9 @@ const UserRow2 = () => {
 }
 
 const UserRow3 = () => {
+	const router = useRouter();
 	return(
-		<TableRow>
+		<TableRow onClick={() => {router.push(`/student`)}} className="cursor-pointer">
 			<TableCell>
 				<div className="flex items-center gap-2">
 					<Avatar className="w-8 h-8">
