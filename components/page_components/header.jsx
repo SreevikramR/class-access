@@ -13,7 +13,7 @@ const Header = () => {
 				</div>
 				<div className="flex items-center gap-4">
 					<nav className="hidden md:flex items-center gap-4">
-						<Link href="#" className="hover:underline" prefetch={false}>
+						<Link href="/dashboard" className="hover:underline" prefetch={false}>
 							Dashboard
 						</Link>
 						<Link href="#" className="hover:underline" prefetch={false}>
