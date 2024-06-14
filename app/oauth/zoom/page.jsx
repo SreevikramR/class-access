@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation';
 
-const page = () => {
+const Page = () => {
     const [ code, setCode ] = useState(null)
     const searchParams = useSearchParams()
 
@@ -16,4 +16,4 @@ const page = () => {
     )
 }
 
-export default page
+export default Page
