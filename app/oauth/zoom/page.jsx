@@ -3,22 +3,25 @@ import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
-export const dynamic = 'force-dynamic'
-
 const Page = () => {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <CodeComponent />
+        </Suspense>
+    )
+}
+
+const CodeComponent = () => {
     const [ code, setCode ] = useState(null)
     const searchParams = useSearchParams()
 
-    
     useEffect(() => {
         const code = searchParams.get('code')
         setCode(code)
     }, [])
 
     return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <div>User code: {code}</div>
-        </Suspense>
+        <div>User code: {code}</div>
     )
 }
 
