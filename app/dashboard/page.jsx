@@ -12,7 +12,7 @@ const page = () => {
         <div className="flex flex-col min-h-screen">
 			<header className="bg-gray-900 text-white px-6 py-4 flex items-center justify-between">
 				<div className="flex items-center gap-4">
-					<Link href="#" className="flex items-center gap-2" prefetch={false}>
+					<Link href="/" className="flex items-center gap-2" prefetch={false}>
 						<span className="font-bold text-lg">Class Access</span>
 					</Link>
 				</div>
