@@ -12,7 +12,7 @@ export default function Home() {
 	async function handleZoomOAuth() {
 		const url = new URL(`${process.env.NEXT_PUBLIC_SERVER_LINK}/api/oauth/zoom`)
 		try {
-			const response = await fetchTimeout(url, 3000, { signal, method: "GET", redirect: "follow" });
+			const response = await fetchTimeout(url, 3000, { signal, method: "GET", "Access-Control-Allow-Origin": window.location.origin });
 			const data = await response.json();
 			window.location.href = data.link
 		} catch (error) {
