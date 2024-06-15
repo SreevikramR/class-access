@@ -10,12 +10,10 @@ export default function Home() {
 	const { signal } = controller;
 
 	async function handleZoomOAuth() {
-		const url = new URL(`${process.env.NEXT_PUBLIC_SERVER_LINK}/api/oauth/zoom`)
+		const redirect_uri = window.location.origin + "/oauth/zoom/callback";
+		const url = new URL(`${process.env.NEXT_PUBLIC_SERVER_LINK}/api/oauth/zoom?redirect_uri=${redirect_uri}`)
 		try {
-			var myHeaders = new Headers();
-			myHeaders.append("Access-Control-Allow-Origin", window.location.origin);
-
-			const response = await fetchTimeout(url, 3000, { signal, headers: myHeaders});
+			const response = await fetchTimeout(url, 3000, { signal });
 			const data = await response.json();
 			window.location.href = data.link
 		} catch (error) {
@@ -23,6 +21,7 @@ export default function Home() {
 			  console.log("request timed out")
 			} else {
 			  console.log("request failed")
+			  console.log(error)
 			}
 		}
 	}
