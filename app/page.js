@@ -1,29 +1,14 @@
 "use client"
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import fetchTimeout from "@/components/util_function/fetch";
 
 export default function Home() {
 	const router = useRouter();
-	const controller = new AbortController()
-
-	const { signal } = controller;
 
 	async function handleZoomOAuth() {
 		const redirect_uri = window.location.origin + "/oauth/zoom/callback";
-		const url = new URL(`${process.env.NEXT_PUBLIC_SERVER_LINK}/api/oauth/zoom?redirect_uri=${redirect_uri}`)
-		try {
-			const response = await fetchTimeout(url, 3000, { signal });
-			const data = await response.json();
-			window.location.href = data.link
-		} catch (error) {
-			if (error.name === "AbortError") {
-			  console.log("request timed out")
-			} else {
-			  console.log("request failed")
-			  console.log(error)
-			}
-		}
+		const client_id = process.env.NEXT_PUBLIC_ZOOM_CLIENT_ID
+		window.location.href = `https://zoom.us/oauth/authorize?response_type=code&client_id=${client_id}&redirect_uri=${redirect_uri}`
 	}
 
 	return (

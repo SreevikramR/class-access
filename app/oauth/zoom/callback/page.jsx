@@ -15,9 +15,7 @@ const Page = () => {
 const CodeComponent = () => {
     const [ code, setCode ] = useState(null)
     const searchParams = useSearchParams()
-
     const controller = new AbortController()
-
 	const { signal } = controller;
 
     useEffect(() => {
