@@ -52,8 +52,6 @@ const Dashboard = () => {
 		let studentClasses = studentInfo.classes_left[teacherID]
 		let statusClassName = ""
 		
-		
-		
 		if (studentStatus == "Pending") {
 			studentFirstName = "New"
 			studentLastName = "Student"
@@ -107,10 +105,11 @@ const Dashboard = () => {
 			setIsCreatingUser(false)
 			return
 		}
+		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
 		const uuid = (await supabaseClient.auth.getUser()).data.user.id
-		const url = new URL(`${process.env.NEXT_PUBLIC_SERVER_LINK}/api/users/new-student?email=${email}&teacherUUID=${uuid}&classes=${numClasses}&notes=${notes}`)
+		const url = new URL(`${process.env.NEXT_PUBLIC_SERVER_LINK}/api/users/new-student?email=${email}&classes=${numClasses}&notes=${notes}`)
 		try {
-			const response = await fetchTimeout(url, 15000, { signal });
+			const response = await fetchTimeout(url, 15000, { signal, headers: {jwt:jwt} });
 			const data = await response.json();
 			console.log(data)
 		} catch (error) {
