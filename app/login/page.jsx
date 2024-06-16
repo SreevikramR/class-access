@@ -1,12 +1,37 @@
 "use client"
-import Image from "next/image"
 import Link from "next/link"
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useState } from "react"
+import supabaseClient from "@/components/util_function/supabaseCilent"
 
 export default function LoginPage() {
+	const [email, setEmail] = useState("")
+	const [password, setPassword] = useState("")
+	const [loading, setLoading] = useState(false)
+	const [error, setError] = useState(null)
+
+	const handleLogin = async (e) => {
+		e.preventDefault()
+		setLoading(true)
+		setError(null)
+		console.log("clicked")
+
+		const { user, error } = await supabaseClient.auth.signInWithPassword({
+			email,
+			password,
+		})
+		if (error) {
+			console.log(error)
+			setError(error.message)
+			setLoading(false)
+		} else {
+			console.log("logged in")
+			window.location.href = "/dashboard"
+		}
+	}
+
 	return (
 		<div className="w-full h-screen lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
 			<div className="hidden bg-muted lg:block">
@@ -27,8 +52,10 @@ export default function LoginPage() {
 							<Input
 								id="email"
 								type="email"
+								value={email}
 								placeholder="email@example.com"
 								required
+								onChange={(e) => setEmail(e.target.value)}
 							/>
 						</div>
 						<div className="grid gap-2">
@@ -41,9 +68,16 @@ export default function LoginPage() {
 									Forgot your password?
 								</Link>
 							</div>
-							<Input id="password" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" type="password" required />
+							<Input 
+								id="password" 
+								placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" 
+								type="password" 
+								required
+								value={password}
+								onChange={(e) => setPassword(e.target.value)} 
+							/>
 						</div>
-						<Button type="submit" className="w-full">
+						<Button type="submit" onClick={handleLogin} className="w-full">
 							Login
 						</Button>
 						<div className="flex items-center my-2">
