@@ -15,21 +15,55 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Label } from '@radix-ui/react-dropdown-menu'
+import validator from 'validator'
+import { useToast } from '@/components/ui/use-toast'
+import { PhoneInput } from '@/components/ui/phone_input'
 
-const page = () => {
-	const [firstName, setFirstName] = useState("")
-	const [lastName, setLastName] = useState("")
+const Dashboard = () => {
+	const [phone, setPhone] = useState("+91")
 	const [email, setEmail] = useState("")
 	const [numClasses, setNumClasses] = useState(0)
 	const [notes, setNotes] = useState("")
 	const [isOpen, setIsOpen] = useState(false)
-	const handleSubmit = (e) => {
+	const { toast } = useToast()
+
+	const handleNewStudentSubmit = (e) => {
 		e.preventDefault()
-		if (!firstName || !lastName || !email) {
+		if (!email || !phone) {
 			return
 		}
+		if (!validator.isEmail(email)) {
+			toast({
+				variant: "destructive",
+		        title: "Invalid Email",
+		        description: "Please enter a valid email address",
+		        duration: 3000
+		    
+			})
+			return
+		}
+		if (!validator.isMobilePhone(phone)) {
+			toast({
+				variant: "destructive",
+		        title: "Invalid Phone Number",
+		        description: "Please enter a valid phone number",
+		        duration: 3000
+		    
+			})
+			return
+		}
+		toast({
+			className: "bg-green-500 border-black border-2",
+			title: "Student Successfully Added",
+			description: "The new student has been added to your class",
+			duration: 3000
+		})
 		setIsOpen(false)
 	}
+
+	const handlePhoneNumberChange = (value) => {
+		setPhone(value);
+	};
 
 	return (
 		<div className="flex flex-col min-h-screen">
@@ -40,20 +74,14 @@ const page = () => {
 						<DialogHeader>
 							<DialogTitle>Add New Student</DialogTitle>
 						</DialogHeader>
-						<form onSubmit={handleSubmit} className="space-y-4">
-							<div className="grid grid-cols-2 gap-4">
-								<div className="space-y-2">
-									<Label htmlFor="firstName">First Name</Label>
-									<Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
-								</div>
-								<div className="space-y-2">
-									<Label htmlFor="lastName">Last Name</Label>
-									<Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
-								</div>
-							</div>
+						<form onSubmit={handleNewStudentSubmit} className="space-y-4">
 							<div className="space-y-2">
 								<Label htmlFor="email">Email</Label>
 								<Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="phone">Phone Number</Label>
+								<PhoneInput value={phone} onChange={handlePhoneNumberChange} required/>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="numClasses">Classes Balance</Label>
@@ -302,4 +330,4 @@ const UserRow3 = () => {
 	)
 }
 
-export default page
+export default Dashboard
