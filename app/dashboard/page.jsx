@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/page_components/header'
 import Footer from '@/components/page_components/footer'
@@ -17,19 +17,84 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Label } from '@radix-ui/react-dropdown-menu'
 import validator from 'validator'
 import { useToast } from '@/components/ui/use-toast'
-import { PhoneInput } from '@/components/ui/phone_input'
+import supabaseClient, { fetchStudentList } from '@/components/util_function/supabaseCilent'
+import fetchTimeout from '@/components/util_function/fetch'
 
 const Dashboard = () => {
-	const [phone, setPhone] = useState("+91")
+	const [students, setStudents] = useState([])
 	const [email, setEmail] = useState("")
 	const [numClasses, setNumClasses] = useState(0)
 	const [notes, setNotes] = useState("")
 	const [isOpen, setIsOpen] = useState(false)
 	const { toast } = useToast()
+	const [isCreatingUser, setIsCreatingUser] = useState(false)
+	const [teacherID, setTeacherID] = useState("")
+	const [studentDataLoaded, setStudentDataLoaded] = useState(false)
 
-	const handleNewStudentSubmit = (e) => {
+
+	const controller = new AbortController()
+	const { signal } = controller;
+
+	useEffect(() => {
+		const fetchTeacherID = async () => {
+			const teacherUUID = (await supabaseClient.auth.getUser()).data.user.id
+			setTeacherID(teacherUUID)
+		}
+		fetchTeacherID()
+	}, [])
+
+	const UserRow = (studentInfo) => {
+		const router = useRouter();
+		let studentFirstName = studentInfo.first_name
+		let studentLastName = studentInfo.last_name
+		let studentStatus = studentInfo.status[teacherID]
+		let studentEmail = studentInfo.email
+		let studentClasses = studentInfo.classes_left[teacherID]
+		let statusClassName = ""
+		
+		
+		
+		if (studentStatus == "Pending") {
+			studentFirstName = "New"
+			studentLastName = "Student"
+			statusClassName = "text-black border-black"
+		} else if (studentStatus == "Unpaid") {
+			statusClassName = "bg-red-400"
+		} else if (studentStatus == "Paid") {
+			statusClassName = "bg-green-400 px-5"
+		}
+		
+		let studentName = studentFirstName + " " + studentLastName
+		const words = studentName.split(' ');
+		const firstLetters = words.map(word => word.charAt(0));
+		const initials = firstLetters.join('');
+
+		return (
+			<TableRow onClick={() => { router.push(`/student`) }} className="cursor-pointer">
+				<TableCell>
+					<div className="flex items-center gap-2">
+						<Avatar className="w-8 h-8">
+							<AvatarFallback>{initials}</AvatarFallback>
+						</Avatar>
+						<div>{studentFirstName} {studentLastName}</div>
+					</div>
+				</TableCell>
+				<TableCell>{studentEmail}</TableCell>
+				<TableCell>
+					<Badge variant="success" className={statusClassName}>{studentStatus}</Badge>
+				</TableCell>
+				<TableCell>{studentClasses}</TableCell>
+			</TableRow>
+		)
+	}
+
+	const handleNewStudentSubmit = async (e) => {
+		if (isCreatingUser) {
+			return
+		}
+		setIsCreatingUser(true)
 		e.preventDefault()
-		if (!email || !phone) {
+		if (!email) {
 			return
 		}
 		if (!validator.isEmail(email)) {
@@ -38,18 +103,25 @@ const Dashboard = () => {
 		        title: "Invalid Email",
 		        description: "Please enter a valid email address",
 		        duration: 3000
-		    
 			})
+			setIsCreatingUser(false)
 			return
 		}
-		if (!validator.isMobilePhone(phone)) {
+		const uuid = (await supabaseClient.auth.getUser()).data.user.id
+		const url = new URL(`${process.env.NEXT_PUBLIC_SERVER_LINK}/api/users/new-student?email=${email}&teacherUUID=${uuid}&classes=${numClasses}&notes=${notes}`)
+		try {
+			const response = await fetchTimeout(url, 15000, { signal });
+			const data = await response.json();
+			console.log(data)
+		} catch (error) {
+			console.log(error)
 			toast({
 				variant: "destructive",
-		        title: "Invalid Phone Number",
-		        description: "Please enter a valid phone number",
-		        duration: 3000
-		    
+				title: "Unable to Create User. Please Try Again Later",
+				duration: 3000
+
 			})
+			setIsCreatingUser(false)
 			return
 		}
 		toast({
@@ -58,12 +130,17 @@ const Dashboard = () => {
 			description: "The new student has been added to your class",
 			duration: 3000
 		})
+		setIsCreatingUser(false)
 		setIsOpen(false)
 	}
 
-	const handlePhoneNumberChange = (value) => {
-		setPhone(value);
-	};
+	async function handleStudentFetch() {
+		const teacherUUID = (await supabaseClient.auth.getUser()).data.user.id
+		const students = await fetchStudentList(teacherUUID)
+		setStudents(students)
+		setTeacherID(teacherUUID)
+		setStudentDataLoaded(true)
+	}
 
 	return (
 		<div className="flex flex-col min-h-screen">
@@ -74,14 +151,10 @@ const Dashboard = () => {
 						<DialogHeader>
 							<DialogTitle>Add New Student</DialogTitle>
 						</DialogHeader>
-						<form onSubmit={handleNewStudentSubmit} className="space-y-4">
+						<form className="space-y-4">
 							<div className="space-y-2">
 								<Label htmlFor="email">Email</Label>
 								<Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="phone">Phone Number</Label>
-								<PhoneInput value={phone} onChange={handlePhoneNumberChange} required/>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="numClasses">Classes Balance</Label>
@@ -107,7 +180,7 @@ const Dashboard = () => {
 								<Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
 							</div>
 							<DialogFooter>
-								<Button type="submit">Submit</Button>
+								<Button type="button" onClick={handleNewStudentSubmit} className={`${isCreatingUser ? "cursor-progress" : ""}`}>Submit</Button>
 								<div>
 									<Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
 								</div>
@@ -244,41 +317,19 @@ const Dashboard = () => {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									<UserRow />
-									<UserRow2 />
-									<UserRow3 />
+									{studentDataLoaded && students.map((student) => {
+										return <UserRow key={student.id} {...student} />
+									})
+									}
 								</TableBody>
 							</Table>
 						</CardContent>
 					</Card>
 				</div>
+				<Button onClick={handleStudentFetch}>Fetch Test</Button>
 			</main>
 			<Footer />
 		</div>
-	)
-}
-
-const UserRow = () => {
-	const router = useRouter();
-	return (
-		<TableRow onClick={() => { router.push(`/student`) }} className="cursor-pointer">
-			<TableCell>
-				<div className="flex items-center gap-2">
-					<Avatar className="w-8 h-8">
-						<AvatarImage src="/placeholder-user.jpg" />
-						<AvatarFallback>JS</AvatarFallback>
-					</Avatar>
-					<div>John Smith</div>
-				</div>
-			</TableCell>
-			<TableCell>
-				example@example.com
-			</TableCell>
-			<TableCell>
-				<Badge variant="success" className="bg-green-500 px-5">Paid</Badge>
-			</TableCell>
-			<TableCell>3</TableCell>
-		</TableRow>
 	)
 }
 
