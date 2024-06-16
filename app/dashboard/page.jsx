@@ -1,5 +1,5 @@
 "use client"
-import React from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/page_components/header'
 import Footer from '@/components/page_components/footer'
@@ -7,34 +7,89 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import {
-	DropdownMenu,
-	DropdownMenuCheckboxItem,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-	Tabs,
-	TabsContent,
-	TabsList,
-	TabsTrigger,
-} from "@/components/ui/tabs"
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu"
+import { Tabs,	TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from '@/components/ui/button'
-import { ListFilter } from 'lucide-react'
-import { SortDescIcon } from 'lucide-react'
-import { PlusCircle } from 'lucide-react'
-import { File } from 'lucide-react'
+import { SortDescIcon, PlusCircle, Search } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"
+import { Label } from '@radix-ui/react-dropdown-menu'
 
 const page = () => {
+	const [firstName, setFirstName] = useState("")
+	const [lastName, setLastName] = useState("")
+	const [email, setEmail] = useState("")
+	const [numClasses, setNumClasses] = useState(0)
+	const [notes, setNotes] = useState("")
+	const [isOpen, setIsOpen] = useState(false)
+	const handleSubmit = (e) => {
+		e.preventDefault()
+		if (!firstName || !lastName || !email) {
+			return
+		}
+		setIsOpen(false)
+	}
+
 	return (
 		<div className="flex flex-col min-h-screen">
 			<Header />
-			<main className="flex-1 bg-gray-100 dark:bg-gray-800 p-6 md:p-10">
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-					{/* <Card>
+			<main className="flex-1 bg-gray-100 dark:bg-gray-800 p-6 md:p-10 md:pt-8">
+				<Dialog open={isOpen} onOpenChange={setIsOpen} defaultOpen>
+					<DialogContent className="sm:max-w-[425px]">
+						<DialogHeader>
+							<DialogTitle>Add New Student</DialogTitle>
+						</DialogHeader>
+						<form onSubmit={handleSubmit} className="space-y-4">
+							<div className="grid grid-cols-2 gap-4">
+								<div className="space-y-2">
+									<Label htmlFor="firstName">First Name</Label>
+									<Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="lastName">Last Name</Label>
+									<Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+								</div>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="email">Email</Label>
+								<Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="numClasses">Classes Balance</Label>
+								<div className="flex items-center gap-2">
+									<Button type="button" variant="outline" onClick={() => setNumClasses(Math.max(0, numClasses - 1))}>
+										-
+									</Button>
+									<Input
+										id="numClasses"
+										type="number"
+										value={numClasses}
+										onChange={(e) => setNumClasses(Number(e.target.value))}
+										min={0}
+										className="w-16 text-center"
+									/>
+									<Button type="button" variant="outline" onClick={() => setNumClasses(numClasses + 1)}>
+										+
+									</Button>
+								</div>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="notes">Notes</Label>
+								<Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+							</div>
+							<DialogFooter>
+								<Button type="submit">Submit</Button>
+								<div>
+									<Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+								</div>
+							</DialogFooter>
+						</form>
+					</DialogContent>
+				</Dialog>
+				<div>
+				{/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					<Card>
 				<CardHeader>
 				<CardTitle>Payment Summary</CardTitle>
 				</CardHeader>
@@ -95,10 +150,11 @@ const page = () => {
 					</div>
 				</div>
 				</CardContent>
-			</Card> */}
+			</Card>
+				</div> */}
 				</div>
-				<div className="mt-6">
-					<div className="flex w-full">
+				<div>
+					<div className="flex w-full mb-2">
 						<Tabs defaultValue="all" className='flex flex-row content-between w-full'>
 							<TabsList>
 								<TabsTrigger value="all">All</TabsTrigger>
@@ -107,6 +163,14 @@ const page = () => {
 								<TabsTrigger value="pending">Pending</TabsTrigger>
 							</TabsList>
 							<div className="ml-auto flex items-center gap-2">
+								<div className="relative ml-auto flex-1 md:grow-0">
+									<Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+									<Input
+										type="search"
+										placeholder="Search..."
+										className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+									/>
+								</div>
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
 										<Button variant="outline" size="sm" className="h-7 gap-1">
@@ -128,7 +192,7 @@ const page = () => {
 										</DropdownMenuCheckboxItem>
 									</DropdownMenuContent>
 								</DropdownMenu>
-								<Button size="sm" className="h-7 gap-1">
+								<Button size="sm" className="h-7 gap-1" onClick={() => setIsOpen(true)}>
 									<PlusCircle className="h-3.5 w-3.5" />
 									<span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
 										Add Student
