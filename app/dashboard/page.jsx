@@ -8,7 +8,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu"
-import { Tabs,	TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from '@/components/ui/button'
 import { SortDescIcon, PlusCircle, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -30,7 +30,7 @@ const Dashboard = () => {
 	const [isCreatingUser, setIsCreatingUser] = useState(false)
 	const [teacherID, setTeacherID] = useState("")
 	const [studentDataLoaded, setStudentDataLoaded] = useState(false)
-
+	const [isFetchingStudents, setIsFetchingStudents] = useState(false)
 
 	const controller = new AbortController()
 	const { signal } = controller;
@@ -41,6 +41,7 @@ const Dashboard = () => {
 			setTeacherID(teacherUUID)
 		}
 		fetchTeacherID()
+		handleStudentFetch()
 	}, [])
 
 	const UserRow = (studentInfo) => {
@@ -51,7 +52,7 @@ const Dashboard = () => {
 		let studentEmail = studentInfo.email
 		let studentClasses = studentInfo.classes_left[teacherID]
 		let statusClassName = ""
-		
+
 		if (studentStatus == "Pending") {
 			studentFirstName = "New"
 			studentLastName = "Student"
@@ -61,7 +62,7 @@ const Dashboard = () => {
 		} else if (studentStatus == "Paid") {
 			statusClassName = "bg-green-400 px-5"
 		}
-		
+
 		let studentName = studentFirstName + " " + studentLastName
 		const words = studentName.split(' ');
 		const firstLetters = words.map(word => word.charAt(0));
@@ -98,9 +99,9 @@ const Dashboard = () => {
 		if (!validator.isEmail(email)) {
 			toast({
 				variant: "destructive",
-		        title: "Invalid Email",
-		        description: "Please enter a valid email address",
-		        duration: 3000
+				title: "Invalid Email",
+				description: "Please enter a valid email address",
+				duration: 3000
 			})
 			setIsCreatingUser(false)
 			return
@@ -109,7 +110,7 @@ const Dashboard = () => {
 		const uuid = (await supabaseClient.auth.getUser()).data.user.id
 		const url = new URL(`${process.env.NEXT_PUBLIC_SERVER_LINK}/api/users/new-student?email=${email}&classes=${numClasses}&notes=${notes}`)
 		try {
-			const response = await fetchTimeout(url, 15000, { signal, headers: {jwt:jwt} });
+			const response = await fetchTimeout(url, 15000, { signal, headers: { jwt: jwt } });
 			const data = await response.json();
 			console.log(data)
 		} catch (error) {
@@ -130,15 +131,21 @@ const Dashboard = () => {
 			duration: 3000
 		})
 		setIsCreatingUser(false)
+		handleStudentFetch()
 		setIsOpen(false)
 	}
 
 	async function handleStudentFetch() {
+		if (isFetchingStudents) {
+			return
+		}
+		setIsFetchingStudents(true)
 		const teacherUUID = (await supabaseClient.auth.getUser()).data.user.id
 		const students = await fetchStudentList(teacherUUID)
 		setStudents(students)
 		setTeacherID(teacherUUID)
 		setStudentDataLoaded(true)
+		setIsFetchingStudents(false)
 	}
 
 	return (
@@ -188,7 +195,7 @@ const Dashboard = () => {
 					</DialogContent>
 				</Dialog>
 				<div>
-				{/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					{/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 					<Card>
 				<CardHeader>
 				<CardTitle>Payment Summary</CardTitle>
@@ -305,24 +312,27 @@ const Dashboard = () => {
 						<CardHeader>
 							<CardTitle className="p-3">My Students</CardTitle>
 						</CardHeader>
-						<CardContent>
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Student</TableHead>
-										<TableHead>Email</TableHead>
-										<TableHead>Status</TableHead>
-										<TableHead>Classes Left</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{studentDataLoaded && students.map((student) => {
-										return <UserRow key={student.id} {...student} />
-									})
-									}
-								</TableBody>
-							</Table>
-						</CardContent>
+						{students.length > 0 ? (
+							<CardContent>
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Student</TableHead>
+											<TableHead>Email</TableHead>
+											<TableHead>Status</TableHead>
+											<TableHead>Classes Left</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{studentDataLoaded && students.map((student) => {
+											return <UserRow key={student.id} {...student} />
+										})}
+									</TableBody>
+								</Table>
+							</CardContent>
+						) : ( (isFetchingStudents) ? (<CardContent className="p-8 pt-0 text-gray-500">Loading Student Information...</CardContent>) : (
+							<CardContent className="p-8 pt-0 text-gray-500">Please add students using the option at the top right to view them here</CardContent>
+						)) }
 					</Card>
 				</div>
 				<Button onClick={handleStudentFetch}>Fetch Test</Button>
