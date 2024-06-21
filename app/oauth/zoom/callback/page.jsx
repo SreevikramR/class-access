@@ -25,9 +25,9 @@ const CodeComponent = () => {
 
     async function handleZoomToken() {
 		const redirect_uri = window.location.origin + "/oauth/zoom/callback";
-		const url = new URL(`${process.env.NEXT_PUBLIC_SERVER_LINK}/api/zoom/access_token?code=${code}&redirect_uri=${redirect_uri}`)
+		const url = new URL(`${window.location.origin}/api/zoom/access_token?code=${code}&redirect_uri=${redirect_uri}`)
 		try {
-			const response = await fetchTimeout(url, 3000, { signal });
+			const response = await fetchTimeout(url, 5500, { signal });
 			const data = await response.json();
 			console.log(data)
             setCode(data)
@@ -43,7 +43,7 @@ const CodeComponent = () => {
 
     return (
         <div>
-            <div>User code: {code}</div>
+            <div>User code: {JSON.stringify(code)}</div>
             <div className="cursor-pointer p-3 border-2 rounded-lg border-black" onClick={() => handleZoomToken()}>
 				Test Zoom Token
 			</div>

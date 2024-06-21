@@ -108,7 +108,7 @@ const Dashboard = () => {
 		}
 		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
 		const uuid = (await supabaseClient.auth.getUser()).data.user.id
-		const url = new URL(`${process.env.NEXT_PUBLIC_SERVER_LINK}/api/users/new-student?email=${email}&classes=${numClasses}&notes=${notes}`)
+		const url = new URL(`${window.location.origin}/api/users/new_student?email=${email}&classes=${numClasses}&notes=${notes}`)
 		try {
 			const response = await fetchTimeout(url, 15000, { signal, headers: { jwt: jwt } });
 			const data = await response.json();

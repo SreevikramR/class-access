@@ -20,10 +20,10 @@ const Header = () => {
 							Students
 						</Link>
 						<Link href="#" className="hover:underline" prefetch={false}>
-							Payments
+							Classes
 						</Link>
 						<Link href="#" className="hover:underline" prefetch={false}>
-							Settings
+							Payments
 						</Link>
 					</nav>
 					<DropdownMenu>
