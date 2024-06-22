@@ -16,9 +16,9 @@ const Header = () => {
 						<Link href="/dashboard" className="hover:underline" prefetch={false}>
 							Dashboard
 						</Link>
-						<Link href="#" className="hover:underline" prefetch={false}>
+						{/* <Link href="#" className="hover:underline" prefetch={false}>
 							Students
-						</Link>
+						</Link> */}
 						<Link href="/classes" className="hover:underline" prefetch={false}>
 							Classes
 						</Link>

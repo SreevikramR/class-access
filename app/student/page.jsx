@@ -12,9 +12,9 @@ const page = () => {
         <div className="flex flex-col min-h-screen">
             <Header/>
             <main className="flex-1 bg-gray-100 dark:bg-gray-800 p-6 md:p-10">
-                <div className="container mx-auto py-8 px-4 md:px-6 lg:px-8">
+                <div className="container mx-auto py-2 px-4 md:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="bg-white rounded-lg shadow-md p-10 flex flex-col justify-between">
+                        <div className="bg-white rounded-lg shadow-md py-6 align-middle p-10 max-h-[30vh] flex flex-col justify-between">
                             <div className="flex items-center space-x-4">
                                 <Avatar className="h-16 w-16">
                                 <AvatarImage src="/placeholder-user.jpg" />
@@ -46,7 +46,7 @@ const page = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white rounded-lg shadow-md p-6 max-h-[30vh] overflow-y-scroll">
+                        <div className="bg-white h-full rounded-lg shadow-md p-6 max-h-[30vh] overflow-y-scroll">
                             <h2 className="text-xl font-bold mb-4">Attendance</h2>
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
@@ -63,10 +63,6 @@ const page = () => {
                                 </div>
                                 <div className="flex items-center justify-between">
                                 <p>2023-04-04</p>
-                                <Badge variant="success">Present</Badge>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                <p>2023-04-05</p>
                                 <Badge variant="success">Present</Badge>
                                 </div>
                                 <div className="flex items-center justify-between">
