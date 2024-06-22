@@ -5,7 +5,7 @@ import Footer from '@/components/page_components/footer'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
-const page = () => {
+const ClassesPage = () => {
     const [selectedDays, setSelectedDays] = useState(["M", "W", "F"])
 
     const _classCard = () => {
