@@ -3,10 +3,13 @@ import React, { useState } from 'react'
 import Header from '@/components/page_components/header'
 import Footer from '@/components/page_components/footer'
 import { Button } from '@/components/ui/button'
+import { PlusCircle } from 'lucide-react'
 import Link from 'next/link'
+import CreateClassPopup from '@/components/page_components/createClassPopup'
 
 const ClassesPage = () => {
     const [selectedDays, setSelectedDays] = useState(["M", "W", "F"])
+    const [isOpen, setIsOpen] = useState(false)
 
     const _classCard = () => {
         return (
@@ -14,7 +17,7 @@ const ClassesPage = () => {
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="font-medium">Web Development 101</h3>
-                        <p>
+                        <div>
                             <div className="flex items-center justify-center gap-2">
                                 {["M", "T", "W", "Th", "F", "Sa", "Su"].map((day) => (
                                     <span
@@ -36,7 +39,7 @@ const ClassesPage = () => {
                                 ))}
                             </div>
                             Class Schedule: 6:00 PM - 8:00 PM
-                        </p>
+                        </div>
                     </div>
                     <div className="flex gap-2">
                         <Button size="sm">Start Class</Button>
@@ -58,11 +61,17 @@ const ClassesPage = () => {
     return (
         <div className="flex flex-col min-h-screen">
             <Header />
-            <main className="flex-1 px-4 py-8 sm:px-6 grid gap-8">
+            <main className="flex-1 bg-gray-100 px-4 py-8 sm:px-6 grid gap-8">
                 <section>
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold mb-4">Classes</h2>
-                        <Button size="sm">Create New Class</Button>
+                    <CreateClassPopup isOpen={isOpen} setIsOpen={setIsOpen} />
+                    <div className="flex items-center justify-between my-2">
+                        <h2 className="text-2xl font-semibold px-2">My Classes</h2>
+                        <Button size="sm" className="h-7 gap-1">
+                            <PlusCircle className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap" onClick={() => setIsOpen(true)}>
+                                Add Class
+                            </span>
+                        </Button>
                     </div>
                     <div className="grid gap-4">
                         <_classCard />

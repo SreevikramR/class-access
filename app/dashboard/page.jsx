@@ -151,7 +151,7 @@ const Dashboard = () => {
 	return (
 		<div className="flex flex-col min-h-screen">
 			<Header />
-			<main className="flex-1 bg-gray-100 dark:bg-gray-800 p-6 md:p-10 md:pt-8">
+			<main className="flex-1 bg-gray-100 p-6 md:p-10 md:pt-8">
 				<Dialog open={isOpen} onOpenChange={setIsOpen} defaultOpen>
 					<DialogContent className="sm:max-w-[425px]">
 						<DialogHeader>
