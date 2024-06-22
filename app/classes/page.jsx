@@ -76,4 +76,4 @@ const ClassesPage = () => {
     )
 }
 
-export default page
+export default ClassesPage
