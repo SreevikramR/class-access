@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Button } from '../ui/button'
 import { Textarea } from '../ui/textarea'
-import { CircleArrowRight } from 'lucide-react'
+import { CircleArrowRight, CheckCircle } from 'lucide-react'
 import { Avatar, AvatarFallback } from '../ui/avatar'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select'
 
@@ -15,6 +15,10 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [className, setClassName] = useState("")
     const [classDescription, setClassDescription] = useState("")
     const [selectedDays, setSelectedDays] = useState([])
+
+    const handleCreateClass = () => {
+        console.log("Creating class")
+    }
 
     const _classNameAndDescription = () => {
         return (
@@ -50,7 +54,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                     <DialogTitle>Create Class</DialogTitle>
                     <DialogDescription>Select the days for your new class.</DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
+                <div className="grid gap-4 pt-8 py-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center gap-2">
                             <Checkbox id="monday" />
@@ -83,7 +87,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                     </div>
                 </div>
                 <DialogFooter>
-                    <div className='flex justify-between flex-wrap w-full'>
+                    <div className='flex pt-6 justify-between flex-wrap w-full'>
                         <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(0)}>Back</Button>
                         <Button type="button" onClick={() => setClassCreationStep(2)} className="gap-2">Choose Timings<CircleArrowRight className="h-5 w-5" /></Button>
                     </div>
@@ -168,7 +172,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             <div>
                 <DialogHeader>
                     <DialogTitle>Create Class</DialogTitle>
-                    <DialogDescription>Select the students you would like to add to your class</DialogDescription>
+                    <DialogDescription>Select the students you would like to add to your class<br/>You will be able to add more students later.</DialogDescription>
                 </DialogHeader>
                 <div className='pt-3'>
                     <Label htmlFor="searchStudents">Search Students</Label>
@@ -192,13 +196,53 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
         )
     }
 
+    const _reviewDetails = () => {
+        return (
+            <>
+                <DialogHeader>
+                    <DialogTitle>Confirm Class Details</DialogTitle>
+                    <DialogDescription>Review the details of the new class before creating it.</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-6 py-6">
+                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                        <Label htmlFor="class-name">Class Name</Label>
+                        <div>Yoga for Beginners</div>
+                    </div>
+                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                        <Label htmlFor="class-description">Description</Label>
+                        <div>An introductory yoga class focused on basic poses and breathing techniques.</div>
+                    </div>
+                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                        <Label htmlFor="class-days">Days</Label>
+                        <div>Monday, Wednesday, Friday</div>
+                    </div>
+                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                        <Label htmlFor="class-time">Time</Label>
+                        <div>9:00 AM - 10:30 AM</div>
+                    </div>
+                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                        <Label htmlFor="students">Students</Label>
+                        <div>12</div>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <div className='flex justify-between flex-wrap w-full'>
+                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(3)}>Back</Button>
+                        <Button type="button" onClick={handleCreateClass} className="gap-2">Confirm<CheckCircle className="h-5 w-5" /></Button>
+                    </div>
+                </DialogFooter>
+            </>
+        )
+    }
+
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen} defaultOpen>
-            <DialogContent className="sm:max-w-[425px] lg:max-w-[30vw]">
+            <DialogContent className="sm:max-w-[425px] lg:max-w-[32vw]">
                 {classCreationStep === 0 && _classNameAndDescription()}
                 {classCreationStep === 1 && _classDays()}
                 {classCreationStep === 2 && _classTimings()}
                 {classCreationStep === 3 && _studentList()}
+                {classCreationStep === 4 && _reviewDetails()}
             </DialogContent>
         </Dialog>
     )
