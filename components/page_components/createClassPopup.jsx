@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Button } from '../ui/button'
 import { Textarea } from '../ui/textarea'
 import { CircleArrowRight } from 'lucide-react'
-import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar'
+import { Avatar, AvatarFallback } from '../ui/avatar'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select'
 
 const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [classCreationStep, setClassCreationStep] = useState(0)
@@ -84,7 +85,105 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                 <DialogFooter>
                     <div className='flex justify-between flex-wrap w-full'>
                         <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(0)}>Back</Button>
-                        <Button type="button" onClick={() => setClassCreationStep(2)} className="gap-2">Pick Timings<CircleArrowRight className="h-5 w-5" /></Button>
+                        <Button type="button" onClick={() => setClassCreationStep(2)} className="gap-2">Choose Timings<CircleArrowRight className="h-5 w-5" /></Button>
+                    </div>
+                </DialogFooter>
+            </div>
+        )
+    }
+
+    const _classTimings = () => {
+        return (
+            <div>
+                <DialogHeader>
+                    <DialogTitle>Create Class</DialogTitle>
+                    <DialogDescription>Pick the timing for your class</DialogDescription>
+                </DialogHeader>
+
+                <div className="flex flex-row items-center gap-4">
+                    <div className='flex flex-col'>
+                        <Label htmlFor="startTime" className="pt-4 pb-2">Start Time</Label>
+                        <div className='flex flex-row items-center gap-1'>
+                            <Select id="hour">
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="12" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
+                                        <SelectItem key={hour} value={hour}>
+                                            {hour}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <span>:</span>
+                            <Select id="minute">
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="00" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, "0")).map((minute) => (
+                                        <SelectItem key={minute} value={minute}>
+                                            {minute}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select id="ampm">
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="AM" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="AM">AM</SelectItem>
+                                    <SelectItem value="PM">PM</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <div className='flex flex-col'>
+                        <Label htmlFor="startTime" className="pt-4 pb-2">Finish Time</Label>
+                        <div className='flex flex-row items-center gap-1'>
+                            <Select id="hour">
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="12" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
+                                        <SelectItem key={hour} value={hour}>
+                                            {hour}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <span>:</span>
+                            <Select id="minute">
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="00" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, "0")).map((minute) => (
+                                        <SelectItem key={minute} value={minute}>
+                                            {minute}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select id="ampm">
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="AM" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="AM">AM</SelectItem>
+                                    <SelectItem value="PM">PM</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <div className='flex justify-between flex-wrap w-full pt-6'>
+                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(1)}>Back</Button>
+                        <Button type="button" onClick={() => setClassCreationStep(3)} className="gap-2">Add Students<CircleArrowRight className="h-5 w-5" /></Button>
                     </div>
                 </DialogFooter>
             </div>
@@ -120,7 +219,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                     <Input id="searchStudents" placeholder="Enter student name or email" />
                 </div>
 
-                <div className="bg-muted rounded-md p-4 my-4 max-h-[40vh] overflow-y-auto grid gap-2">
+                <div className="bg-muted border-2 rounded-md p-4 my-4 max-h-[40vh] overflow-y-auto grid gap-2">
                     <_studentTileForStudentList/>
                     <_studentTileForStudentList />
                     <_studentTileForStudentList />
@@ -129,8 +228,8 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 
                 <DialogFooter>
                     <div className='flex justify-between flex-wrap w-full'>
-                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(1)}>Back</Button>
-                        <Button type="button" onClick={() => setClassCreationStep(1)} className="gap-2">Verify<CircleArrowRight className="h-5 w-5" /></Button>
+                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(2)}>Back</Button>
+                        <Button type="button" onClick={() => setClassCreationStep(4)} className="gap-2">Verify<CircleArrowRight className="h-5 w-5" /></Button>
                     </div>
                 </DialogFooter>
             </div>
@@ -139,10 +238,11 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen} defaultOpen>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] lg:max-w-[30vw]">
                 {classCreationStep === 0 && _classNameAndDescription()}
                 {classCreationStep === 1 && _classDays()}
-                {classCreationStep === 2 && _studentList()}
+                {classCreationStep === 2 && _classTimings()}
+                {classCreationStep === 3 && _studentList()}
             </DialogContent>
         </Dialog>
     )
