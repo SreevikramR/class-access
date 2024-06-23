@@ -94,41 +94,19 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 
     const _classTimings = () => {
         return (
-            <div>
+            <div className='flex w-full flex-col'>
                 <DialogHeader>
                     <DialogTitle>Create Class</DialogTitle>
                     <DialogDescription>Pick the timing for your class</DialogDescription>
                 </DialogHeader>
 
-                <div className="flex flex-row items-center gap-4">
+                <div className="flex w-full flex-row items-center justify-between">
                     <div className='flex flex-col'>
                         <Label htmlFor="startTime" className="pt-4 pb-2">Start Time</Label>
-                        <div className='flex flex-row items-center gap-1'>
-                            <Select id="hour">
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="12" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
-                                        <SelectItem key={hour} value={hour}>
-                                            {hour}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                        <div className="flex items-center gap-1">
+                            <Input className="w-12 text-center" defaultValue="12" />
                             <span>:</span>
-                            <Select id="minute">
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="00" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, "0")).map((minute) => (
-                                        <SelectItem key={minute} value={minute}>
-                                            {minute}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Input className="w-12 text-center" defaultValue="30" />
                             <Select id="ampm">
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="AM" />
@@ -142,32 +120,10 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                     </div>
                     <div className='flex flex-col'>
                         <Label htmlFor="startTime" className="pt-4 pb-2">Finish Time</Label>
-                        <div className='flex flex-row items-center gap-1'>
-                            <Select id="hour">
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="12" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
-                                        <SelectItem key={hour} value={hour}>
-                                            {hour}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                        <div className="flex items-center gap-1">
+                            <Input className="w-12 text-center" defaultValue="12" />
                             <span>:</span>
-                            <Select id="minute">
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="00" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, "0")).map((minute) => (
-                                        <SelectItem key={minute} value={minute}>
-                                            {minute}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Input className="w-12 text-center" defaultValue="30" />
                             <Select id="ampm">
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="AM" />
