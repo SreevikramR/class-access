@@ -19,7 +19,7 @@ import validator from 'validator'
 import { useToast } from '@/components/ui/use-toast'
 import supabaseClient, { fetchStudentList } from '@/components/util_function/supabaseCilent'
 import fetchTimeout from '@/components/util_function/fetch'
-
+import ZoomButton from '../components/ZoomButton';
 const Dashboard = () => {
 	const [students, setStudents] = useState([])
 	const [email, setEmail] = useState("")
@@ -136,32 +136,7 @@ const Dashboard = () => {
 	}
 	const [meetingDetails, setMeetingDetails] = useState(null);
 
-const ZoomButton = () => {
-  const [meetingLink, setMeetingLink] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const createMeeting = async () => {
-	  setLoading(true);
-	  setError(null);
-
-	  try {
-		  const response = await fetch('/api/zoom-meeting', {
-			  method: 'POST'
-		  });
-
-		  if (!response.ok) {
-			  throw new Error('Failed to create meeting');
-		  }
-
-		  const data = await response.json();
-		  setMeetingLink(data.meetingLink);
-	  } catch (err) {
-		  setError(err.message);
-	  } finally {
-		  setLoading(false);
-	  }
-  }}
 	async function handleStudentFetch() {
 		if (isFetchingStudents) {
 			return
@@ -187,12 +162,14 @@ const ZoomButton = () => {
 						<form className="space-y-4">
 							<div className="space-y-2">
 								<Label htmlFor="email">Email</Label>
-								<Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+								<Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+									   required/>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="numClasses">Classes Balance</Label>
 								<div className="flex items-center gap-2">
-									<Button type="button" variant="outline" onClick={() => setNumClasses(Math.max(0, numClasses - 1))}>
+									<Button type="button" variant="outline"
+											onClick={() => setNumClasses(Math.max(0, numClasses - 1))}>
 										-
 									</Button>
 									<Input
@@ -203,17 +180,19 @@ const ZoomButton = () => {
 										min={0}
 										className="w-16 text-center"
 									/>
-									<Button type="button" variant="outline" onClick={() => setNumClasses(numClasses + 1)}>
+									<Button type="button" variant="outline"
+											onClick={() => setNumClasses(numClasses + 1)}>
 										+
 									</Button>
 								</div>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="notes">Notes</Label>
-								<Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+								<Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)}/>
 							</div>
 							<DialogFooter>
-								<Button type="button" onClick={handleNewStudentSubmit} className={`${isCreatingUser ? "cursor-progress" : ""}`}>Submit</Button>
+								<Button type="button" onClick={handleNewStudentSubmit}
+										className={`${isCreatingUser ? "cursor-progress" : ""}`}>Submit</Button>
 								<div>
 									<Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
 								</div>
@@ -298,7 +277,7 @@ const ZoomButton = () => {
 							</TabsList>
 							<div className="ml-auto flex items-center gap-2">
 								<div className="relative ml-auto flex-1 md:grow-0">
-									<Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+									<Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"/>
 									<Input
 										type="search"
 										placeholder="Search..."
@@ -308,7 +287,7 @@ const ZoomButton = () => {
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
 										<Button variant="outline" size="sm" className="h-7 gap-1">
-											<SortDescIcon className="h-3.5 w-3.5" />
+											<SortDescIcon className="h-3.5 w-3.5"/>
 											<span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
 												Sort
 											</span>
@@ -316,7 +295,7 @@ const ZoomButton = () => {
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end">
 										<DropdownMenuLabel>Sort by</DropdownMenuLabel>
-										<DropdownMenuSeparator />
+										<DropdownMenuSeparator/>
 										<DropdownMenuCheckboxItem checked>
 											Name
 										</DropdownMenuCheckboxItem>
@@ -327,7 +306,7 @@ const ZoomButton = () => {
 									</DropdownMenuContent>
 								</DropdownMenu>
 								<Button size="sm" className="h-7 gap-1" onClick={() => setIsOpen(true)}>
-									<PlusCircle className="h-3.5 w-3.5" />
+									<PlusCircle className="h-3.5 w-3.5"/>
 									<span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
 										Add Student
 									</span>
@@ -357,26 +336,25 @@ const ZoomButton = () => {
 									</TableBody>
 								</Table>
 							</CardContent>
-						) : ( (isFetchingStudents) ? (<CardContent className="p-8 pt-0 text-gray-500">Loading Student Information...</CardContent>) : (
-							<CardContent className="p-8 pt-0 text-gray-500">Please add students using the option at the top right to view them here</CardContent>
-						)) }
+						) : ((isFetchingStudents) ? (<CardContent className="p-8 pt-0 text-gray-500">Loading Student
+							Information...</CardContent>) : (
+							<CardContent className="p-8 pt-0 text-gray-500">Please add students using the option at the
+								top right to view them here</CardContent>
+						))}
 					</Card>
 				</div>
 				<div>
 
-    </div>
-
+				</div>
+				<div>
+					<h1>Zoom Meeting Creator</h1>
+					<ZoomButton/>
+				</div>
 				<Button onClick={handleStudentFetch}>Fetch Test</Button>
-				<Button onClick={createMeeting}>Create Zoom</Button>
-				{meetingDetails && (
-        <div>
-          <h2>Meeting Created</h2>
-          <p>Join URL: {meetingDetails.join_url}</p>
-          <p>Meeting ID: {meetingDetails.id}</p>
-        </div>
-      )}
+
+
 			</main>
-			<Footer />
+			<Footer/>
 		</div>
 
 
