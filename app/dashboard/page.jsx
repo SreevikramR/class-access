@@ -134,7 +134,17 @@ const Dashboard = () => {
 		handleStudentFetch()
 		setIsOpen(false)
 	}
+	const [meetingDetails, setMeetingDetails] = useState(null);
 
+  const createMeeting = async () => {
+    try {
+      const response = await fetch('/api/zoom/create_meeting/create-meeting', { method: 'POST' });
+      const data = await response.json();
+      setMeetingDetails(data);
+    } catch (error) {
+      console.error('Error creating meeting:', error);
+    }
+  };
 	async function handleStudentFetch() {
 		if (isFetchingStudents) {
 			return
@@ -335,11 +345,26 @@ const Dashboard = () => {
 						)) }
 					</Card>
 				</div>
+				<div>
+
+    </div>
+
 				<Button onClick={handleStudentFetch}>Fetch Test</Button>
+				<Button onClick={createMeeting}>Create Zoom</Button>
+				{meetingDetails && (
+        <div>
+          <h2>Meeting Created</h2>
+          <p>Join URL: {meetingDetails.join_url}</p>
+          <p>Meeting ID: {meetingDetails.id}</p>
+        </div>
+      )}
 			</main>
 			<Footer />
 		</div>
+
+
 	)
+
 }
 
 export default Dashboard
