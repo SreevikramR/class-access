@@ -10,7 +10,7 @@ const ZoomButton = () => {
     setError(null);
 
     try {
-      const response = await fetch('/api/zoom-meeting', {
+      const response = await fetch('/api/zoom/create_meeting' , {
         method: 'POST'
       });
 
