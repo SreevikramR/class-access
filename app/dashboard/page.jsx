@@ -136,18 +136,32 @@ const Dashboard = () => {
 	}
 	const [meetingDetails, setMeetingDetails] = useState(null);
 
+const ZoomButton = () => {
+  const [meetingLink, setMeetingLink] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const createMeeting = async () => {
-    try {
-      const response = await fetch('/api/zoom/create_meeting', { method: 'POST' });
-      if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
-    }
-	  const data = await response.json();
-      setMeetingDetails(data);
-    } catch (error) {
-      console.error('Error creating meeting:', error);
-    }
-  };
+	  setLoading(true);
+	  setError(null);
+
+	  try {
+		  const response = await fetch('/api/zoom-meeting', {
+			  method: 'POST'
+		  });
+
+		  if (!response.ok) {
+			  throw new Error('Failed to create meeting');
+		  }
+
+		  const data = await response.json();
+		  setMeetingLink(data.meetingLink);
+	  } catch (err) {
+		  setError(err.message);
+	  } finally {
+		  setLoading(false);
+	  }
+  }}
 	async function handleStudentFetch() {
 		if (isFetchingStudents) {
 			return

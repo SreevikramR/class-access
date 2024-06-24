@@ -1,40 +1,51 @@
-import jwt from 'jsonwebtoken';
 import axios from 'axios';
+import qs from 'querystring';
 
-export async function POST(req) {
+const zoomAuthUrl = 'https://zoom.us/oauth/token';
+const zoomMeetingUrl = 'https://api.zoom.us/v2/users/me/meetings';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
+
+  const { ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET } = process.env;
+
   try {
-    const payload = {
-      iss: process.env.ZOOM_API_KEY,
-      exp: ((new Date()).getTime() + 5000)
-    };
-    const token = jwt.sign(payload, process.env.ZOOM_API_SECRET);
-
-    const response = await axios.post(
-      'https://api.zoom.us/v2/users/me/meetings',
-      {
-        topic: 'My Zoom Meeting',
-        type: 2,
-        start_time: new Date().toISOString(),
-        duration: 60,
-        timezone: 'America/New_York',
-      },
+    const tokenResponse = await axios.post(
+      zoomAuthUrl,
+      qs.stringify({
+        grant_type: 'client_credentials'
+      }),
       {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+          Authorization: `Basic ${Buffer.from(`${ZOOM_CLIENT_ID}:${ZOOM_CLIENT_SECRET}`).toString('base64')}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
       }
     );
 
-    return new Response(JSON.stringify(response.data), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const accessToken = tokenResponse.data.access_token;
+
+    const meetingResponse = await axios.post(
+      zoomMeetingUrl,
+      {
+        topic: 'New Meeting',
+        type: 1
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    const meetingLink = meetingResponse.data.join_url;
+
+    res.status(200).json({ meetingLink });
   } catch (error) {
-    console.error('Error creating Zoom meeting:', error.response ? error.response.data : error.message);
-    return new Response(JSON.stringify({ error: 'Failed to create Zoom meeting' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error(error);
+    res.status(500).json({ message: 'Error creating Zoom meeting' });
   }
 }
