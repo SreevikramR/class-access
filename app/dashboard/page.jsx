@@ -138,8 +138,11 @@ const Dashboard = () => {
 
   const createMeeting = async () => {
     try {
-      const response = await fetch('/api/zoom/create_meeting/create-meeting', { method: 'POST' });
-      const data = await response.json();
+      const response = await fetch('/api/zoom/create_meeting', { method: 'POST' });
+      if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+	  const data = await response.json();
       setMeetingDetails(data);
     } catch (error) {
       console.error('Error creating meeting:', error);
