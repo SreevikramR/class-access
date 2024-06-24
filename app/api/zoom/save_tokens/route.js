@@ -1,4 +1,4 @@
-// app/api/users/new-student/route.js
+// app/api/zoom/save_tokens/route.js
 
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';

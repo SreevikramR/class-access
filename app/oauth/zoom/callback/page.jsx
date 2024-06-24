@@ -72,6 +72,32 @@ const CodeComponent = () => {
         }
     }
 
+    async function handleRetrieveZoomToken() {
+        const url = new URL(`${window.location.origin}/api/zoom/retrieve_tokens`)
+        const jwt = await supabaseClient.auth.getSession().then((response) => {
+            return response.data.session.access_token
+        })
+        const supabaseRefresh = await supabaseClient.auth.getSession().then((response) => {
+            return response.data.session.refresh_token
+        })
+        const headers = {
+            'jwt': jwt,
+            'supabase_refresh': supabaseRefresh,
+        }
+        try {
+            const response = await fetchTimeout(url, 10000, { method: 'GET', headers: headers, signal })
+            const data = await response.json()
+            console.log(data)
+        } catch (error) {
+            if (error.name === "AbortError") {
+                console.log("request timed out")
+            } else {
+                console.log("request failed")
+                console.log(error)
+            }
+        }
+    }
+
     return (
         <div>
             <div>User code: {JSON.stringify(code)}</div>
@@ -80,6 +106,9 @@ const CodeComponent = () => {
 			</div>
             <div className="cursor-pointer p-3 border-2 rounded-lg border-black" onClick={() => handleStoreZoomToken()}>
                 Test Token Store
+            </div>
+            <div className="cursor-pointer p-3 border-2 rounded-lg border-black" onClick={() => handleRetrieveZoomToken()}>
+                Test Token Retrieve
             </div>
         </div>
     )
