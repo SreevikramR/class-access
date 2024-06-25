@@ -9,16 +9,58 @@ import { Textarea } from '../ui/textarea'
 import { CircleArrowRight, CheckCircle } from 'lucide-react'
 import { Avatar, AvatarFallback } from '../ui/avatar'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select'
+import { supabase } from '@/app/api/classes/supabaseClient'
 
 const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [classCreationStep, setClassCreationStep] = useState(0)
     const [className, setClassName] = useState("")
     const [classDescription, setClassDescription] = useState("")
     const [selectedDays, setSelectedDays] = useState([])
+    const [startTime, setStartTime] = useState({ hour: "12", minute: "00", ampm: "AM" })
+    const [endTime, setEndTime] = useState({ hour: "01", minute: "00", ampm: "AM" })
+    const [selectedStudents, setSelectedStudents] = useState([])
 
-    const handleCreateClass = () => {
-        console.log("Creating class")
+        const handleCreateClass = async () => {
+        const classData = {
+            name: className,
+            description: classDescription,
+            days: selectedDays,
+            start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
+            end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
+        }
+
+        try {
+            // Insert class data
+            const { data: classInsertData, error: classError } = await supabase
+                .from('classes')
+                .insert([classData])
+                .select()
+
+            if (classError) throw classError
+
+            const classId = classInsertData[0].id
+
+            // Insert student enrollments
+            const enrollments = selectedStudents.map(studentId => ({
+                class_id: classId,
+                student_id: studentId
+            }))
+
+            const { error: enrollmentError } = await supabase
+                .from('class_enrollments')
+                .insert(enrollments)
+
+            if (enrollmentError) throw enrollmentError
+
+            console.log("Class created successfully!")
+            setIsOpen(false)
+            // You might want to add some success notification here
+        } catch (error) {
+            console.error("Error creating class:", error)
+            // You might want to add some error notification here
+        }
     }
+
 
     const _classNameAndDescription = () => {
         return (
@@ -47,7 +89,8 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
         )
     }
 
-    const _classDays = () => {
+const _classDays = () => {
+        const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
         return (
             <div>
                 <DialogHeader>
@@ -56,34 +99,22 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                 </DialogHeader>
                 <div className="grid gap-4 pt-8 py-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2">
-                            <Checkbox id="monday" />
-                            <Label htmlFor="monday">Monday</Label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Checkbox id="tuesday" />
-                            <Label htmlFor="tuesday">Tuesday</Label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Checkbox id="wednesday" />
-                            <Label htmlFor="wednesday">Wednesday</Label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Checkbox id="thursday" />
-                            <Label htmlFor="thursday">Thursday</Label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Checkbox id="friday" />
-                            <Label htmlFor="friday">Friday</Label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Checkbox id="saturday" />
-                            <Label htmlFor="saturday">Saturday</Label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Checkbox id="sunday" />
-                            <Label htmlFor="sunday">Sunday</Label>
-                        </div>
+                        {days.map(day => (
+                            <div key={day} className="flex items-center gap-2">
+                                <Checkbox
+                                    id={day}
+                                    checked={selectedDays.includes(day)}
+                                    onCheckedChange={(checked) => {
+                                        if (checked) {
+                                            setSelectedDays([...selectedDays, day])
+                                        } else {
+                                            setSelectedDays(selectedDays.filter(d => d !== day))
+                                        }
+                                    }}
+                                />
+                                <Label htmlFor={day}>{day.charAt(0).toUpperCase() + day.slice(1)}</Label>
+                            </div>
+                        ))}
                     </div>
                 </div>
                 <DialogFooter>
@@ -95,7 +126,6 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             </div>
         )
     }
-
     const _classTimings = () => {
         return (
             <div className='flex w-full flex-col'>
@@ -108,10 +138,21 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                     <div className='flex flex-col'>
                         <Label htmlFor="startTime" className="pt-4 pb-2">Start Time</Label>
                         <div className="flex items-center gap-1">
-                            <Input className="w-12 text-center" defaultValue="12" />
+                            <Input
+                                className="w-12 text-center"
+                                value={startTime.hour}
+                                onChange={(e) => setStartTime({...startTime, hour: e.target.value})}
+                            />
                             <span>:</span>
-                            <Input className="w-12 text-center" defaultValue="30" />
-                            <Select id="ampm">
+                            <Input
+                                className="w-12 text-center"
+                                value={startTime.minute}
+                                onChange={(e) => setStartTime({...startTime, minute: e.target.value})}
+                            />
+                            <Select
+                                value={startTime.ampm}
+                                onValueChange={(value) => setStartTime({...startTime, ampm: value})}
+                            >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="AM" />
                                 </SelectTrigger>
@@ -123,12 +164,23 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                         </div>
                     </div>
                     <div className='flex flex-col'>
-                        <Label htmlFor="startTime" className="pt-4 pb-2">Finish Time</Label>
+                        <Label htmlFor="endTime" className="pt-4 pb-2">Finish Time</Label>
                         <div className="flex items-center gap-1">
-                            <Input className="w-12 text-center" defaultValue="12" />
+                            <Input
+                                className="w-12 text-center"
+                                value={endTime.hour}
+                                onChange={(e) => setEndTime({...endTime, hour: e.target.value})}
+                            />
                             <span>:</span>
-                            <Input className="w-12 text-center" defaultValue="30" />
-                            <Select id="ampm">
+                            <Input
+                                className="w-12 text-center"
+                                value={endTime.minute}
+                                onChange={(e) => setEndTime({...endTime, minute: e.target.value})}
+                            />
+                            <Select
+                                value={endTime.ampm}
+                                onValueChange={(value) => setEndTime({...endTime, ampm: value})}
+                            >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="AM" />
                                 </SelectTrigger>
@@ -235,7 +287,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
         )
     }
 
-    return (
+     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen} defaultOpen>
             <DialogContent className="sm:max-w-[425px] lg:max-w-[32vw]">
                 {classCreationStep === 0 && _classNameAndDescription()}
