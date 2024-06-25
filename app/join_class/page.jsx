@@ -1,9 +1,15 @@
+"use client"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import StudentOnboardingPopup from "@/components/page_components/studentOnboardingPopup"
+import { useState } from "react"
 
 export default function Component() {
+    const [isOpen, setIsOpen] = useState(true)
+
     return (
-        <div className="flex flex-col items-center justify-center h-screen bg-background">
+        <main className="flex flex-col items-center justify-center h-screen">
+            <StudentOnboardingPopup isOpen={isOpen} setIsOpen={setIsOpen} />
             <Card className="w-full max-w-md p-6 space-y-4">
                 <div className="flex flex-col items-center space-y-2">
                     <div className="inline-block rounded-lg px-3 py-1 text-sm font-medium">
@@ -20,6 +26,6 @@ export default function Component() {
                     <Button className="w-full">Join Class</Button>
                 </div>
             </Card>
-        </div>
+        </main>
     )
 }
