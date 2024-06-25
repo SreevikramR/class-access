@@ -15,6 +15,3 @@ export const fetchStudentList = async (teacherUUID) => {
 }
 
 export default supabaseClient
-
-export class supabaseClient {
-}
