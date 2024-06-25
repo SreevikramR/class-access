@@ -10,6 +10,7 @@ import { CircleArrowRight, CheckCircle } from 'lucide-react'
 import { Avatar, AvatarFallback } from '../ui/avatar'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select'
 import { supabase } from '@/app/api/classes/supabaseClient'
+import {error} from "next/dist/build/output/log";
 
 const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [classCreationStep, setClassCreationStep] = useState(0)
@@ -19,6 +20,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [startTime, setStartTime] = useState({ hour: "12", minute: "00", ampm: "AM" })
     const [endTime, setEndTime] = useState({ hour: "01", minute: "00", ampm: "AM" })
     const [selectedStudents, setSelectedStudents] = useState([])
+        const [error, setError] = useState('')
 
         const handleCreateClass = async () => {
         const classData = {
@@ -67,7 +69,7 @@ if (authError || !user) {
     }
 
 
-    const _classNameAndDescription = () => {
+const _classNameAndDescription = () => {
         return (
             <div>
                 <DialogHeader>
@@ -86,15 +88,22 @@ if (authError || !user) {
                     <DialogFooter>
                         <div className='flex justify-between flex-wrap w-full'>
                             <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-                            <Button type="button" onClick={() => setClassCreationStep(1)} className="gap-2">Pick Days<CircleArrowRight className="h-5 w-5" /></Button>
+                            <Button type="button" onClick={() => {
+                                if (!className) {
+                                    setError('Class name is required.');
+                                    return;
+                                }
+                                setError('');
+                                setClassCreationStep(1);
+                            }} className="gap-2">Pick Days<CircleArrowRight className="h-5 w-5" /></Button>
                         </div>
                     </DialogFooter>
                 </form>
+                {error && <p style={{ color: 'red' }}>{error}</p>}
             </div>
         )
     }
-
-const _classDays = () => {
+    const _classDays = () => {
         const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
         return (
             <div>
@@ -125,9 +134,17 @@ const _classDays = () => {
                 <DialogFooter>
                     <div className='flex pt-6 justify-between flex-wrap w-full'>
                         <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(0)}>Back</Button>
-                        <Button type="button" onClick={() => setClassCreationStep(2)} className="gap-2">Choose Timings<CircleArrowRight className="h-5 w-5" /></Button>
+                        <Button type="button" onClick={() => {
+                            if (selectedDays.length === 0) {
+                                setError('At least one day must be selected.');
+                                return;
+                            }
+                            setError('');
+                            setClassCreationStep(2);
+                        }} className="gap-2">Choose Timings<CircleArrowRight className="h-5 w-5" /></Button>
                     </div>
                 </DialogFooter>
+                {error && <p style={{ color: 'red' }}>{error}</p>}
             </div>
         )
     }
@@ -237,58 +254,86 @@ const _classDays = () => {
                 </div>
 
                 <div className="bg-muted border-2 rounded-md p-4 my-4 max-h-[40vh] overflow-y-auto grid gap-2">
-                    <_studentTileForStudentList/>
-                    <_studentTileForStudentList />
-                    <_studentTileForStudentList />
+                    {_studentTileForStudentList()}
+                    {_studentTileForStudentList()}
+                    {_studentTileForStudentList()}
                 </div>
 
 
                 <DialogFooter>
                     <div className='flex justify-between flex-wrap w-full'>
                         <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(2)}>Back</Button>
-                        <Button type="button" onClick={() => setClassCreationStep(4)} className="gap-2">Verify<CircleArrowRight className="h-5 w-5" /></Button>
+                        <Button type="button" onClick={() => {
+                            if (selectedStudents.length === 0) {
+                                setError('At least one student must be selected.');
+                                return;
+                            }
+                            setError('');
+                            setClassCreationStep(4);
+                        }} className="gap-2">Verify<CircleArrowRight className="h-5 w-5" /></Button>
                     </div>
                 </DialogFooter>
+                {error && <p style={{ color: 'red' }}>{error}</p>}
             </div>
         )
     }
-
     const _reviewDetails = () => {
+        const classData = {
+        name: className,
+        description: classDescription,
+        days: selectedDays,
+        startTime: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
+        endTime: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
+        capacity: selectedStudents.length, // Assuming capacity is the number of selected students
+
+        isOnline: 'link goes here',
+        onlineLink: 'link goes here',
+
+    };
         return (
-            <>
-                <DialogHeader>
-                    <DialogTitle>Confirm Class Details</DialogTitle>
-                    <DialogDescription>Review the details of the new class before creating it.</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-6 py-6">
-                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                        <Label htmlFor="class-name">Class Name</Label>
-                        <div>Yoga for Beginners</div>
-                    </div>
-                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                        <Label htmlFor="class-description">Description</Label>
-                        <div>An introductory yoga class focused on basic poses and breathing techniques.</div>
-                    </div>
-                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                        <Label htmlFor="class-days">Days</Label>
-                        <div>Monday, Wednesday, Friday</div>
-                    </div>
-                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                        <Label htmlFor="class-time">Time</Label>
-                        <div>9:00 AM - 10:30 AM</div>
-                    </div>
-                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                        <Label htmlFor="students">Students</Label>
-                        <div>12</div>
-                    </div>
+
+        <>
+            <DialogHeader>
+                <DialogTitle>Confirm Class Details</DialogTitle>
+                <DialogDescription>Review the details of the new class before creating it.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-6 py-6">
+                <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                    <Label htmlFor="class-name">Class Name</Label>
+                    <div>{classData.name}</div>
                 </div>
-                <DialogFooter>
-                    <div className='flex justify-between flex-wrap w-full'>
-                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(3)}>Back</Button>
-                        <Button type="button" onClick={handleCreateClass} className="gap-2">Confirm<CheckCircle className="h-5 w-5" /></Button>
+
+                <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                    <Label htmlFor="class-description">Description</Label>
+                    <div>{classData.description}</div>
+                </div>
+                <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                    <Label htmlFor="class-days">Days</Label>
+                    <div>{classData.days.join(", ")}</div>
+                </div>
+                <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                    <Label htmlFor="class-time">Time</Label>
+                    <div>{`${classData.startTime} - ${classData.endTime}`}</div>
+                </div>
+                <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                    <Label htmlFor="students">Capacity</Label>
+                    <div>{classData.capacity}</div>
+                </div>
+                {classData.isOnline && (
+                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                        <Label htmlFor="online-link">Online Link</Label>
+                        <div>{classData.onlineLink}</div>
                     </div>
-                </DialogFooter>
-            </>
+                )}
+
+            </div>
+            <DialogFooter>
+                <div className='flex justify-between flex-wrap w-full'>
+                    <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(3)}>Back</Button>
+                    <Button type="button" onClick={handleCreateClass} className="gap-2">Confirm<CheckCircle className="h-5 w-5" /></Button>
+                </div>
+            </DialogFooter>
+        </>
         )
     }
 
