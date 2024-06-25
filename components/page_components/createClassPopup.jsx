@@ -28,7 +28,12 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
             end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
         }
-
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+if (authError || !user) {
+  console.error('Authentication error:', authError)
+  // Handle unauthenticated user
+  return
+}
         try {
             // Insert class data
             const { data: classInsertData, error: classError } = await supabase
