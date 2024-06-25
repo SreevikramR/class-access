@@ -120,7 +120,7 @@ const _classNameAndDescription = () => {
         )
     }
     const _classDays = () => {
-        const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         return (
             <div>
                 <DialogHeader>
