@@ -9,7 +9,7 @@ import { Textarea } from '../ui/textarea'
 import { CircleArrowRight, CheckCircle } from 'lucide-react'
 import { Avatar, AvatarFallback } from '../ui/avatar'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select'
-import { supabase } from '@/app/api/classes/supabaseClient'
+import { supabaseClient } from 'components/util_function/supabaseCilent.js'
 import {error} from "next/dist/build/output/log";
 import {useToast} from "@/components/ui/use-toast";
 
@@ -31,7 +31,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
             end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
         }
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
 if (authError || !user) {
   console.error('Authentication error:', authError)
   // Handle unauthenticated user
@@ -39,7 +39,7 @@ if (authError || !user) {
 }
         try {
             // Insert class data
-            const { data: classInsertData, error: classError } = await supabase
+            const { data: classInsertData, error: classError } = await supabaseClient
                 .from('classes')
                 .insert([classData])
                 .select()
@@ -54,7 +54,7 @@ if (authError || !user) {
                 student_id: studentId
             }))
 
-            const { error: enrollmentError } = await supabase
+            const { error: enrollmentError } = await supabaseClient
                 .from('class_enrollments')
                 .insert(enrollments)
 
