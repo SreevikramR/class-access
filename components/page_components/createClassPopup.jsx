@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from '../ui/avatar'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select'
 import { supabase } from '@/app/api/classes/supabaseClient'
 import {error} from "next/dist/build/output/log";
+import {useToast} from "@/components/ui/use-toast";
 
 const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [classCreationStep, setClassCreationStep] = useState(0)
@@ -20,8 +21,8 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [startTime, setStartTime] = useState({ hour: "12", minute: "00", ampm: "AM" })
     const [endTime, setEndTime] = useState({ hour: "01", minute: "00", ampm: "AM" })
     const [selectedStudents, setSelectedStudents] = useState([])
-        const [error, setError] = useState('')
-
+    const [error, setError] = useState('')
+    const { toast } = useToast()
         const handleCreateClass = async () => {
         const classData = {
             name: className,
@@ -60,11 +61,23 @@ if (authError || !user) {
             if (enrollmentError) throw enrollmentError
 
             console.log("Class created successfully!")
+            toast({
+			className: "bg-green-500 border-black border-2",
+			title: "Class Successfully Added",
+			description: "The new class has been added to your class",
+			duration: 3000
+		})
             setIsOpen(false)
             // You might want to add some success notification here
         } catch (error) {
+            setIsOpen(false)
             console.error("Error creating class:", error)
-            // You might want to add some error notification here
+            toast({
+			className: "bg-green-500 border-black border-2",
+			title: "Class Successfully Added",
+			description: "The new class has been added to your class",
+			duration: 3000
+		})
         }
     }
 
@@ -90,16 +103,19 @@ const _classNameAndDescription = () => {
                             <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
                             <Button type="button" onClick={() => {
                                 if (!className) {
-                                    setError('Class name is required.');
-                                    return;
+                                    // setError('Class name is required.');
+                                    toast({ title: 'Alert', description: 'Class name is required.',variant: "destructive", })
+                                    return
                                 }
-                                setError('');
                                 setClassCreationStep(1);
+
+
+
                             }} className="gap-2">Pick Days<CircleArrowRight className="h-5 w-5" /></Button>
                         </div>
                     </DialogFooter>
                 </form>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
+
             </div>
         )
     }
@@ -136,15 +152,16 @@ const _classNameAndDescription = () => {
                         <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(0)}>Back</Button>
                         <Button type="button" onClick={() => {
                             if (selectedDays.length === 0) {
-                                setError('At least one day must be selected.');
-                                return;
+
+                                toast({ title: 'Alert', description: 'At least one day must be selected.',variant: "destructive" })
+                                return
                             }
-                            setError('');
+
                             setClassCreationStep(2);
                         }} className="gap-2">Choose Timings<CircleArrowRight className="h-5 w-5" /></Button>
                     </div>
                 </DialogFooter>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
+
             </div>
         )
     }
@@ -224,59 +241,76 @@ const _classNameAndDescription = () => {
         )
     }
 
-    const _studentTileForStudentList = () => {
-        return (
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Avatar>
-                        <AvatarFallback className="bg-white">JS</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <p className="font-medium">Jane Smith</p>
-                        <p className="text-muted-foreground text-sm">jane.smith@example.com</p>
-                    </div>
+const _studentTileForStudentList = (student) => {
+    const isSelected = selectedStudents.includes(student.id);
+
+    return (
+        <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+                <Avatar>
+                    <AvatarFallback className="bg-white">{student.initials}</AvatarFallback>
+                </Avatar>
+                <div>
+                    <p className="font-medium">{student.name}</p>
+                    <p className="text-muted-foreground text-sm">{student.email}</p>
                 </div>
-                <Checkbox value="jane.smith@example.com" />
             </div>
-        )
-    }
+            <Checkbox
+                checked={isSelected}
+                onCheckedChange={(checked) => {
+                    if (checked) {
+                        setSelectedStudents([...selectedStudents, student.id]);
+                    } else {
+                        setSelectedStudents(selectedStudents.filter(id => id !== student.id));
+                    }
+                }}
+            />
+        </div>
+    )
+}
 
-    const _studentList = () => {
-        return (
-            <div>
-                <DialogHeader>
-                    <DialogTitle>Create Class</DialogTitle>
-                    <DialogDescription>Select the students you would like to add to your class<br/>You will be able to add more students later.</DialogDescription>
-                </DialogHeader>
-                <div className='pt-3'>
-                    <Label htmlFor="searchStudents">Search Students</Label>
-                    <Input id="searchStudents" placeholder="Enter student name or email" />
-                </div>
+ const _studentList = () => {
+    // Assume you have a list of students, if not, you'll need to fetch this data
+    const students = [
+        { id: 1, name: "Jane Smith", email: "jane.smith@example.com", initials: "JS" },
+        { id: 2, name: "John Doe", email: "john.doe@example.com", initials: "JD" },
+        { id: 3, name: "Alice Johnson", email: "alice.johnson@example.com", initials: "AJ" },
+    ];// we will replace this from the databse just for testing changed tile code
 
-                <div className="bg-muted border-2 rounded-md p-4 my-4 max-h-[40vh] overflow-y-auto grid gap-2">
-                    {_studentTileForStudentList()}
-                    {_studentTileForStudentList()}
-                    {_studentTileForStudentList()}
-                </div>
-
-
-                <DialogFooter>
-                    <div className='flex justify-between flex-wrap w-full'>
-                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(2)}>Back</Button>
-                        <Button type="button" onClick={() => {
-                            if (selectedStudents.length === 0) {
-                                setError('At least one student must be selected.');
-                                return;
-                            }
-                            setError('');
-                            setClassCreationStep(4);
-                        }} className="gap-2">Verify<CircleArrowRight className="h-5 w-5" /></Button>
-                    </div>
-                </DialogFooter>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
+    return (
+        <div>
+            <DialogHeader>
+                <DialogTitle>Create Class</DialogTitle>
+                <DialogDescription>Select the students you would like to add to your class<br/>You will be able to add more students later.</DialogDescription>
+            </DialogHeader>
+            <div className='pt-3'>
+                <Label htmlFor="searchStudents">Search Students</Label>
+                <Input id="searchStudents" placeholder="Enter student name or email" />
             </div>
-        )
-    }
+
+            <div className="bg-muted border-2 rounded-md p-4 my-4 max-h-[40vh] overflow-y-auto grid gap-2">
+                {students.map(student => _studentTileForStudentList(student))}
+            </div>
+
+            <DialogFooter>
+                <div className='flex justify-between flex-wrap w-full'>
+                    <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(2)}>Back</Button>
+                    <Button type="button" onClick={() => {
+                        if (selectedStudents.length === 0) {
+                            toast({
+                                title: 'Alert',
+                                description: 'At least one student must be selected.',
+                                variant: "destructive"
+                            })
+                            return
+                        }
+                        setClassCreationStep(4);
+                    }} className="gap-2">Verify<CircleArrowRight className="h-5 w-5" /></Button>
+                </div>
+            </DialogFooter>
+        </div>
+    )
+}
     const _reviewDetails = () => {
         const classData = {
         name: className,
