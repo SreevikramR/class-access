@@ -1,0 +1,25 @@
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+
+export default function Component() {
+    return (
+        <div className="flex flex-col items-center justify-center h-screen bg-background">
+            <Card className="w-full max-w-md p-6 space-y-4">
+                <div className="flex flex-col items-center space-y-2">
+                    <div className="inline-block rounded-lg px-3 py-1 text-sm font-medium">
+                        You've been invited to join
+                    </div>
+                    <h2 className="text-2xl font-bold">Introduction to Web Development</h2>
+                    <p className="text-muted-foreground">Taught by John Doe</p>
+                    <p className="text-muted-foreground">Tuesdays and Thursdays, 7pm - 9pm</p>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" className="w-full">
+                        Decline
+                    </Button>
+                    <Button className="w-full">Join Class</Button>
+                </div>
+            </Card>
+        </div>
+    )
+}
