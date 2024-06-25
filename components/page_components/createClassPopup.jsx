@@ -9,7 +9,7 @@ import { Textarea } from '../ui/textarea'
 import { CircleArrowRight, CheckCircle } from 'lucide-react'
 import { Avatar, AvatarFallback } from '../ui/avatar'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select'
-import { supabaseClient } from 'components/util_function/supabaseCilent'
+import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import {error} from "next/dist/build/output/log";
 import {useToast} from "@/components/ui/use-toast";
 
