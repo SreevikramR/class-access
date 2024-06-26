@@ -36,7 +36,7 @@ export default function Component() {
                 <div className="max-w-md p-6 rounded-lg bg-card">
                     <div className="flex flex-col items-center space-y-4 text-center">
                         <CircleCheckIcon className="text-green-500 size-12" />
-                        <h1 className="text-3xl font-bold">You're all set!</h1>
+                        <h1 className="text-3xl font-bold">You&#39;re all set!</h1>
                         <p className="text-muted-foreground">
                             Great! You&#39;ve successfully joined the class. Be sure to join at the scheduled time to participate.
                         </p>
