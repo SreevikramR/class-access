@@ -19,7 +19,7 @@ const ClassesPage = ({ teacherId }) => {
             const { data, error } = await supabaseClient
                 .from('classes')
                 .select('*')
-                .eq('teacher_id', teacherId)
+                .eq('teacher_id', (await supabaseClient.auth.getUser()).data.user.id)
                 
             if (error) {
                 console.error('Error fetching classes:', error)
