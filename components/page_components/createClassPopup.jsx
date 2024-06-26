@@ -28,8 +28,10 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             name: className,
             description: classDescription,
             days: selectedDays,
+            // teacher_id: "",
             start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
             end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
+            students: selectedStudents,//this will send student id to supabase in an array
         }
         const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
 if (authError || !user) {
@@ -46,19 +48,9 @@ if (authError || !user) {
 
             if (classError) throw classError
 
-            const classId = classInsertData[0].id
-
             // Insert student enrollments
-            const enrollments = selectedStudents.map(studentId => ({
-                class_id: classId,
-                student_id: studentId
-            }))
 
-            const { error: enrollmentError } = await supabaseClient
-                .from('class_enrollments')
-                .insert(enrollments)
 
-            if (enrollmentError) throw enrollmentError
 
             console.log("Class created successfully!")
             toast({
@@ -73,9 +65,9 @@ if (authError || !user) {
             setIsOpen(false)
             console.error("Error creating class:", error)
             toast({
-			className: "bg-green-500 border-black border-2",
-			title: "Class Successfully Added",
-			description: "The new class has been added to your class",
+			variant:'destructive',
+			title: "Failed to creating classes",
+			description: "Try again.",
 			duration: 3000
 		})
         }
@@ -142,7 +134,7 @@ const _classNameAndDescription = () => {
                                         }
                                     }}
                                 />
-                                <Label htmlFor={day}>{day.charAt(0).toUpperCase() + day.slice(1)}</Label>
+                                <Label htmlFor={day}>{day}</Label>
                             </div>
                         ))}
                     </div>
@@ -153,7 +145,7 @@ const _classNameAndDescription = () => {
                         <Button type="button" onClick={() => {
                             if (selectedDays.length === 0) {
 
-                                toast({ title: 'Alert', description: 'At least one day must be selected.',variant: "destructive" })
+                                toast({ title: 'Alert', description: 'Please select at least one day',variant: "destructive" })
                                 return
                             }
 
@@ -350,7 +342,7 @@ const _studentTileForStudentList = (student) => {
                     <div>{`${classData.startTime} - ${classData.endTime}`}</div>
                 </div>
                 <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                    <Label htmlFor="students">Capacity</Label>
+                    <Label htmlFor="students">No Of Students</Label>
                     <div>{classData.capacity}</div>
                 </div>
                 {classData.isOnline && (
