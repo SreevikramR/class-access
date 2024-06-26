@@ -6,6 +6,7 @@ import { useState } from "react"
 
 export default function Component() {
     const [isOpen, setIsOpen] = useState(true)
+    const [value, setValue] = useState()
 
     return (
         <main className="flex flex-col items-center justify-center h-screen">
@@ -13,7 +14,7 @@ export default function Component() {
             <Card className="w-full max-w-md p-6 space-y-4">
                 <div className="flex flex-col items-center space-y-2">
                     <div className="inline-block rounded-lg px-3 py-1 text-sm font-medium">
-                        You've been invited to join
+                        You&#39;ve been invited to join
                     </div>
                     <h2 className="text-2xl font-bold">Introduction to Web Development</h2>
                     <p className="text-muted-foreground">Taught by John Doe</p>
