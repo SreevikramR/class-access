@@ -199,6 +199,7 @@ export function PhoneInput({
                 ref={inputRef}
                 type="text"
                 pattern="^(\+)?[0-9\s]*$"
+                className="h-full"
                 name="phone"
                 id={id}
                 placeholder="Phone"

@@ -5,7 +5,7 @@ import StudentOnboardingPopup from "@/components/page_components/studentOnboardi
 import { useState } from "react"
 
 export default function Component() {
-    const [isOpen, setIsOpen] = useState(true)
+    const [isOpen, setIsOpen] = useState(false)
     const [value, setValue] = useState()
 
     return (
@@ -24,7 +24,7 @@ export default function Component() {
                     <Button variant="outline" className="w-full">
                         Decline
                     </Button>
-                    <Button className="w-full">Join Class</Button>
+                    <Button className="w-full" onClick={() => setIsOpen(true)}>Join Class</Button>
                 </div>
             </Card>
         </main>

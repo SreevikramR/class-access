@@ -5,15 +5,16 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { CircleArrowRight, Phone } from "lucide-react"
 import { useState } from "react"
-import { PhoneInputComponent } from "../ui/phoneInput"
+import { CheckCircle } from "lucide-react"
+import { PhoneInput } from "../ui/phoneInputComponents"
 
 export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
 
-    const [value, setValue] = useState()
+    const [step, setStep] = useState(0)
 
     const _nameAndPassword = () => {
         return (
-            <DialogContent className="sm:max-w-[425px]">
+            <div>
                 <DialogHeader>
                     <DialogTitle>Welcome!</DialogTitle>
                     <DialogDescription>Please enter your details to join your class</DialogDescription>
@@ -46,35 +47,38 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button type="button" className="gap-2">Next<CircleArrowRight className="h-5 w-5" /></Button>
+                    <Button type="button" className="gap-2" onClick={() => {setStep(1)}}>Next<CircleArrowRight className="h-5 w-5" /></Button>
                 </DialogFooter>
-            </DialogContent>
+            </div>
         )
     }
 
     const _phoneAndJoin = () => {
         return (
-            <DialogContent className="sm:max-w-[425px]">
+            <div>
                 <DialogHeader>
                     <DialogTitle>Welcome!</DialogTitle>
-                    <DialogDescription>Please enter your details to join your class</DialogDescription>
+                    <DialogDescription>Please Confirm your phone number</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
+                    <PhoneInput />
                 </div>
                 <DialogFooter>
-                    <Button type="button" className="gap-2">Next<CircleArrowRight className="h-5 w-5" /></Button>
+                    <div className='flex justify-between flex-wrap w-full'>
+                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setStep(0)}>Back</Button>
+                        <Button type="button" className="gap-2">Complete<CheckCircle className="h-5 w-5" /></Button>
+                    </div>
                 </DialogFooter>
-            </DialogContent>
+            </div>
         )
     }
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline">Open Welcome Modal</Button>
-            </DialogTrigger>
-            <_nameAndPassword />
-            <PhoneInputComponent />
+            <DialogContent className="sm:max-w-[425px]">
+                {step == 0 && <_nameAndPassword />}
+                {step == 1 && <_phoneAndJoin />}
+            </DialogContent>
         </Dialog>
     )
 }
