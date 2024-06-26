@@ -10,12 +10,11 @@ import Link from 'next/link'
 import CreateClassPopup from '@/components/page_components/createClassPopup'
 const convertTo12HourFormat = (time) => {
     const [hours, minutes] = time.split(':');
-    const period = hours >= 12 ? 'PM' : 'AM';
     const adjustedHours = hours % 12 || 12; // Convert '0' to '12'
     return `${adjustedHours}:${minutes} ${period}`;
 };
 
-const ClassesPage = ({ teacherId }) => {
+const ClassesPage = () => {
     const [selectedDays, setSelectedDays] = useState(["M", "W", "F"])
     const [isOpen, setIsOpen] = useState(false)
     const [classes, setClasses] = useState([])
@@ -35,7 +34,7 @@ const ClassesPage = ({ teacherId }) => {
         }
 
         fetchClasses()
-    }, [teacherId])
+    }, [])
 
     const _classCard = (classInfo) => {
         return (
@@ -69,7 +68,7 @@ const ClassesPage = ({ teacherId }) => {
                         </Button>
                     </div>
                 </div>
-                <div className="flex pt-0 items-center justify-between">
+                <div className="flex items-center justify-between">
                     <div className="text-muted-foreground text-sm">{classInfo.students.length} students enrolled</div>
                     <Link href="#" className="text-sm text-muted-foreground hover:text-muted" prefetch={false}>
                         Copy Link
