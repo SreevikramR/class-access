@@ -1,22 +1,42 @@
+// ClassesPage.jsx
 "use client"
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import Header from '@/components/page_components/header'
 import Footer from '@/components/page_components/footer'
 import { Button } from '@/components/ui/button'
 import { PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 import CreateClassPopup from '@/components/page_components/createClassPopup'
-// meet is working here
-const ClassesPage = () => {
+
+const ClassesPage = ({ teacherId }) => {
     const [selectedDays, setSelectedDays] = useState(["M", "W", "F"])
     const [isOpen, setIsOpen] = useState(false)
+    const [classes, setClasses] = useState([])
 
-    const _classCard = () => {
+    useEffect(() => {
+        const fetchClasses = async () => {
+            const { data, error } = await supabaseClient
+                .from('classes')
+                .select('*')
+                .eq('teacher_id', teacherId)
+                
+            if (error) {
+                console.error('Error fetching classes:', error)
+            } else {
+                setClasses(data)
+            }
+        }
+
+        fetchClasses()
+    }, [teacherId])
+
+    const _classCard = (classInfo) => {
         return (
-            <div className="bg-background rounded-lg border p-4 grid gap-2">
+            <div key={classInfo.id} className="bg-background rounded-lg border p-4 grid gap-2">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="font-medium">Web Development 101</h3>
+                        <h3 className="font-medium">{classInfo.title}</h3>
                         <div>
                             <div className="flex items-center justify-center gap-2">
                                 {["M", "T", "W", "Th", "F", "Sa", "Su"].map((day) => (
@@ -26,19 +46,12 @@ const ClassesPage = () => {
                                             ? "bg-primary text-primary-foreground"
                                             : "bg-white border-2 border-muted-forground text-muted-foreground"
                                             }`}
-                                    // onClick={() => {
-                                    //     if (selectedDays.includes(day)) {
-                                    //         setSelectedDays(selectedDays.filter((d) => d !== day))
-                                    //     } else {
-                                    //         setSelectedDays([...selectedDays, day])
-                                    //     }
-                                    // }}
                                     >
                                         {day}
                                     </span>
                                 ))}
                             </div>
-                            Class Schedule: 6:00 PM - 8:00 PM
+                            Class Schedule: {classInfo.schedule}
                         </div>
                     </div>
                     <div className="flex gap-2">
@@ -49,7 +62,7 @@ const ClassesPage = () => {
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
-                    <div className="text-muted-foreground text-sm">25 students enrolled</div>
+                    <div className="text-muted-foreground text-sm">{classInfo.students_enrolled} students enrolled</div>
                     <Link href="#" className="text-sm text-muted-foreground hover:text-muted" prefetch={false}>
                         Copy Link
                     </Link>
@@ -74,9 +87,7 @@ const ClassesPage = () => {
                         </Button>
                     </div>
                     <div className="grid gap-4">
-                        <_classCard />
-                        <_classCard />
-                        <_classCard />
+                        {classes.map((classInfo) => _classCard(classInfo))}
                     </div>
                 </section>
             </main>
