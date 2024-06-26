@@ -342,7 +342,7 @@ const _studentTileForStudentList = (student) => {
                     <div>{`${classData.startTime} - ${classData.endTime}`}</div>
                 </div>
                 <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                    <Label htmlFor="students">No Of Students</Label>
+                    <Label htmlFor="students">Students</Label>
                     <div>{classData.capacity}</div>
                 </div>
                 {classData.isOnline && (
