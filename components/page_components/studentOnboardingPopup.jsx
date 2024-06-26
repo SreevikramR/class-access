@@ -32,19 +32,9 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                         </Label>
                         <Input id="last-name" placeholder="Enter your last name" className="col-span-3" />
                     </div>
-                    <div className="text-sm mt-4">Please enter a new password for your account</div>
-                    <div className="grid items-center grid-cols-4 gap-4">
-                        <Label htmlFor="first-name" className="text-right">
-                            Password
-                        </Label>
-                        <Input id="first-name" placeholder="Create a New Password" className="col-span-3" />
-                    </div>
-                    <div className="grid items-center grid-cols-4 gap-4">
-                        <Label htmlFor="last-name" className="text-right">
-                            Re-enter Password
-                        </Label>
-                        <Input id="last-name" placeholder="Re-enter Password" className="col-span-3" />
-                    </div>
+                    
+
+
                 </div>
                 <DialogFooter>
                     <Button type="button" className="gap-2" onClick={() => {setStep(1)}}>Next<CircleArrowRight className="h-5 w-5" /></Button>
@@ -63,6 +53,24 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                 <div className="grid gap-4 py-4">
                     <PhoneInput />
                 </div>
+
+                <div className="mb-10">
+                    <div className="text-sm mt-4 mb-2 text-muted-foreground">Please enter a new password for your account</div>
+                    <div className="grid items-center grid-cols-4 gap-4 mb-4">
+                        <Label htmlFor="first-name" className="text-center">
+                            Password
+                        </Label>
+                        <Input id="first-name" placeholder="Create a New Password" className="col-span-3" />
+                    </div>
+                    <div className="grid items-center grid-cols-4 gap-4">
+                        <Label htmlFor="last-name" className="text-center">
+                            Re-enter Password
+                        </Label>
+                        <Input id="last-name" placeholder="Re-enter Password" className="col-span-3" />
+                    </div>
+                </div>
+
+
                 <DialogFooter>
                     <div className='flex justify-between flex-wrap w-full'>
                         <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setStep(0)}>Back</Button>
