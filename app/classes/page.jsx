@@ -8,6 +8,12 @@ import { Button } from '@/components/ui/button'
 import { PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 import CreateClassPopup from '@/components/page_components/createClassPopup'
+const convertTo12HourFormat = (time) => {
+    const [hours, minutes] = time.split(':');
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const adjustedHours = hours % 12 || 12; // Convert '0' to '12'
+    return `${adjustedHours}:${minutes} ${period}`;
+};
 
 const ClassesPage = ({ teacherId }) => {
     const [selectedDays, setSelectedDays] = useState(["M", "W", "F"])
@@ -36,7 +42,7 @@ const ClassesPage = ({ teacherId }) => {
             <div key={classInfo.id} className="bg-background rounded-lg border p-4 grid gap-2">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="font-medium">{classInfo.name}</h3>
+                        <h3 className="font-medium font-extrabold">{classInfo.name}</h3>
                         <div>
                             <div className="flex items-center justify-center gap-2">
                                 {["M", "T", "W", "Th", "F", "Sa", "Su"].map((day) => (
@@ -51,7 +57,9 @@ const ClassesPage = ({ teacherId }) => {
                                     </span>
                                 ))}
                             </div>
-                            Class Schedule: {classInfo.start_time} to {classInfo.end_time}
+                            <div>
+                                <span> Class Schedule:</span><span className='font-light'> {convertTo12HourFormat(classInfo.start_time)} to {convertTo12HourFormat(classInfo.end_time)}</span>
+                        </div>
                         </div>
                     </div>
                     <div className="flex gap-2">
