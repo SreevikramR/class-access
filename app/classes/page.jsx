@@ -10,6 +10,7 @@ import Link from 'next/link'
 import CreateClassPopup from '@/components/page_components/createClassPopup'
 const convertTo12HourFormat = (time) => {
     const [hours, minutes] = time.split(':');
+    const period = hours >= 12 ? 'PM' : 'AM';
     const adjustedHours = hours % 12 || 12; // Convert '0' to '12'
     return `${adjustedHours}:${minutes} ${period}`;
 };
