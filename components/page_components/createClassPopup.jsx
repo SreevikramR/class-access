@@ -28,7 +28,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             name: className,
             description: classDescription,
             days: selectedDays,
-            // teacher_id: "",
+            teacher_id: (await supabaseClient.auth.getUser()).data.user.id,
             start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
             end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
             students: selectedStudents,//this will send student id to supabase in an array
