@@ -51,7 +51,7 @@ const ClassesPage = ({ teacherId }) => {
                                     </span>
                                 ))}
                             </div>
-                            Class Schedule: {classInfo.days}
+                            Class Schedule: {classInfo.start_time} to {classInfo.end_time}
                         </div>
                     </div>
                     <div className="flex gap-2">
