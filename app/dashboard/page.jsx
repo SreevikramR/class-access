@@ -17,7 +17,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Label } from '@radix-ui/react-dropdown-menu'
 import validator from 'validator'
 import { useToast } from '@/components/ui/use-toast'
-import supabaseClient, { fetchStudentList } from '@/components/util_function/supabaseCilent'
+import {fetchStudentList, supabaseClient} from '@/components/util_function/supabaseCilent'
 import fetchTimeout from '@/components/util_function/fetch'
 import ZoomButton from '/components/ZoomButton';
 
