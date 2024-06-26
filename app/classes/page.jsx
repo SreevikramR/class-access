@@ -42,7 +42,7 @@ const ClassesPage = ({ teacherId }) => {
             <div key={classInfo.id} className="bg-background rounded-lg border p-4 grid gap-2">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="font-medium font-extrabold">{classInfo.name}</h3>
+                        <h3 className="font-medium pb-2">{classInfo.name}</h3>
                         <div>
                             <div className="flex items-center justify-center gap-2">
                                 {["M", "T", "W", "Th", "F", "Sa", "Su"].map((day) => (
@@ -57,7 +57,7 @@ const ClassesPage = ({ teacherId }) => {
                                     </span>
                                 ))}
                             </div>
-                            <div>
+                            <div className="pt-2">
                                 <span> Class Schedule:</span><span className='font-light'> {convertTo12HourFormat(classInfo.start_time)} to {convertTo12HourFormat(classInfo.end_time)}</span>
                         </div>
                         </div>
@@ -69,7 +69,7 @@ const ClassesPage = ({ teacherId }) => {
                         </Button>
                     </div>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex pt-0 items-center justify-between">
                     <div className="text-muted-foreground text-sm">{classInfo.students.length} students enrolled</div>
                     <Link href="#" className="text-sm text-muted-foreground hover:text-muted" prefetch={false}>
                         Copy Link
