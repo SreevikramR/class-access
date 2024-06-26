@@ -42,7 +42,7 @@ const ClassesPage = ({ teacherId }) => {
                                 {["M", "T", "W", "Th", "F", "Sa", "Su"].map((day) => (
                                     <span
                                         key={day}
-                                        className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${selectedDays.includes(day)
+                                        className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${classInfo.days.includes(day)
                                             ? "bg-primary text-primary-foreground"
                                             : "bg-white border-2 border-muted-forground text-muted-foreground"
                                             }`}
