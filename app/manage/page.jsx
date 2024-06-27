@@ -2,9 +2,11 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+import { AvatarFallback, Avatar } from "@/components/ui/avatar"
+import { Checkbox } from "@/components/ui/checkbox"
+import { CircleArrowRight } from "lucide-react"
 import Header from "@/components/page_components/header"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -13,6 +15,7 @@ import { Copy } from "lucide-react"
 import { useState } from "react"
 import { UserPlusIcon } from "lucide-react"
 import { UserIcon } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function ManagePage() {
     const [isOpen, setIsOpen] = useState(false)
@@ -20,6 +23,9 @@ export default function ManagePage() {
     const [numClasses, setNumClasses] = useState(0)
     const [notes, setNotes] = useState("")
     const [isCreatingUser, setIsCreatingUser] = useState(false)
+    const [selectedStudents, setSelectedStudents] = useState([])
+
+    const { toast } = useToast()
 
     const handleNewStudentSubmit = async () => {
         setIsCreatingUser(true)
@@ -53,7 +59,78 @@ export default function ManagePage() {
         )
     }
 
-    const _newStudentPopup = () => {
+    const _studentTileForStudentList = (student) => {
+        const isSelected = selectedStudents.includes(student.id);
+
+        return (
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Avatar>
+                        <AvatarFallback className="bg-white">{student.initials}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="font-medium">{student.name}</p>
+                        <p className="text-muted-foreground text-sm">{student.email}</p>
+                    </div>
+                </div>
+                <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={(checked) => {
+                        if (checked) {
+                            setSelectedStudents([...selectedStudents, student.id]);
+                        } else {
+                            setSelectedStudents(selectedStudents.filter(id => id !== student.id));
+                        }
+                    }}
+                />
+            </div>
+        )
+    }
+
+    const _existingStudent = () => {
+        // Assume you have a list of students, if not, you'll need to fetch this data
+        const students = [
+            { id: 1, name: "Jane Smith", email: "jane.smith@example.com", initials: "JS" },
+            { id: 2, name: "John Doe", email: "john.doe@example.com", initials: "JD" },
+            { id: 3, name: "Alice Johnson", email: "alice.johnson@example.com", initials: "AJ" },
+        ];// we will replace this from the databse just for testing changed tile code
+
+        return (
+            <>
+                <DialogHeader>
+                    <DialogTitle>Create Class</DialogTitle>
+                    <DialogDescription>Select the students you would like to add to your class<br />You will be able to add more students later.</DialogDescription>
+                </DialogHeader>
+                <div className='pt-3'>
+                    <Label htmlFor="searchStudents">Search Students</Label>
+                    <Input id="searchStudents" placeholder="Enter student name or email" />
+                </div>
+
+                <div className="bg-muted border-2 rounded-md p-4 my-4 max-h-[40vh] overflow-y-auto grid gap-2">
+                    {students.map(student => _studentTileForStudentList(student))}
+                </div>
+
+                <DialogFooter>
+                    <div className='flex justify-between flex-wrap w-full'>
+                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(2)}>Back</Button>
+                        <Button type="button" onClick={() => {
+                            if (selectedStudents.length === 0) {
+                                toast({
+                                    title: 'Alert',
+                                    description: 'At least one student must be selected.',
+                                    variant: "destructive"
+                                })
+                                return
+                            }
+                            setClassCreationStep(4);
+                        }} className="gap-2">Verify<CircleArrowRight className="h-5 w-5" /></Button>
+                    </div>
+                </DialogFooter>
+            </>
+        )
+    }
+
+    const _newStudent = () => {
         return (
             <>
                 <DialogHeader>
@@ -108,7 +185,9 @@ export default function ManagePage() {
             <main className="p-6 space-y-8">
                 <Dialog open={isOpen} onOpenChange={setIsOpen} defaultOpen>
                     <DialogContent className="sm:max-w-[425px] md:max-w-[45vw]">
+                        {/* <_existingStudent /> */}
                         <_newOrExisting />
+                        {/* <_newStudent /> */}
                     </DialogContent>
                 </Dialog>
                 <div className="w-full grid grid-cols-2">
