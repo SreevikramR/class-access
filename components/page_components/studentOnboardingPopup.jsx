@@ -43,7 +43,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
         // Ensure only plain data is being passed
         const user = await supabaseClient.auth.getUser();
 
-        console.log(phone.json)
+        console.log(phone)
         // console.log(final,"and",typeof(final))
         const studentData = {
             first_name: firstName,
@@ -138,7 +138,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                 <DialogDescription>Please Confirm your phone number</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-                <PhoneInput value={phone} OnChange={(value) => setPhone(value.target.value)} />
+                <PhoneInput OnChange={(e) => console.log(e)} />
             </div>
 
             <div className="mb-10">
