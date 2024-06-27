@@ -9,6 +9,7 @@ import {getPhoneData, PhoneInput} from "../ui/phoneInputComponents"
 import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import { toast } from "@/components/ui/use-toast"
 import equals from "validator/es/lib/equals";
+import {badgeVariants} from "@/components/ui/badge";
 
 export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
     const [step, setStep] = useState(0)
@@ -20,7 +21,12 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
 
     const handleComplete = async () => {
     if (password !== confirmPassword) {
-        toast("Passwords do not match");
+        toast({
+            variant: 'destructive',
+            title: "passwords don't match",
+            description: "Enter your password",
+            duration: 3000,
+        });
         return;
     }
 
@@ -37,7 +43,10 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
             .update([studentData])
             .eq('id',(await supabaseClient.auth.getUser()).data.user.id)
         const { data1, error2 } = await supabaseClient.auth.updateUser({
-  password: password
+            password: password,
+            phone:phone,
+            DisplayName: firstName + " " + lastName
+
 })
         if (error) throw error;
         if (error2) throw error2
@@ -45,7 +54,6 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
         toast({
             className: "bg-green-500 border-black border-2",
             title: "Done",
-            description: "The new student has been added to your class",
             duration: 3000,
         });
         setIsOpen(false);
