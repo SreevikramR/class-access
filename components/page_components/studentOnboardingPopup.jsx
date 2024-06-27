@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { CircleArrowRight, Phone, CheckCircle } from "lucide-react"
 import { useState } from "react"
-import {getPhoneData, PhoneInput} from "../ui/phoneInputComponents"
+import { getPhoneData, PhoneInput } from "../ui/phoneInputComponents"
 import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import { toast } from "@/components/ui/use-toast"
 
@@ -15,84 +15,85 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
     const [step, setStep] = useState(0)
     const [firstName, setFirstName] = useState("")
     const [lastName, setLastName] = useState("")
-    const [phone, setPhone] = useState("")
+    const [phone, setPhone] = useState("+91")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
+    const phoneData = getPhoneData(phone)
 
     const handleComplete = async () => {
-    if (password !== confirmPassword) {
-        toast({
-            variant: 'destructive',
-            title: "passwords don't match",
-            description: "Enter your password",
-            duration: 3000,
-        });
-        return;
-    }
-    if (password.length < 6) {
-    toast({
-        variant: 'destructive',
-        title: "Password too short",
-        description: "Password must be at least 6 characters long.",
-        duration: 3000,
-    });
-    return;
-}
+        if (password !== confirmPassword) {
+            toast({
+                variant: 'destructive',
+                title: "passwords don't match",
+                description: "Enter your password",
+                duration: 3000,
+            });
+            return;
+        }
+        if (password.length < 6) {
+            toast({
+                variant: 'destructive',
+                title: "Password too short",
+                description: "Password must be at least 6 characters long.",
+                duration: 3000,
+            });
+            return;
+        }
 
-    try {
-        // Ensure only plain data is being passed
-        const user = await supabaseClient.auth.getUser();
+        try {
+            // Ensure only plain data is being passed
+            const user = await supabaseClient.auth.getUser();
 
-        // console.log(phone)
-        // console.log(final,"and",typeof(final))
-        const studentData = {
-            first_name: firstName,
-            last_name: lastName,
-            details_added:true,
-            phone:phone
-        };
-        console.log("Data to be updated:", studentData);
+            // console.log(phone)
+            // console.log(final,"and",typeof(final))
+            const studentData = {
+                first_name: firstName,
+                last_name: lastName,
+                details_added: true,
+                phone: phoneData.phoneNumber
+            };
+            console.log("Data to be updated:", studentData);
 
 
-        console.log("Existing row found. Attempting to update.");
-        const { data: updateData, error: updateError } = await supabaseClient
+            console.log("Existing row found. Attempting to update.");
+            const { data: updateData, error: updateError } = await supabaseClient
                 .from('students')
                 .update(studentData)
                 .eq('id', user.data.user.id)
                 .select();
 
-        if (updateError) {
+            if (updateError) {
                 console.error("Error updating data:", updateError);
                 throw updateError;
             }
 
             console.log("Update result:", updateData);
 
-        const { data1, error2 } = await supabaseClient.auth.updateUser({
-            password: password
-        })
+            const { data1, error2 } = await supabaseClient.auth.updateUser({
+                password: password
+            })
 
 
-        if (error2) throw error2;
+            if (error2) throw error2;
 
 
-        toast({
-            className: "bg-green-500 border-black border-2",
-            title: "Done",
-            duration: 3000,
-        });
-        setIsOpen(false);
+            toast({
+                className: "bg-green-500 border-black border-2",
+                title: "Done",
+                duration: 3000,
+            });
+            setIsOpen(false);
 
-    } catch (error) {
-        console.error("Error saving student data:", error);
-        toast({
-            variant: 'destructive',
-            title: "Failed to save",
-            description: "Try again.",
-            duration: 3000,
-        });
-    }
-};
+        } catch (error) {
+            console.error("Error saving student data:", error);
+            toast({
+                variant: 'destructive',
+                title: "Failed to save",
+                description: "Try again.",
+                duration: 3000,
+            });
+        }
+    };
     const _nameAndPassword = () => (
         <div>
             <DialogHeader>
@@ -138,7 +139,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                 <DialogDescription>Please Confirm your phone number</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-                <PhoneInput value={phone} OnChange={(e) => console.log(e.target.value)} />
+                <PhoneInput value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
 
             <div className="mb-10">
