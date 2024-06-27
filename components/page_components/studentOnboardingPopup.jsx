@@ -64,7 +64,9 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
             console.log("Update result:", updateData);
 
         const { data1, error2 } = await supabaseClient.auth.updateUser({
-            password: password})
+            password: password,
+            phone: phone
+        })
 
         if (error2) throw error2;
 
@@ -74,6 +76,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
             duration: 3000,
         });
         setIsOpen(false);
+
     } catch (error) {
         console.error("Error saving student data:", error);
         toast({
