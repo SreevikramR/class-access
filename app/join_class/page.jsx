@@ -7,8 +7,7 @@ import Link from "next/link"
 
 export default function Component() {
     const [isOpen, setIsOpen] = useState(false)
-    const [value, setValue] = useState()
-    const [joinedClass, setJoinedClass] = useState(true)
+    const [joinedClass, setJoinedClass] = useState(false)
 
     function CircleCheckIcon(props) {
         return (
@@ -41,7 +40,7 @@ export default function Component() {
                             Great! You&#39;ve successfully joined the class. Be sure to join at the scheduled time to participate.
                         </p>
                         <p className="text-muted-foreground">
-                            Look for a link from you&#39;re instructor to join the class.
+                            Look for a link from your instructor to join the class.
                         </p>
                     </div>
                 </div>
@@ -49,12 +48,16 @@ export default function Component() {
         )
     }
 
+    const handleComplete = () => {
+        setJoinedClass(true)
+    }
+
     return (
         <main className="flex flex-col items-center justify-center h-screen">
             { joinedClass && _joinedClass()}
-            { !joinedClass && 
+            { !joinedClass &&
                 <div>
-                    <StudentOnboardingPopup isOpen={isOpen} setIsOpen={setIsOpen} />
+                    <StudentOnboardingPopup isOpen={isOpen} setIsOpen={setIsOpen} onComplete={handleComplete} />
                     <Card className="w-full max-w-md p-6 space-y-4">
                         <div className="flex flex-col items-center space-y-2">
                             <div className="inline-block rounded-lg px-3 py-1 text-sm font-medium">
