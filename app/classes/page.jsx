@@ -5,7 +5,7 @@ import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import Header from '@/components/page_components/header'
 import Footer from '@/components/page_components/footer'
 import { Button } from '@/components/ui/button'
-import { PlusCircle } from 'lucide-react'
+import { PlusCircle, Share2 } from 'lucide-react'
 import Link from 'next/link'
 import CreateClassPopup from '@/components/page_components/createClassPopup'
 const convertTo12HourFormat = (time) => {
@@ -71,9 +71,9 @@ const ClassesPage = () => {
                 </div>
                 <div className="flex items-center justify-between">
                     <div className="text-muted-foreground text-sm">{classInfo.students.length} students enrolled</div>
-                    <Link href="#" className="text-sm text-muted-foreground hover:text-muted" prefetch={false}>
-                        Copy Link
-                    </Link>
+                    <span href="#" className="text-sm text-muted-foreground hover:text-blue-500 hover:cursor-pointer flex flex-row justify-center" prefetch={false}>
+                        Share Link <Share2 className="h-4 w-4 ml-1" />
+                    </span>
                 </div>
             </div>
         )
