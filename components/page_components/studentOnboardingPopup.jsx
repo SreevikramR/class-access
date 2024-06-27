@@ -33,23 +33,21 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
     try {
         // Ensure only plain data is being passed
         const studentData = {
-            first_name: firstName,
-            last_name: lastName,
+            first_name: "firstName",
+            last_name: "lastName",
             details_added:true
         };
 
         const { data, error } = await supabaseClient
             .from('students')
-            .update([studentData])
+            .update(studentData)
             .eq('id',(await supabaseClient.auth.getUser()).data.user.id)
+        console.log('fetching success', data)
         const { data1, error2 } = await supabaseClient.auth.updateUser({
-            password: password,
-            phone:phone,
-            DisplayName: firstName + " " + lastName
-
+            password: password
 })
         if (error) throw error;
-        if (error2) throw error2
+        if (error2) throw error2;
 
         toast({
             className: "bg-green-500 border-black border-2",
