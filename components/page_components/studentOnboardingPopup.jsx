@@ -8,8 +8,7 @@ import { useState } from "react"
 import {getPhoneData, PhoneInput} from "../ui/phoneInputComponents"
 import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import { toast } from "@/components/ui/use-toast"
-import equals from "validator/es/lib/equals";
-import {badgeVariants} from "@/components/ui/badge";
+
 
 export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
     const [step, setStep] = useState(0)
@@ -29,24 +28,44 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
         });
         return;
     }
+    if (password.length < 6) {
+    toast({
+        variant: 'destructive',
+        title: "Password too short",
+        description: "Password must be at least 6 characters long.",
+        duration: 3000,
+    });
+    return;
+}
 
     try {
         // Ensure only plain data is being passed
+        const user = await supabaseClient.auth.getUser();
         const studentData = {
-            first_name: "firstName",
-            last_name: "lastName",
+            first_name: firstName,
+            last_name: lastName,
             details_added:true
         };
+        console.log("Data to be updated:", studentData);
 
-        const { data, error } = await supabaseClient
-            .from('students')
-            .update(studentData)
-            .eq('id',(await supabaseClient.auth.getUser()).data.user.id)
-        console.log('fetching success', data)
+
+        console.log("Existing row found. Attempting to update.");
+        const { data: updateData, error: updateError } = await supabaseClient
+                .from('students')
+                .update(studentData)
+                .eq('id', user.data.user.id)
+                .select();
+
+        if (updateError) {
+                console.error("Error updating data:", updateError);
+                throw updateError;
+            }
+
+            console.log("Update result:", updateData);
+
         const { data1, error2 } = await supabaseClient.auth.updateUser({
-            password: password
-})
-        if (error) throw error;
+            password: password})
+
         if (error2) throw error2;
 
         toast({
