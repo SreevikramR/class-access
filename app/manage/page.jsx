@@ -1,25 +1,131 @@
+"use client"
 import Link from "next/link"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import Header from "@/components/page_components/header"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { PlusCircle } from "lucide-react"
+import { Copy } from "lucide-react"
+import { useState } from "react"
+import { UserPlusIcon } from "lucide-react"
+import { UserIcon } from "lucide-react"
 
 export default function ManagePage() {
+    const [isOpen, setIsOpen] = useState(false)
+    const [email, setEmail] = useState("")
+    const [numClasses, setNumClasses] = useState(0)
+    const [notes, setNotes] = useState("")
+    const [isCreatingUser, setIsCreatingUser] = useState(false)
+
+    const handleNewStudentSubmit = async () => {
+        setIsCreatingUser(true)
+        // Add new student to the database
+        setIsOpen(false)
+        setIsCreatingUser(false)
+    }
+
+    const _newOrExisting = () => {
+        return (
+            <>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col items-center justify-center gap-4 p-6 border-r">
+                        <UserPlusIcon className="w-8 h-8 text-primary" />
+                        <div className="space-y-2 text-center">
+                            <h3 className="text-lg font-medium">Add Existing Student</h3>
+                            <p className="text-muted-foreground">Add a student that already exists in the system.</p>
+                        </div>
+                        <Button variant="outline">Add Existing Student</Button>
+                    </div>
+                    <div className="flex flex-col items-center justify-center gap-4 p-6">
+                        <UserIcon className="w-8 h-8 text-primary" />
+                        <div className="space-y-2 text-center">
+                            <h3 className="text-lg font-medium">Create New Student</h3>
+                            <p className="text-muted-foreground">Create a new student profile in the system.</p>
+                        </div>
+                        <Button variant="outline">Create New Student</Button>
+                    </div>
+                </div>
+            </>
+        )
+    }
+
+    const _newStudentPopup = () => {
+        return (
+            <>
+                <DialogHeader>
+                    <DialogTitle>Add New Student</DialogTitle>
+                </DialogHeader>
+                <form className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                            required />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="numClasses">Classes Balance</Label>
+                        <div className="flex items-center gap-2">
+                            <Button type="button" variant="outline"
+                                onClick={() => setNumClasses(Math.max(0, numClasses - 1))}>
+                                -
+                            </Button>
+                            <Input
+                                id="numClasses"
+                                type="number"
+                                value={numClasses}
+                                onChange={(e) => setNumClasses(Number(e.target.value))}
+                                min={0}
+                                className="w-16 text-center"
+                            />
+                            <Button type="button" variant="outline"
+                                onClick={() => setNumClasses(numClasses + 1)}>
+                                +
+                            </Button>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="notes">Notes</Label>
+                        <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" onClick={handleNewStudentSubmit}
+                            className={`${isCreatingUser ? "cursor-progress" : ""}`}>Submit</Button>
+                        <div>
+                            <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+                        </div>
+                    </DialogFooter>
+                </form>
+            </>
+        )
+    }
+
     return (
         <div className="min-h-screen bg-gray-100">
             <Header/>
             <main className="p-6 space-y-8">
-                <section className="space-y-1">
-                    <h1 className="text-3xl font-bold">Class Name</h1>
-                    <p className="font-medium">Wednesdays at 10am</p>
-                    <p className="text-gray-600">Class Description</p>
-                </section>
+                <Dialog open={isOpen} onOpenChange={setIsOpen} defaultOpen>
+                    <DialogContent className="sm:max-w-[425px] md:max-w-[45vw]">
+                        <_newOrExisting />
+                    </DialogContent>
+                </Dialog>
+                <div className="w-full grid grid-cols-2">
+                    <section className="space-y-1">
+                        <h1 className="text-3xl font-bold">Class Name</h1>
+                        <p className="font-medium pt-4">Wednesdays at 10am</p>
+                        <p className="text-gray-600">Class Description</p>
+                    </section>
+                    <section className="space-y-1 bg-background border-2 p-2 rounded-lg justify-center flex flex-col">
+                        <p className="text-gray-600">Please Share the class link with your students</p>
+                        <p className="font-medium flex flex-row">Class Link: <span className="font-normal pl-1">classaccess.vercel.app/join?code=ABC123</span><Copy className="ml-2 h-5 w-5 align-middle"/></p>
+                    </section>
+                </div>
                 <section>
                     <div className="flex items-center justify-between my-2">
-                        <h2 className="text-2xl font-semibold px-2">My Students</h2>
-                        <Button size="sm" className="h-7 gap-1">
+                        <h2 className="text-2xl font-semibold px-2">My Students (5)</h2>
+                        <Button size="sm" className="h-7 gap-1" onClick={() => setIsOpen(true)}>
                             <PlusCircle className="h-3.5 w-3.5" />
                             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap" >
                                 Add Students
@@ -93,109 +199,5 @@ export default function ManagePage() {
                 </section>
             </main>
         </div>
-    )
-}
-
-
-function BellIcon(props) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-        </svg>
-    )
-}
-
-function DollarSignIcon(props) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <line x1="12" x2="12" y1="2" y2="22" />
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-        </svg>
-    )
-}
-
-function LogInIcon(props) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-            <polyline points="10 17 15 12 10 7" />
-            <line x1="15" x2="3" y1="12" y2="12" />
-        </svg>
-    )
-}
-
-
-function PlusIcon(props) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M5 12h14" />
-            <path d="M12 5v14" />
-        </svg>
-    )
-}
-
-
-function SearchIcon(props) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-        </svg>
     )
 }
