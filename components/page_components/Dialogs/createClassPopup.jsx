@@ -1,16 +1,15 @@
 "use client"
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { Button } from '../ui/button'
-import { Textarea } from '../ui/textarea'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { CircleArrowRight, CheckCircle } from 'lucide-react'
-import { Avatar, AvatarFallback } from '../ui/avatar'
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 import { supabaseClient } from '@/components/util_function/supabaseCilent'
-import { error } from "next/dist/build/output/log";
 import { useToast } from "@/components/ui/use-toast";
 
 const CreateClassPopup = ({ isOpen, setIsOpen }) => {
@@ -24,75 +23,90 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [error, setError] = useState('')
     const { toast } = useToast()
     const [students, setStudents] = useState([])
-const handleCreateClass = async () => {
-  const classData = {
-    name: className,
-    description: classDescription,
-    days: selectedDays,
-    teacher_id: (await supabaseClient.auth.getUser()).data.user.id,
-    start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
-    end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
-    students: selectedStudents, // This will send student IDs to Supabase in an array
-  };
-    const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-  if (authError || !user) {
-    console.error('Authentication error:', authError);
-    return;
-  }
 
-  try {
-    // Insert class data
-      console.log(selectedStudents)
-    const { data: classInsertData, error: classError } = await supabaseClient
-      .from('classes')
-      .insert([classData])
-      .select('id');
-
-    const uuid = classInsertData[0].id
-
-    if (classError) throw classError;
-    // const { data: studentsData, error: fetchStudentsError } = await supabaseClient
-    //   .from('classes')
-    //   .select()
-    //   .contains('students', [selectedStudents]);
-    // Update the students' table with the class UUID
-      console.log(uuid);
-      if (error) throw error
-      let updatedUuidArray;
-  if (classInsertData.class_id && Array.isArray(classInsertData.class_id)) {
-    updatedUuidArray = [...classInsertData.class_id, uuid];
-  } else {
-    updatedUuidArray = [uuid];
-  }
-     for (const student of selectedStudents) {
-        console.log(student)
-      const { data: updateData, error: updateError } = await supabaseClient
-        .from('students')
-        .update({ class_id: updatedUuidArray })
-        .eq('id', student);
-
-      if (updateError) throw updateError;
+    const generateRandomString = (length) => {
+        const getRandomCharacter = () => {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            return characters[Math.floor(Math.random() * characters.length)];
+        }
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += getRandomCharacter();
+        }
+        return result;
     }
-    console.log("Class created successfully and students updated!");
-    toast({
-      className: "bg-green-500 border-black border-2",
-      title: "Class Successfully Added",
-      description: "The new class has been added and students have been updated",
-      duration: 3000
-    });
-    setIsOpen(false);
-  } catch (error) {
-    setIsOpen(false);
-    console.error("Error creating class or updating students:", error);
-    toast({
-      variant: 'destructive',
-      title: "Failed to create class or update students",
-      description: "Try again.",
-      duration: 3000
-    });
-  }
-};
+
+    const handleCreateClass = async () => {
+        const code = generateRandomString(6)
+        const classData = {
+            name: className,
+            description: classDescription,
+            days: selectedDays,
+            teacher_id: (await supabaseClient.auth.getUser()).data.user.id,
+            start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
+            end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
+            students: selectedStudents, // This will send student IDs to Supabase in an array
+            class_code: code
+        };
+        const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+        if (authError || !user) {
+            console.error('Authentication error:', authError);
+            return;
+        }
+
+        try {
+            // Insert class data
+            console.log(selectedStudents)
+            const { data: classInsertData, error: classError } = await supabaseClient
+                .from('classes')
+                .insert([classData])
+                .select('id');
+
+            const uuid = classInsertData[0].id
+
+            if (classError) throw classError;
+            // const { data: studentsData, error: fetchStudentsError } = await supabaseClient
+            //   .from('classes')
+            //   .select()
+            //   .contains('students', [selectedStudents]);
+            // Update the students' table with the class UUID
+            console.log(uuid);
+            if (error) throw error
+            let updatedUuidArray;
+            if (classInsertData.class_id && Array.isArray(classInsertData.class_id)) {
+                updatedUuidArray = [...classInsertData.class_id, uuid];
+            } else {
+                updatedUuidArray = [uuid];
+            }
+            for (const student of selectedStudents) {
+                console.log(student)
+                const { data: updateData, error: updateError } = await supabaseClient
+                    .from('students')
+                    .update({ class_id: updatedUuidArray })
+                    .eq('id', student);
+
+                if (updateError) throw updateError;
+            }
+            console.log("Class created successfully and students updated!");
+            toast({
+                className: "bg-green-500 border-black border-2",
+                title: "Class Successfully Added",
+                description: "The new class has been added and students have been updated",
+                duration: 3000
+            });
+            setIsOpen(false);
+        } catch (error) {
+            setIsOpen(false);
+            console.error("Error creating class or updating students:", error);
+            toast({
+                variant: 'destructive',
+                title: "Failed to create class or update students",
+                description: "Try again.",
+                duration: 3000
+            });
+        }
+    };
 
     const _classNameAndDescription = () => {
         return (
@@ -116,7 +130,7 @@ const handleCreateClass = async () => {
                             <Button type="button" onClick={() => {
                                 if (!className) {
                                     // setError('Class name is required.');
-                                    toast({ title: 'Alert', description: 'Class name is required.', variant: "destructive", })
+                                    toast({ title: 'Incomplete Fields', description: 'Class name is required.', variant: "destructive", })
                                     return
                                 }
                                 setClassCreationStep(1);
@@ -165,7 +179,7 @@ const handleCreateClass = async () => {
                         <Button type="button" onClick={() => {
                             if (selectedDays.length === 0) {
 
-                                toast({ title: 'Alert', description: 'Please select at least one day', variant: "destructive" })
+                                toast({ title: 'Incomplete Fields', description: 'Please select at least one day', variant: "destructive" })
                                 return
                             }
 
@@ -281,88 +295,100 @@ const handleCreateClass = async () => {
         )
     }
     const fetchStudents = async () => {
-  try {
-    const { data, error } = await supabaseClient
-      .from('students')
-      .select('*')
-        .contains('teachers',`{${(await supabaseClient.auth.getUser()).data.user.id}}`);
+        try {
+            const { data, error } = await supabaseClient
+                .from('students')
+                .select('*')
+                .contains('teachers', `{${(await supabaseClient.auth.getUser()).data.user.id}}`);
 
-    if (error) throw error;
+            if (error) throw error;
 
-    // Transform the data to match the expected format
-    const formattedStudents = data.map(student => ({
-      id: student.id,
-      name: student.first_name + ' ' + student.last_name,
-      email: student.email,
+            // Transform the data to match the expected format
+            const formattedStudents = data.map(student => ({
+                id: student.id,
+                name: student.first_name + ' ' + student.last_name,
+                email: student.email,
 
-    }));
+            }));
 
-    setStudents(formattedStudents);
-  } catch (error) {
-    console.error('Error fetching students:', error);
-    toast({
-      variant: 'destructive',
-      title: "Failed to fetch students",
-      description: "Please try again.",
-      duration: 3000
-    });
-  }
-};
-useEffect(() => {
-  if (classCreationStep === 3) {
-    const fetchStudentsData = async () => {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (user) {
-        await fetchStudents(user.id);
-      } else {
-        console.error('No authenticated user found');
-        toast({
-          variant: 'destructive',
-          title: "Authentication Error",
-          description: "Please login again.",
-          duration: 3000
-        });
-      }
+            setStudents(formattedStudents);
+        } catch (error) {
+            console.error('Error fetching students:', error);
+            toast({
+                variant: 'destructive',
+                title: "Failed to fetch students",
+                description: "Please try again.",
+                duration: 3000
+            });
+        }
     };
-    fetchStudentsData();
-  }
-}, [classCreationStep]);
+    useEffect(() => {
+        if (classCreationStep === 3) {
+            const fetchStudentsData = async () => {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (user) {
+                    await fetchStudents(user.id);
+                } else {
+                    console.error('No authenticated user found');
+                    toast({
+                        variant: 'destructive',
+                        title: "Authentication Error",
+                        description: "Please login again.",
+                        duration: 3000
+                    });
+                }
+            };
+            fetchStudentsData();
+        }
+    }, [classCreationStep]);
 
- const _studentList = () => {
-  return (
-    <div>
-      <DialogHeader>
-        <DialogTitle>Create Class</DialogTitle>
-        <DialogDescription>Select the students you would like to add to your class<br />You will be able to add more students later.</DialogDescription>
-      </DialogHeader>
-      <div className='pt-3'>
-        <Label htmlFor="searchStudents">Search Students</Label>
-        <Input id="searchStudents" placeholder="Enter student name or email" />
-      </div>
+    const _studentList = () => {
+        return (
+            <div>
+                <DialogHeader>
+                    <DialogTitle className="text-center">Create Class</DialogTitle>
+                    <DialogDescription className="text-center">Select the students you would like to add to your class<br />You will be able to add more students later.</DialogDescription>
+                </DialogHeader>
+                <div className='flex w-full flex-row mt-6'>
+                    <div className='flex flex-col w-1/2 pr-4 border-r-2'>
+                        <div className='text-center font-semibold mb-2'>Existing Student</div>
+                        <div>
+                            <Label htmlFor="searchStudents" className="font-normal">Search Students</Label>
+                            <Input id="searchStudents" placeholder="Enter student name or email" />
+                        </div>
 
-      <div className="bg-muted border-2 rounded-md p-4 my-4 max-h-[40vh] overflow-y-auto grid gap-2">
-        {students.map(student => _studentTileForStudentList(student))}
-      </div>
+                        <div className="bg-muted border-2 rounded-md p-4 my-4 h-[40vh] max-h-[40vh] overflow-y-auto grid gap-2">
+                            {students.length === 0 && <span className='text-sm'>You have not added any students yet</span>}
+                            {students.map(student => _studentTileForStudentList(student))}
+                        </div>
+                    </div>
+                    <div className='flex flex-col w-1/2 pl-4 justify-center'>
+                        <div className='text-center font-semibold mb-2'>New Student</div>
+                        <div>
+                            <Label htmlFor="email" className="font-normal">Email</Label>
+                            <Input id="email" placeholder="email@domain.com" />
+                        </div>
+                        <div className='mt-2'>
+                            <Label htmlFor="email" className="font-normal">Notes</Label>
+                            <Input id="notes" placeholder="Optional" />
+                        </div>
+                        <div className='mt-4 w-full'>
+                            <Button className="w-full">Add</Button>
+                        </div>
+                    </div>
+                </div>
 
-      <DialogFooter>
-        <div className='flex justify-between flex-wrap w-full'>
-          <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(2)}>Back</Button>
-          <Button type="button" onClick={() => {
-            if (selectedStudents.length === 0) {
-              toast({
-                title: 'Alert',
-                description: 'At least one student must be selected.',
-                variant: "destructive"
-              })
-              return
-            }
-            setClassCreationStep(4);
-          }} className="gap-2">Verify<CircleArrowRight className="h-5 w-5" /></Button>
-        </div>
-      </DialogFooter>
-    </div>
-  )
-}
+                <DialogFooter>
+                    <div className='flex justify-between flex-wrap w-full'>
+                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(2)}>Back</Button>
+                        <Button type="button" onClick={() => {
+                            setClassCreationStep(4);
+                        }} className="gap-2">Verify<CircleArrowRight className="h-5 w-5" /></Button>
+                    </div>
+                </DialogFooter>
+            </div>
+        )
+    }
     const _reviewDetails = () => {
         const classData = {
             name: className,
@@ -376,8 +402,8 @@ useEffect(() => {
             onlineLink: 'link goes here',
 
         };
-        return (
 
+        return (
             <>
                 <DialogHeader>
                     <DialogTitle>Confirm Class Details</DialogTitle>
@@ -389,10 +415,13 @@ useEffect(() => {
                         <div>{classData.name}</div>
                     </div>
 
-                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                        <Label htmlFor="class-description">Description</Label>
-                        <div>{classData.description}</div>
-                    </div>
+                    {classDescription &&
+                        <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                            <Label htmlFor="class-description">Description</Label>
+                            <div>{classData.description}</div>
+                        </div>
+                    }
+
                     <div className="grid grid-cols-[120px_1fr] items-center gap-4">
                         <Label htmlFor="class-days">Days</Label>
                         <div>{classData.days.join(", ")}</div>
@@ -418,7 +447,7 @@ useEffect(() => {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen} defaultOpen>
-            <DialogContent className="sm:max-w-[425px] lg:max-w-[32vw]">
+            <DialogContent className={"sm:max-w-[425px] " + (classCreationStep === 3 ? "lg:max-w-[55vw]" : "lg:max-w-[32vw]")}>
                 {classCreationStep === 0 && _classNameAndDescription()}
                 {classCreationStep === 1 && _classDays()}
                 {classCreationStep === 2 && _classTimings()}
