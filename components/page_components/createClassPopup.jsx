@@ -24,56 +24,66 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [error, setError] = useState('')
     const { toast } = useToast()
     const [students, setStudents] = useState([])
-    const handleCreateClass = async () => {
-        const classData = {
-            name: className,
-            description: classDescription,
-            days: selectedDays,
-            teacher_id: (await supabaseClient.auth.getUser()).data.user.id,
-            start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
-            end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
-            students: selectedStudents,//this will send student id to supabase in an array
-        }
-        const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-        if (authError || !user) {
-            console.error('Authentication error:', authError)
-            // Handle unauthenticated user
-            return
-        }
-        try {
-            // Insert class data
-            const { data: classInsertData, error: classError } = await supabaseClient
-                .from('classes')
-                .insert([classData])
-                .select()
+const handleCreateClass = async () => {
+  const classData = {
+    name: className,
+    description: classDescription,
+    days: selectedDays,
+    teacher_id: (await supabaseClient.auth.getUser()).data.user.id,
+    start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
+    end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
+    students: selectedStudents, // This will send student IDs to Supabase in an array
+  };
+    const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
+  const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+  if (authError || !user) {
+    console.error('Authentication error:', authError);
+    return;
+  }
 
-            if (classError) throw classError
+  try {
+    // Insert class data
+    const { data: classInsertData, error: classError } = await supabaseClient
+      .from('classes')
+      .insert([classData])
+      .select();
 
-            // Insert student enrollments
+    if (classError) throw classError;
+    const { data: studentsData, error: fetchStudentsError } = await supabaseClient
+      .from('classes')
+      .select()
+      .in('students', [selectedStudents]);
+    // Update the students' table with the class UUID
+      console.log(studentsData)
+      if (error) throw error
+     for (const student of selectedStudents) {
 
+      const { data: updateData, error: updateError } = await supabaseClient
+        .from('students')
+        .update({ class_id: studentsData.id })
+        .eq('id', student);
 
-
-            console.log("Class created successfully!")
-            toast({
-                className: "bg-green-500 border-black border-2",
-                title: "Class Successfully Added",
-                description: "The new class has been added to your class",
-                duration: 3000
-            })
-            setIsOpen(false)
-            // You might want to add some success notification here
-        } catch (error) {
-            setIsOpen(false)
-            console.error("Error creating class:", error)
-            toast({
-                variant: 'destructive',
-                title: "Failed to creating classes",
-                description: "Try again.",
-                duration: 3000
-            })
-        }
+      if (updateError) throw updateError;
     }
-
+    console.log("Class created successfully and students updated!");
+    toast({
+      className: "bg-green-500 border-black border-2",
+      title: "Class Successfully Added",
+      description: "The new class has been added and students have been updated",
+      duration: 3000
+    });
+    setIsOpen(false);
+  } catch (error) {
+    setIsOpen(false);
+    console.error("Error creating class or updating students:", error);
+    toast({
+      variant: 'destructive',
+      title: "Failed to create class or update students",
+      description: "Try again.",
+      duration: 3000
+    });
+  }
+};
 
     const _classNameAndDescription = () => {
         return (
