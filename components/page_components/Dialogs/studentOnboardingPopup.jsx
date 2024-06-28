@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { CircleArrowRight, Phone, CheckCircle } from "lucide-react"
 import { useState } from "react"
-import { getPhoneData, PhoneInput } from "../ui/phoneInputComponents"
+import { getPhoneData, PhoneInput } from "@/components/ui/phoneInputComponents"
 import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import { toast } from "@/components/ui/use-toast"
 
