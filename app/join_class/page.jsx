@@ -1,7 +1,7 @@
 "use client"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import StudentOnboardingPopup from "@/components/page_components/studentOnboardingPopup"
+import StudentOnboardingPopup from "@/components/page_components/Dialogs/studentOnboardingPopup"
 import { useState } from "react"
 import Link from "next/link"
 
