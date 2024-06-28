@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react'
+import React, {useEffect, useState} from 'react'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Checkbox } from '@/components/ui/checkbox'
@@ -23,56 +23,76 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [selectedStudents, setSelectedStudents] = useState([])
     const [error, setError] = useState('')
     const { toast } = useToast()
-    const handleCreateClass = async () => {
-        const classData = {
-            name: className,
-            description: classDescription,
-            days: selectedDays,
-            teacher_id: (await supabaseClient.auth.getUser()).data.user.id,
-            start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
-            end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
-            students: selectedStudents,//this will send student id to supabase in an array
-        }
-        const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-        if (authError || !user) {
-            console.error('Authentication error:', authError)
-            // Handle unauthenticated user
-            return
-        }
-        try {
-            // Insert class data
-            const { data: classInsertData, error: classError } = await supabaseClient
-                .from('classes')
-                .insert([classData])
-                .select()
+    const [students, setStudents] = useState([])
+const handleCreateClass = async () => {
+  const classData = {
+    name: className,
+    description: classDescription,
+    days: selectedDays,
+    teacher_id: (await supabaseClient.auth.getUser()).data.user.id,
+    start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
+    end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
+    students: selectedStudents, // This will send student IDs to Supabase in an array
+  };
+    const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
+  const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+  if (authError || !user) {
+    console.error('Authentication error:', authError);
+    return;
+  }
 
-            if (classError) throw classError
+  try {
+    // Insert class data
+      console.log(selectedStudents)
+    const { data: classInsertData, error: classError } = await supabaseClient
+      .from('classes')
+      .insert([classData])
+      .select('id');
 
-            // Insert student enrollments
+    const uuid = classInsertData[0].id
 
+    if (classError) throw classError;
+    // const { data: studentsData, error: fetchStudentsError } = await supabaseClient
+    //   .from('classes')
+    //   .select()
+    //   .contains('students', [selectedStudents]);
+    // Update the students' table with the class UUID
+      console.log(uuid);
+      if (error) throw error
+      let updatedUuidArray;
+  if (classInsertData.class_id && Array.isArray(classInsertData.class_id)) {
+    updatedUuidArray = [...classInsertData.class_id, uuid];
+  } else {
+    updatedUuidArray = [uuid];
+  }
+     for (const student of selectedStudents) {
+        console.log(student)
+      const { data: updateData, error: updateError } = await supabaseClient
+        .from('students')
+        .update({ class_id: updatedUuidArray })
+        .eq('id', student);
 
-
-            console.log("Class created successfully!")
-            toast({
-                className: "bg-green-500 border-black border-2",
-                title: "Class Successfully Added",
-                description: "The new class has been added to your class",
-                duration: 3000
-            })
-            setIsOpen(false)
-            // You might want to add some success notification here
-        } catch (error) {
-            setIsOpen(false)
-            console.error("Error creating class:", error)
-            toast({
-                variant: 'destructive',
-                title: "Failed to creating classes",
-                description: "Try again.",
-                duration: 3000
-            })
-        }
+      if (updateError) throw updateError;
     }
-
+    console.log("Class created successfully and students updated!");
+    toast({
+      className: "bg-green-500 border-black border-2",
+      title: "Class Successfully Added",
+      description: "The new class has been added and students have been updated",
+      duration: 3000
+    });
+    setIsOpen(false);
+  } catch (error) {
+    setIsOpen(false);
+    console.error("Error creating class or updating students:", error);
+    toast({
+      variant: 'destructive',
+      title: "Failed to create class or update students",
+      description: "Try again.",
+      duration: 3000
+    });
+  }
+};
 
     const _classNameAndDescription = () => {
         return (
@@ -260,49 +280,89 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             </div>
         )
     }
+    const fetchStudents = async () => {
+  try {
+    const { data, error } = await supabaseClient
+      .from('students')
+      .select('*')
+        .contains('teachers',`{${(await supabaseClient.auth.getUser()).data.user.id}}`);
 
-    const _studentList = () => {
-        // Assume you have a list of students, if not, you'll need to fetch this data
-        const students = [
-            { id: 1, name: "Jane Smith", email: "jane.smith@example.com", initials: "JS" },
-            { id: 2, name: "John Doe", email: "john.doe@example.com", initials: "JD" },
-            { id: 3, name: "Alice Johnson", email: "alice.johnson@example.com", initials: "AJ" },
-        ];// we will replace this from the databse just for testing changed tile code
+    if (error) throw error;
 
-        return (
-            <div>
-                <DialogHeader>
-                    <DialogTitle>Create Class</DialogTitle>
-                    <DialogDescription>Select the students you would like to add to your class<br />You will be able to add more students later.</DialogDescription>
-                </DialogHeader>
-                <div className='pt-3'>
-                    <Label htmlFor="searchStudents">Search Students</Label>
-                    <Input id="searchStudents" placeholder="Enter student name or email" />
-                </div>
+    // Transform the data to match the expected format
+    const formattedStudents = data.map(student => ({
+      id: student.id,
+      name: student.first_name + ' ' + student.last_name,
+      email: student.email,
 
-                <div className="bg-muted border-2 rounded-md p-4 my-4 max-h-[40vh] overflow-y-auto grid gap-2">
-                    {students.map(student => _studentTileForStudentList(student))}
-                </div>
+    }));
 
-                <DialogFooter>
-                    <div className='flex justify-between flex-wrap w-full'>
-                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(2)}>Back</Button>
-                        <Button type="button" onClick={() => {
-                            if (selectedStudents.length === 0) {
-                                toast({
-                                    title: 'Alert',
-                                    description: 'At least one student must be selected.',
-                                    variant: "destructive"
-                                })
-                                return
-                            }
-                            setClassCreationStep(4);
-                        }} className="gap-2">Verify<CircleArrowRight className="h-5 w-5" /></Button>
-                    </div>
-                </DialogFooter>
-            </div>
-        )
-    }
+    setStudents(formattedStudents);
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    toast({
+      variant: 'destructive',
+      title: "Failed to fetch students",
+      description: "Please try again.",
+      duration: 3000
+    });
+  }
+};
+useEffect(() => {
+  if (classCreationStep === 3) {
+    const fetchStudentsData = async () => {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) {
+        await fetchStudents(user.id);
+      } else {
+        console.error('No authenticated user found');
+        toast({
+          variant: 'destructive',
+          title: "Authentication Error",
+          description: "Please login again.",
+          duration: 3000
+        });
+      }
+    };
+    fetchStudentsData();
+  }
+}, [classCreationStep]);
+
+ const _studentList = () => {
+  return (
+    <div>
+      <DialogHeader>
+        <DialogTitle>Create Class</DialogTitle>
+        <DialogDescription>Select the students you would like to add to your class<br />You will be able to add more students later.</DialogDescription>
+      </DialogHeader>
+      <div className='pt-3'>
+        <Label htmlFor="searchStudents">Search Students</Label>
+        <Input id="searchStudents" placeholder="Enter student name or email" />
+      </div>
+
+      <div className="bg-muted border-2 rounded-md p-4 my-4 max-h-[40vh] overflow-y-auto grid gap-2">
+        {students.map(student => _studentTileForStudentList(student))}
+      </div>
+
+      <DialogFooter>
+        <div className='flex justify-between flex-wrap w-full'>
+          <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(2)}>Back</Button>
+          <Button type="button" onClick={() => {
+            if (selectedStudents.length === 0) {
+              toast({
+                title: 'Alert',
+                description: 'At least one student must be selected.',
+                variant: "destructive"
+              })
+              return
+            }
+            setClassCreationStep(4);
+          }} className="gap-2">Verify<CircleArrowRight className="h-5 w-5" /></Button>
+        </div>
+      </DialogFooter>
+    </div>
+  )
+}
     const _reviewDetails = () => {
         const classData = {
             name: className,
@@ -345,13 +405,6 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                         <Label htmlFor="students">Students</Label>
                         <div>{classData.capacity}</div>
                     </div>
-                    {classData.isOnline && (
-                        <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                            <Label htmlFor="online-link">Online Link</Label>
-                            <div>{classData.onlineLink}</div>
-                        </div>
-                    )}
-
                 </div>
                 <DialogFooter>
                     <div className='flex justify-between flex-wrap w-full'>
