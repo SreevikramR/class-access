@@ -43,24 +43,33 @@ const handleCreateClass = async () => {
 
   try {
     // Insert class data
+      console.log(selectedStudents)
     const { data: classInsertData, error: classError } = await supabaseClient
       .from('classes')
       .insert([classData])
-      .select();
+      .select('id');
+
+    const uuid = classInsertData[0].id
 
     if (classError) throw classError;
-    const { data: studentsData, error: fetchStudentsError } = await supabaseClient
-      .from('classes')
-      .select()
-      .in('students', [selectedStudents]);
+    // const { data: studentsData, error: fetchStudentsError } = await supabaseClient
+    //   .from('classes')
+    //   .select()
+    //   .contains('students', [selectedStudents]);
     // Update the students' table with the class UUID
-      console.log(studentsData)
+      console.log(uuid);
       if (error) throw error
+      let updatedUuidArray;
+  if (classInsertData.class_id && Array.isArray(classInsertData.class_id)) {
+    updatedUuidArray = [...classInsertData.class_id, uuid];
+  } else {
+    updatedUuidArray = [uuid];
+  }
      for (const student of selectedStudents) {
-
+        console.log(student)
       const { data: updateData, error: updateError } = await supabaseClient
         .from('students')
-        .update({ class_id: studentsData.id })
+        .update({ class_id: updatedUuidArray })
         .eq('id', student);
 
       if (updateError) throw updateError;
