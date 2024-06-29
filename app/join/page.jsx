@@ -7,7 +7,7 @@ export default function Component() {
   const [willPay, setWillPay] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-2">
       <main className="flex-1 flex justify-center items-center p-2">
         <div className="w-full max-w-4xl flex justify-center items-center p-2">
           <Card className="w-[40vw] p-4">
