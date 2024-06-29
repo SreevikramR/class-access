@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import fetchTimeout from '@/components/util_function/fetch';
-import supabaseClient from '@/components/util_function/supabaseCilent';
+import { supabaseClient } from '@/components/util_function/supabaseCilent';
 
 const Page = () => {
     return (
