@@ -2,18 +2,15 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import Header from "@/components/page_components/header";
-import Footer from '@/components/page_components/footer';
-
 export default function Component() {
   const [credits, setCredits] = useState(1); // Replace 1 with your actual credit value
   const [willPay, setWillPay] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
-      <main className="flex-1 flex justify-center items-center">
-        <div className="w-full max-w-4xl flex justify-center items-center">
-          <Card className="w-[40vw]">
+      <main className="flex-1 flex justify-center items-center p-2">
+        <div className="w-full max-w-4xl flex justify-center items-center p-2">
+          <Card className="w-[40vw] p-4">
             <div className="mb text-center">
               <h1 className="text-l font-bold tracking-tight text-foreground sm:text-2xl pt-6">Class Name</h1>
               <h2><p className="text-muted-foreground">Teacher: John Doe</p></h2>
@@ -42,7 +39,7 @@ export default function Component() {
               </div>
               {willPay && (
                 <div className="mt-6 flex justify-end">
-                  <Button className="w-full sm:w-auto">Join Class</Button>
+                  <Button className="w-full sm:w-auto bg-green-700">Join Class</Button>
                 </div>
               )}
             </div>
