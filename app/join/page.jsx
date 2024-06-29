@@ -2,13 +2,12 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import Header from "@/components/page_components/header";
 import Footer from '@/components/page_components/footer';
-import { ShareIcon } from "lucide-react";
 
 export default function Component() {
   const [credits, setCredits] = useState(1); // Replace 1 with your actual credit value
+  const [willPay, setWillPay] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -20,20 +19,14 @@ export default function Component() {
             <Card className="w-full max-w-md">
               <div className="mb text-center">
                 <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-3xl pt-6">Class Name</h1>
+                <h2><p className="text-muted-foreground">Teacher: John Doe</p></h2>
               </div>
               <div className="rounded-lg bg-card p-3 shadow-sm">
                 <div className="flex flex-col items-start justify-between gap-3 sm:flex-row">
                   <div>
-                    <p className="text-2xl font-bold text-foreground">
-                      <span className="text-3xl">{credits}</span> Credits
+                    <p className="text-amber-100xl font-bold text-foreground ">
+                      <span className="text-3xl">{credits}</span> Credits Remaining
                     </p>
-                    <p className="text-sm text-muted-foreground">Remaining</p>
-                  </div>
-
-                </div>
-                <div className="mt-4 flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground">Teacher: John Doe</p> {/* Replace with actual teacher's name */}
                   </div>
                 </div>
                 {credits < 2 && (
@@ -46,9 +39,21 @@ export default function Component() {
                     </div>
                   </div>
                 )}
-                <div className="mt-6 flex justify-end">
-                  <Button className="w-full sm:w-auto">Join Class</Button>
+                <div className="mt-6 flex items-center">
+                  <input
+                    type="checkbox"
+                    id="willPay"
+                    checked={willPay}
+                    onChange={() => setWillPay(!willPay)}
+                    className="mr-2"
+                  />
+                  <label htmlFor="willPay" className="text-sm text-foreground">We will pay</label>
                 </div>
+                {willPay && (
+                  <div className="mt-6 flex justify-end">
+                    <Button className="w-full sm:w-auto">Join Class</Button>
+                  </div>
+                )}
               </div>
             </Card>
           </div>
