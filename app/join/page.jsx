@@ -18,25 +18,20 @@ export default function Component() {
         <div className="max-w-4xl mx-auto">
           <div className="flex min-h-[10dvh] items-center justify-center bg-muted px-4 py-5 sm:px-6 lg:px-8">
             <Card className="w-full max-w-md">
-              <div className="mb-8 text-center">
-                <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl pt-4">Class Name</h1>
+              <div className="mb text-center">
+                <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-3xl pt-6">Class Name</h1>
               </div>
-              <div className="rounded-lg bg-card p-6 shadow-sm">
-                <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
+              <div className="rounded-lg bg-card p-3 shadow-sm">
+                <div className="flex flex-col items-start justify-between gap-3 sm:flex-row">
                   <div>
                     <p className="text-2xl font-bold text-foreground">
-                      <span className="text-4xl">{credits}</span> Credits
+                      <span className="text-3xl">{credits}</span> Credits
                     </p>
                     <p className="text-sm text-muted-foreground">Remaining</p>
                   </div>
 
                 </div>
                 <div className="mt-4 flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground">Intro to Computer Science</p>
-                    <p className="text-muted-foreground">1 credits</p>
-                  </div>
-
                   <div className="flex items-center justify-between">
                     <p className="text-muted-foreground">Teacher: John Doe</p> {/* Replace with actual teacher's name */}
                   </div>
