@@ -94,6 +94,20 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
             });
         }
     };
+
+    const _loginOrSignup = () => (
+        <div>
+            <DialogHeader>
+                <DialogTitle>Welcome!</DialogTitle>
+                <DialogDescription>To join a class, you must have an account</DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-row w-full gap-4 mt-4">
+                <Button className="w-1/2 bg-whie border-2 text-black border-black hover:bg-gray-200" onClick={() => setStep(1)}>Login</Button>
+                <Button className="w-1/2" onClick={() => setStep(1)}>Sign Up</Button>
+            </div>
+        </div>
+    )
+
     const _nameAndPassword = () => (
         <div>
             <DialogHeader>
@@ -127,7 +141,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                 </div>
             </div>
             <DialogFooter>
-                <Button type="button" className="gap-2" onClick={() => { setStep(1) }}>Next<CircleArrowRight className="h-5 w-5" /></Button>
+                <Button type="button" className="gap-2" onClick={() => { setStep(2) }}>Next<CircleArrowRight className="h-5 w-5" /></Button>
             </DialogFooter>
         </div>
     )
@@ -174,7 +188,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
 
             <DialogFooter>
                 <div className='flex justify-between flex-wrap w-full'>
-                    <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setStep(0)}>Back</Button>
+                    <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setStep(1)}>Back</Button>
                     <Button type="button" className="gap-2" onClick={handleComplete}>Complete<CheckCircle className="h-5 w-5" /></Button>
                 </div>
             </DialogFooter>
@@ -184,8 +198,9 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className="sm:max-w-[425px]">
-                {step === 0 && _nameAndPassword()}
-                {step === 1 && _phoneAndJoin()}
+                {step === 0 && _loginOrSignup()}
+                {step === 1 && _nameAndPassword()}
+                {step === 2 && _phoneAndJoin()}
             </DialogContent>
         </Dialog>
     )

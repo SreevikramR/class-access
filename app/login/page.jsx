@@ -5,17 +5,18 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import {supabaseClient} from "@/components/util_function/supabaseCilent"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function LoginPage() {
 	const [email, setEmail] = useState("")
 	const [password, setPassword] = useState("")
 	const [loading, setLoading] = useState(false)
-	const [error, setError] = useState(null)
+
+	const { toast } = useToast()
 
 	const handleLogin = async (e) => {
 		e.preventDefault()
 		setLoading(true)
-		setError(null)
 		console.log("clicked")
 
 		const { user, error } = await supabaseClient.auth.signInWithPassword({
@@ -23,12 +24,32 @@ export default function LoginPage() {
 			password,
 		})
 		if (error) {
-			console.log(error)
-			setError(error.message)
+			toast({
+				title: 'Unable to Login',
+				description: error.message,
+				variant: "destructive"
+			})
 			setLoading(false)
 		} else {
 			console.log("logged in")
 			window.location.href = "/dashboard"
+		}
+	}
+
+	const handleGoogleLogin = async () => {
+		try {
+			await supabaseClient.auth.signInWithOAuth({
+				provider: 'google',
+				options: {
+					redirectTo: `http://localhost:3000/dashboard`,
+				},
+			})
+		} catch (error) {
+			toast({
+				title: 'Unable to Login',
+				description: error.message,
+				variant: "destructive"
+			})
 		}
 	}
 
@@ -85,7 +106,7 @@ export default function LoginPage() {
 							<span className="mx-2 text-gray-500 text-xs">OR CONTINUE WITH</span>
 							<hr className="flex-grow border-t border-gray-300" />
 						</div>
-						<Button variant="outline" className="w-full">
+						<Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
 							Google
 						</Button>
 					</div>
