@@ -139,7 +139,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
             <DialogFooter>
                 <div className="flex flex-row w-full justify-between mt-4">
                     <div className="flex flex-col">
-                        <div className="text-sm text-muted-foreground">Don't Have an Account?</div>
+                        <div className="text-sm text-muted-foreground">Don&apos;t Have an Account?</div>
                         <div className="text-sm hover:cursor-pointer w-fit" onClick={() => setStep(1)}>Sign up</div>
                     </div>
                 </div>
