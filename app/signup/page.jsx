@@ -104,11 +104,11 @@ export default function SignupPage() {
                 <div className="mx-auto grid w-[350px] gap-8">
                     <div className="grid gap-2 text-center">
                         <h1 className="text-3xl font-bold">Sign Up</h1>
-                        <p className="text-balance text-muted-foreground">
-                            Enter your email below to create a new account
+                        <p className="text-balance text-muted-foreground mt-4">
+                            Please contact us at myclassaccess@gmail.com to get started
                         </p>
                     </div>
-                    <div className="grid gap-4">
+                    {/* <div className="grid gap-4">
                         <div className="grid grid-cols-2 gap-2">
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="first-name">First Name</Label>
@@ -172,7 +172,7 @@ export default function SignupPage() {
                         <Button variant="outline" className="w-full">
                             Google
                         </Button>
-                    </div>
+                    </div> */}
                     <div className="mt-4 text-center text-sm">
                         Have an account?{" "}
                         <Link href="/login" className="underline">

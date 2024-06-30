@@ -17,6 +17,7 @@ const convertTo12HourFormat = (time) => {
 const Dashboard = () => {
 	const [isOpen, setIsOpen] = useState(false)
 	const [classes, setClasses] = useState([])
+	const [loading, setLoading] = useState(false)
 
 	useEffect(() => {
 		fetchClasses()
@@ -27,6 +28,7 @@ const Dashboard = () => {
 	}, [isOpen])
 	
 	const fetchClasses = async () => {
+		setLoading(true)
 		const { data, error } = await supabaseClient
 			.from('classes')
 			.select('*')
@@ -38,6 +40,7 @@ const Dashboard = () => {
 			setClasses(data)
 		}
 		console.log(data)
+		setLoading(false)
 	}
 
 	const _classCard = (classInfo) => {
@@ -99,11 +102,14 @@ const Dashboard = () => {
 					</div>
 					<div className="grid gap-4">
 						{classes.length === 0 && 
-							<div className='flex flex-col bg-white border-2 m-2 rounded-xl w-full h-[65vh] items-center justify-center'>
+						<>
+							{loading && <div className='flex flex-col bg-white border-2 m-2 rounded-xl w-full h-[65vh] items-center justify-center'>Loading...</div>}
+							{!loading && <div className='flex flex-col bg-white border-2 m-2 rounded-xl w-full h-[65vh] items-center justify-center'>
 								<div className='text-lg mb-3'>No Classes Found!</div>
 								<div className='flex flex-row items-center text-muted-foreground'>Would you like to add a new class?</div>
 								<div className='flex flex-row ml-2 hover:bg-black hover:text-white items-center border-2 border-black hover:cursor-pointer p-1 px-2 rounded-lg mt-2' onClick={() => setIsOpen(true)}><PlusCircle className='h-4 w-4 mr-1' />Add Class</div>
 							</div>}
+						</>}
 						{classes.map((classInfo) => _classCard(classInfo))}
 					</div>
 				</section>
