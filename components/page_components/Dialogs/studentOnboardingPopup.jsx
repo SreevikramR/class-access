@@ -12,13 +12,16 @@ import { toast } from "@/components/ui/use-toast"
 
 export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
 
-    const [step, setStep] = useState(0)
+    const [step, setStep] = useState(1)
     const [firstName, setFirstName] = useState("")
     const [lastName, setLastName] = useState("")
     const [phone, setPhone] = useState("+91")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
     const phoneData = getPhoneData(phone)
+
+    const [email, setEmail] = useState("")
+    const [loginPassword, setLoginPassword] = useState("")
 
     const handleComplete = async () => {
         if (password !== confirmPassword) {
@@ -95,16 +98,52 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
         }
     };
 
-    const _loginOrSignup = () => (
+    const _login = () => (
         <div>
             <DialogHeader>
-                <DialogTitle>Welcome!</DialogTitle>
-                <DialogDescription>To join a class, you must have an account</DialogDescription>
+                <DialogTitle>Welcome Back!</DialogTitle>
+                <DialogDescription>Please enter your details to join your class</DialogDescription>
             </DialogHeader>
-            <div className="flex flex-row w-full gap-4 mt-4">
-                <Button className="w-1/2 bg-whie border-2 text-black border-black hover:bg-gray-200" onClick={() => setStep(1)}>Login</Button>
-                <Button className="w-1/2" onClick={() => setStep(1)}>Sign Up</Button>
+            <div className="grid gap-4 py-4">
+                <div className="grid items-center gap-4 w-full" >
+                    <div className="flex flex-col w-full">
+                        <Label htmlFor="first-name" className="pb-2">
+                            Email
+                        </Label>
+                        <Input
+                            id="first-name"
+                            placeholder="Enter your first name"
+                            className="col-span-3"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                    </div>
+                </div >
+                <div className="grid items-center gap-4 w-full" >
+                    <div className="flex flex-col w-full">
+                        <Label htmlFor="first-name" className="pb-2">
+                            Password
+                        </Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            placeholder="Enter your first name"
+                            className="col-span-3"
+                            value={loginPassword}
+                            onChange={(e) => setLoginPassword(e.target.value)}
+                        />
+                    </div>
+                    <Button type="button" className="gap-2" onClick={() => { setStep(2) }}>Login</Button>
+                </div >
             </div>
+            <DialogFooter>
+                <div className="flex flex-row w-full justify-between mt-4">
+                    <div className="flex flex-col">
+                        <div className="text-sm text-muted-foreground">Don't Have an Account?</div>
+                        <div className="text-sm hover:cursor-pointer w-fit" onClick={() => setStep(1)}>Sign up</div>
+                    </div>
+                </div>
+            </DialogFooter>
         </div>
     )
 
@@ -141,7 +180,13 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                 </div>
             </div>
             <DialogFooter>
-                <Button type="button" className="gap-2" onClick={() => { setStep(2) }}>Next<CircleArrowRight className="h-5 w-5" /></Button>
+                <div className="flex flex-row w-full justify-between mt-4">
+                    <div className="flex flex-col">
+                        <div className="text-sm text-muted-foreground">Already Have an Account?</div>
+                        <div className="text-sm hover:cursor-pointer w-fit" onClick={() => setStep(0)}>Login</div>
+                    </div>
+                    <Button type="button" className="gap-2" onClick={() => { setStep(2) }}>Next<CircleArrowRight className="h-5 w-5" /></Button>
+                </div>
             </DialogFooter>
         </div>
     )
@@ -198,7 +243,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className="sm:max-w-[425px]">
-                {step === 0 && _loginOrSignup()}
+                {step === 0 && _login()}
                 {step === 1 && _nameAndPassword()}
                 {step === 2 && _phoneAndJoin()}
             </DialogContent>

@@ -42,7 +42,7 @@ export default function LoginPage() {
 			await supabaseClient.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
-					redirectTo: `${window.location.origin}/oauth/google/callback`,
+					redirectTo: `${window.location.origin}/oauth/google/teacher_login`,
 				},
 			})
 		} catch (error) {
