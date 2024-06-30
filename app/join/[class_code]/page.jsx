@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-export default function Component() {
+
+export default function Component({ params: { class_code } }) {
 	const [credits, setCredits] = useState(1); // Replace 1 with your actual credit value
 	const [willPay, setWillPay] = useState(false);
 

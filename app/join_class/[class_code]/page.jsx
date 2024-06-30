@@ -3,9 +3,8 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import StudentOnboardingPopup from "@/components/page_components/Dialogs/studentOnboardingPopup"
 import { useState } from "react"
-import Link from "next/link"
 
-export default function Component() {
+export default function Component({ params: { class_code }}) {
     const [isOpen, setIsOpen] = useState(false)
     const [joinedClass, setJoinedClass] = useState(false)
 
@@ -57,7 +56,7 @@ export default function Component() {
             { joinedClass && _joinedClass()}
             { !joinedClass &&
                 <div>
-                    <StudentOnboardingPopup isOpen={isOpen} setIsOpen={setIsOpen} onComplete={handleComplete} />
+                    <StudentOnboardingPopup isOpen={isOpen} setIsOpen={setIsOpen} onComplete={handleComplete} classCode={class_code} />
                     <Card className="w-full max-w-md p-6 space-y-4">
                         <div className="flex flex-col items-center space-y-2">
                             <div className="inline-block rounded-lg px-3 py-1 text-sm font-medium">
