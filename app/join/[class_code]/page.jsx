@@ -6,28 +6,67 @@ import { supabaseClient } from '@/components/util_function/supabaseCilent';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
+import fetchTimeout from '@/components/util_function/fetch';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function Component({ params: { class_code } }) {
-	const [isLoggedIn, setIsLoggedIn] = useState(true);
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [isUnauthorized, setIsUnauthorized] = useState(false);
 	const [noAccount, setNoAccount] = useState(false);
-	const [credits, setCredits] = useState(2); // Replace 1 with your actual credit value
+	const [credits, setCredits] = useState(1); // Replace 1 with your actual credit value
 	const [willPay, setWillPay] = useState(false);
 
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const { toast } = useToast()
 
 	useEffect(() => {
 		fetchUser()
 	}, [])
 
 	const handleLogin = () => {}
-	const handleGoogleLogin = () => {}
+	const handleGoogleLogin = async () => {
+		console.log(`${window.location.origin}/oauth/google/callback`)
+		try {
+			await supabaseClient.auth.signInWithOAuth({
+				provider: 'google',
+				options: {
+					redirectTo: `${window.location.href}`,
+				},
+			})
+		} catch (error) {
+			toast({
+				title: 'Unable to Login',
+				description: error.message,
+				variant: "destructive"
+			})
+		}
+	}
 
 	const fetchUser = async () => {
 		const user = await supabaseClient.auth.getUser();
 		if (user.data.user != null) {
-			console.log("logged in")
+			const { data, error } = await supabaseClient.from('students').select('*').eq('id', user.data.user.id);
+			if (data.length > 0) {
+				setIsLoggedIn(true)
+			} else {
+				const controller = new AbortController()
+				const { signal } = controller;
+				const url = new URL(`${window.location.origin}/api/users/delete_user`)
+				const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
+				const response = await fetchTimeout(url, 5500, { signal, headers: { 'jwt': jwt } });
+				console.log(response)
+				if (response.status === 200) {
+					toast({
+						title: 'Account not found with Email',
+						description: "Please Sign Up First",
+						variant: "destructive"
+					})
+					setTimeout(() => {
+						window.location.reload()
+					}, 5000)
+				}
+			}
 		} else {
 			console.log("not logged in")
 		}
