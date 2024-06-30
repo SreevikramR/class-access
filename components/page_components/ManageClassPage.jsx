@@ -12,11 +12,13 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { PlusCircle } from "lucide-react"
 import { Copy } from "lucide-react"
-import { useState } from "react"
+import {useEffect, useState} from "react"
 import { UserPlusIcon } from "lucide-react"
 import { UserIcon } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
-//
+import {useRouter} from "next/navigation";
+import {supabaseClient} from "@/components/util_function/supabaseCilent";
+
 export default function ManagePage() {
     const [isOpen, setIsOpen] = useState(false)
     const [email, setEmail] = useState("")
@@ -26,6 +28,13 @@ export default function ManagePage() {
     const [selectedStudents, setSelectedStudents] = useState([])
 
     const { toast } = useToast()
+      const router = useRouter();
+  const [classCode, setClassCode] = useState(null);
+  const handleManageClass = () => {
+    if (classCode) {
+      router.push(`/manage/${classCode}`);
+    }
+  };
 
     const handleNewStudentSubmit = async () => {
         setIsCreatingUser(true)

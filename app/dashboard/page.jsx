@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button'
 import { PlusCircle, Share2 } from 'lucide-react'
 import Link from 'next/link'
 import CreateClassPopup from '@/components/page_components/Dialogs/createClassPopup'
+
+import { useRouter } from 'next/navigation';
+
 const convertTo12HourFormat = (time) => {
 	const [hours, minutes] = time.split(':');
 	const period = hours >= 12 ? 'PM' : 'AM';
@@ -14,11 +17,15 @@ const convertTo12HourFormat = (time) => {
 	return `${adjustedHours}:${minutes} ${period}`;
 };
 
-const Dashboard = () => {
+const Dashboard = ({ classInfo }) => {
 	const [isOpen, setIsOpen] = useState(false)
 	const [classes, setClasses] = useState([])
 	const [loading, setLoading] = useState(false)
+    const router = useRouter()
 
+  const handleManageClass = (classCode) => {
+    router.push(`/manage/${classCode}`);
+  };
 	useEffect(() => {
 		fetchClasses()
 	}, [])
@@ -26,7 +33,7 @@ const Dashboard = () => {
 	useEffect(() => {
 		fetchClasses()
 	}, [isOpen])
-	
+
 	const fetchClasses = async () => {
 		setLoading(true)
 		const { data, error } = await supabaseClient
@@ -70,7 +77,7 @@ const Dashboard = () => {
 					</div>
 					<div className="flex gap-2">
 						<Button size="sm">Start Class</Button>
-						<Button variant="outline" size="sm">
+						<Button variant="outline" size="sm" onClick={() => handleManageClass(classInfo.class_code)}>
 							Manage Class
 						</Button>
 					</div>
@@ -101,7 +108,7 @@ const Dashboard = () => {
 						</Button>
 					</div>
 					<div className="grid gap-4">
-						{classes.length === 0 && 
+						{classes.length === 0 &&
 						<>
 							{loading && <div className='flex flex-col bg-white border-2 m-2 rounded-xl w-full h-[65vh] items-center justify-center'>Loading...</div>}
 							{!loading && <div className='flex flex-col bg-white border-2 m-2 rounded-xl w-full h-[65vh] items-center justify-center'>
@@ -119,4 +126,4 @@ const Dashboard = () => {
 	)
 }
 
-export default Dashboard
+export default Dashboard;
