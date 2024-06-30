@@ -10,7 +10,7 @@ import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import { toast } from "@/components/ui/use-toast"
 
 
-export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
+export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, classCode }) {
 
     const [step, setStep] = useState(1)
     const [firstName, setFirstName] = useState("")
@@ -22,6 +22,24 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
 
     const [email, setEmail] = useState("")
     const [loginPassword, setLoginPassword] = useState("")
+
+
+    const handleGoogleLogin = async () => {
+        try {
+            await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.href}`,
+                },
+            })
+        } catch (error) {
+            toast({
+                title: 'Unable to Login',
+                description: error.message,
+                variant: "destructive"
+            })
+        }
+    }
 
     const handleComplete = async () => {
         if (password !== confirmPassword) {
@@ -44,11 +62,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
         }
 
         try {
-            // Ensure only plain data is being passed
             const user = await supabaseClient.auth.getUser();
-
-            // console.log(phone)
-            // console.log(final,"and",typeof(final))
             const studentData = {
                 first_name: firstName,
                 last_name: lastName,
@@ -56,7 +70,6 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                 phone: phoneData.phoneNumber
             };
             console.log("Data to be updated:", studentData);
-
 
             console.log("Existing row found. Attempting to update.");
             const { data: updateData, error: updateError } = await supabaseClient
@@ -76,9 +89,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                 password: password
             })
 
-
             if (error2) throw error2;
-
 
             toast({
                 className: "bg-green-500 border-black border-2",
@@ -135,6 +146,14 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                     </div>
                     <Button type="button" className="gap-2" onClick={() => { setStep(2) }}>Login</Button>
                 </div >
+                <div className="flex items-center my-2">
+                    <hr className="flex-grow border-t border-gray-300" />
+                    <span className="mx-2 text-gray-500 text-xs">OR CONTINUE WITH</span>
+                    <hr className="flex-grow border-t border-gray-300" />
+                </div>
+                <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
+                    Google
+                </Button>
             </div>
             <DialogFooter>
                 <div className="flex flex-row w-full justify-between mt-4">
@@ -151,7 +170,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
         <div>
             <DialogHeader>
                 <DialogTitle>Welcome!</DialogTitle>
-                <DialogDescription>Please enter your details to join your class</DialogDescription>
+                <DialogDescription>Please create an account by entering your details below</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
                 <div className="grid items-center grid-cols-4 gap-4">
