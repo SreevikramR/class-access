@@ -83,7 +83,7 @@ export default function ManageClass({ params }) {
                     <section className="space-y-1 bg-background border-2 p-2 rounded-lg justify-center flex flex-col">
                         <p className="text-gray-600">Please share the class link with your students</p>
                         <p className="font-medium flex flex-row">
-                            Class Link: <span className="font-normal pl-1">classaccess.vercel.app/join?code=ABC123</span>
+                            Class Link: <span className="font-normal pl-1">classaccess.vercel.app/join/{classCode}</span>
                             <Copy className="ml-2 h-5 w-5 align-middle"/>
                         </p>
                     </section>
