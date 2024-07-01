@@ -1,18 +1,18 @@
 "use client"
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { CircleArrowRight, Phone, CheckCircle } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { getPhoneData, PhoneInput } from "@/components/ui/phoneInputComponents"
 import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import { toast } from "@/components/ui/use-toast"
+import { Card } from "@/components/ui/card"
+import Link from "next/link"
 
-
-export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
-
-    const [step, setStep] = useState(1)
+export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, classCode }) {
+    const [step, setStep] = useState(0)
     const [firstName, setFirstName] = useState("")
     const [lastName, setLastName] = useState("")
     const [phone, setPhone] = useState("+91")
@@ -22,6 +22,24 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
 
     const [email, setEmail] = useState("")
     const [loginPassword, setLoginPassword] = useState("")
+
+    const handleLogin = async () => {}
+    const handleGoogleLogin = async () => {
+        try {
+            await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.href}`,
+                },
+            })
+        } catch (error) {
+            toast({
+                title: 'Unable to Login',
+                description: error.message,
+                variant: "destructive"
+            })
+        }
+    }
 
     const handleComplete = async () => {
         if (password !== confirmPassword) {
@@ -44,11 +62,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
         }
 
         try {
-            // Ensure only plain data is being passed
             const user = await supabaseClient.auth.getUser();
-
-            // console.log(phone)
-            // console.log(final,"and",typeof(final))
             const studentData = {
                 first_name: firstName,
                 last_name: lastName,
@@ -56,7 +70,6 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                 phone: phoneData.phoneNumber
             };
             console.log("Data to be updated:", studentData);
-
 
             console.log("Existing row found. Attempting to update.");
             const { data: updateData, error: updateError } = await supabaseClient
@@ -76,9 +89,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                 password: password
             })
 
-
             if (error2) throw error2;
-
 
             toast({
                 className: "bg-green-500 border-black border-2",
@@ -99,59 +110,64 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
     };
 
     const _login = () => (
-        <div>
-            <DialogHeader>
-                <DialogTitle>Welcome Back!</DialogTitle>
-                <DialogDescription>Please enter your details to join your class</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-                <div className="grid items-center gap-4 w-full" >
-                    <div className="flex flex-col w-full">
-                        <Label htmlFor="first-name" className="pb-2">
-                            Email
-                        </Label>
+        <Card className="w-fill border-0">
+            <div className="text-center">
+                <h1 className="font-semibold text-xl text-foreground pt-6">Please Login to Join your class</h1>
+            </div>
+            <div className="rounded-lg bg-white p-3 pt-0">
+                <div className="grid gap-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="email">Email</Label>
                         <Input
-                            id="first-name"
-                            placeholder="Enter your first name"
-                            className="col-span-3"
+                            id="email"
+                            type="email"
                             value={email}
+                            placeholder="email@example.com"
+                            required
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
-                </div >
-                <div className="grid items-center gap-4 w-full" >
-                    <div className="flex flex-col w-full">
-                        <Label htmlFor="first-name" className="pb-2">
-                            Password
-                        </Label>
+                    <div className="grid gap-2">
+                        <div className="flex items-center">
+                            <Label htmlFor="password">Password</Label>
+                            <Link
+                                href="/forgot-password"
+                                className="ml-auto inline-block text-sm underline"
+                            >
+                                Forgot your password?
+                            </Link>
+                        </div>
                         <Input
                             id="password"
+                            placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"
                             type="password"
-                            placeholder="Enter your first name"
-                            className="col-span-3"
-                            value={loginPassword}
-                            onChange={(e) => setLoginPassword(e.target.value)}
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
-                    <Button type="button" className="gap-2" onClick={() => { setStep(2) }}>Login</Button>
-                </div >
-            </div>
-            <DialogFooter>
-                <div className="flex flex-row w-full justify-between mt-4">
-                    <div className="flex flex-col">
-                        <div className="text-sm text-muted-foreground">Don&apos;t Have an Account?</div>
-                        <div className="text-sm hover:cursor-pointer w-fit" onClick={() => setStep(1)}>Sign up</div>
+                    <Button type="submit" onClick={handleLogin} className="w-full">
+                        Login
+                    </Button>
+                    <div className="flex items-center my-2">
+                        <hr className="flex-grow border-t border-gray-300" />
+                        <span className="mx-2 text-gray-500 text-xs">OR CONTINUE WITH</span>
+                        <hr className="flex-grow border-t border-gray-300" />
                     </div>
+                    <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
+                        Google
+                    </Button>
+                    <div className='text-md cursor-pointer text-blue-700 underline w-fit' onClick={() => setStep(1)}>Don&apos;t have an Account?</div>
                 </div>
-            </DialogFooter>
-        </div>
+            </div>
+        </Card>
     )
 
     const _nameAndPassword = () => (
         <div>
             <DialogHeader>
                 <DialogTitle>Welcome!</DialogTitle>
-                <DialogDescription>Please enter your details to join your class</DialogDescription>
+                <DialogDescription>Please create an account by entering your details below</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
                 <div className="grid items-center grid-cols-4 gap-4">
@@ -242,7 +258,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="max-w-[36vw]">
                 {step === 0 && _login()}
                 {step === 1 && _nameAndPassword()}
                 {step === 2 && _phoneAndJoin()}
