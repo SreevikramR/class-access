@@ -24,7 +24,15 @@ const Dashboard = ({ classInfo }) => {
     const router = useRouter()
 
   const handleManageClass = (classCode) => {
+    console.log('Button clicked');
+  try {
+    console.log('Attempting navigation to:', `/manage/${classCode}`);
     router.push(`/manage/${classCode}`);
+    console.log('Navigation function called');
+  } catch (err) {
+    console.error('Navigation error:', err);
+
+  }
   };
 	useEffect(() => {
 		fetchClasses()
