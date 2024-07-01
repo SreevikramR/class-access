@@ -23,6 +23,8 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [error, setError] = useState('')
     const { toast } = useToast()
     const [students, setStudents] = useState([])
+    const [newStudentEmail, setNewStudentEmail] = useState('')
+    const [newStudentNotes, setNewStudentNotes] = useState('')
 
     const generateRandomString = (length) => {
         const getRandomCharacter = () => {
@@ -294,6 +296,45 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             </div>
         )
     }
+	    const handleAddStudent = async () => {
+        if (!newStudentEmail) {
+            toast({ title: 'Incomplete Fields', description: 'Student email is required.', variant: "destructive", });
+            return;
+        }
+
+        const defaultPassword = generateRandomString(8);
+
+        try {
+            const { data: studentInsertData, error: studentInsertError } = await supabaseClient
+                .from('students')
+                .insert([{ email: newStudentEmail, notes: newStudentNotes }])
+                .select('*');
+
+            if (studentInsertError) throw studentInsertError;
+
+            const newStudent = studentInsertData[0];
+            setStudents([...students, newStudent]);
+            setSelectedStudents([...selectedStudents, newStudent.id]);
+            setNewStudentEmail('');
+            setNewStudentNotes('');
+
+            toast({
+                className: "bg-green-500 border-black border-2",
+                title: "Student Added",
+                description: "The new student has been added and selected",
+                duration: 3000
+            });
+        } catch (error) {
+            console.error("Error adding student:", error);
+            toast({
+                variant: 'destructive',
+                title: "Failed to add student",
+                description: "Try again.",
+                duration: 3000
+            });
+        }
+    };
+
     const fetchStudents = async () => {
         try {
             const { data, error } = await supabaseClient
@@ -366,14 +407,26 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                         <div className='text-center font-semibold mb-2'>New Student</div>
                         <div>
                             <Label htmlFor="email" className="font-normal">Email</Label>
-                            <Input id="email" placeholder="email@domain.com" />
+                            <Input
+                            id="student-email"
+                            type="email"
+                            value={newStudentEmail}
+                            onChange={(e) => setNewStudentEmail(e.target.value)}
+                            placeholder="Student Email"
+                            required
+                        />
                         </div>
                         <div className='mt-2'>
                             <Label htmlFor="email" className="font-normal">Notes</Label>
-                            <Input id="notes" placeholder="Optional" />
+                            <Textarea
+                            id="student-notes"
+                            value={newStudentNotes}
+                            onChange={(e) => setNewStudentNotes(e.target.value)}
+                            placeholder="Additional Notes"
+                        />
                         </div>
                         <div className='mt-4 w-full'>
-                            <Button className="w-full">Add</Button>
+                            <Button type="button" onClick={handleAddStudent} className="gap-2">Add Student<CircleArrowRight className="h-5 w-5" /></Button>
                         </div>
                     </div>
                 </div>
