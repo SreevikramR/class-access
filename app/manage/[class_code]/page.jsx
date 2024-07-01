@@ -111,7 +111,7 @@ export default function ManageClass({ params }) {
                             <TableBody>
                                 {studentData.length > 0 ? studentData.map(student => (
                                     <TableRow key={student.id}>
-                                        <TableCell>{student.name}</TableCell>
+                                        <TableCell>{student.first_name} {student.last_name}</TableCell>
                                         <TableCell>{student.email}</TableCell>
                                         <TableCell>{student.classes_left}</TableCell>
                                         <TableCell>
