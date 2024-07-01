@@ -113,7 +113,7 @@ export default function ManageClass({ params }) {
                                     <TableRow key={student.id}>
                                         <TableCell>{student.first_name} {student.last_name}</TableCell>
                                         <TableCell>{student.email}</TableCell>
-                                        <TableCell>{student.classes_left}</TableCell>
+                                        <TableCell>{student.classes_left[classData.id]}</TableCell>
                                         <TableCell>
                                             {/* Add actions here */}
                                         </TableCell>
