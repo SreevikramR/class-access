@@ -42,7 +42,7 @@ const page = () => {
                                 </div>
                                 <div>
                                 <h3 className="text-lg font-bold">Total Paid</h3>
-                                <p className="text-2xl font-bold">$500</p>
+                                    <p className="text-2xl font-bold">₹2500</p>
                                 </div>
                             </div>
                         </div>
@@ -101,17 +101,17 @@ const page = () => {
                         <TableBody>
                             <TableRow>
                             <TableCell>2023-04-01</TableCell>
-                            <TableCell>$100</TableCell>
+                            <TableCell>₹800</TableCell>
                             <TableCell>Credit Card</TableCell>
                             </TableRow>
                             <TableRow>
                             <TableCell>2023-03-15</TableCell>
-                            <TableCell>$200</TableCell>
-                            <TableCell>PayPal</TableCell>
+                            <TableCell>₹1000</TableCell>
+                            <TableCell>GPay</TableCell>
                             </TableRow>
                             <TableRow>
                             <TableCell>2023-02-28</TableCell>
-                            <TableCell>$200</TableCell>
+                            <TableCell>₹700</TableCell>
                             <TableCell>Bank Transfer</TableCell>
                             </TableRow>
                         </TableBody>

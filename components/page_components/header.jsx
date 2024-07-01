@@ -19,11 +19,11 @@ const Header = () => {
 						{/* <Link href="#" className="hover:underline" prefetch={false}>
 							Students
 						</Link> */}
-						<Link href="/classes" className="hover:underline" prefetch={false}>
-							Classes
+						<Link href="/students" className="hover:underline" prefetch={false}>
+							Students
 						</Link>
-						<Link href="#" className="hover:underline" prefetch={false}>
-							Payments
+						<Link href="/attendance" className="hover:underline" prefetch={false}>
+							Attendance
 						</Link>
 					</nav>
 					<DropdownMenu>
