@@ -190,6 +190,9 @@ const MarkAttendance = () => {
                     <CardContent className="p-8 text-gray-500">Please add students to your class to view them here</CardContent>
                 ))}
             </Card>
+            <div className='flex ml-auto justify-end'>
+                <Button className="mt-4">Save Attendance</Button>
+            </div>
         </>
     )
 }
