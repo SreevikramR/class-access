@@ -23,17 +23,6 @@ const Dashboard = ({ classInfo }) => {
 	const [loading, setLoading] = useState(false)
     const router = useRouter()
 
-  const handleManageClass = (classCode) => {
-    console.log('Button clicked');
-  try {
-    console.log('Attempting navigation to:', `/manage/${classCode}`);
-    router.push(`/manage/${classCode}`);
-    console.log('Navigation function called');
-  } catch (err) {
-    console.error('Navigation error:', err);
-
-  }
-  };
 	useEffect(() => {
 		fetchClasses()
 	}, [])
@@ -85,7 +74,7 @@ const Dashboard = ({ classInfo }) => {
 					</div>
 					<div className="flex gap-2">
 						<Button size="sm">Start Class</Button>
-						<Button variant="outline" size="sm" onClick={() => handleManageClass(classInfo.class_code)}>
+						<Button variant="outline" size="sm" onClick={() => router.push(`/manage/${classInfo.class_code}`)}>
 							Manage Class
 						</Button>
 					</div>
