@@ -11,7 +11,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import { useToast } from "@/components/ui/use-toast";
-import {v4 as uuidv4} from 'uuid';
 import fetchTimeout from "@/components/util_function/fetch";
 // i am back
 const CreateClassPopup = ({ isOpen, setIsOpen }) => {
