@@ -11,6 +11,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import { useToast } from "@/components/ui/use-toast";
+import {v4 as uuidv4} from 'uuid';
+import fetchTimeout from "@/components/util_function/fetch";
 // i am back
 const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [classCreationStep, setClassCreationStep] = useState(0)
@@ -301,18 +303,33 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             toast({ title: 'Incomplete Fields', description: 'Student email is required.', variant: "destructive", });
             return;
         }
+    try {
+		const controller = new AbortController()
+	    const { signal } = controller;
+        const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+        const response = await fetchTimeout(`/api/users/new_student?email=${newStudentEmail}&notes=${newStudentNotes}&classes=${0}`, 5500,{signal,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'jwt': jwt,
+	            'access_token': (await supabaseClient.auth.getSession()).data.session.access_token
+            },
+        });
 
-        const defaultPassword = generateRandomString(8);
+        if (response.status === 409) {
+            toast({
+                variant: 'destructive',
+                title: "Student already exists",
+                description: "The student with this email is already registered.",
+                duration: 3000
+            });
+            return;
+        }
 
-        try {
-            const { data: studentInsertData, error: studentInsertError } = await supabaseClient
-                .from('students')
-                .insert([{ email: newStudentEmail, notes: newStudentNotes }])
-                .select('*');
+        const result = await response.json();
 
-            if (studentInsertError) throw studentInsertError;
-
-            const newStudent = studentInsertData[0];
+        if (response.status === 200) {
+            const newStudent = result[0];
             setStudents([...students, newStudent]);
             setSelectedStudents([...selectedStudents, newStudent.id]);
             setNewStudentEmail('');
@@ -324,7 +341,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                 description: "The new student has been added and selected",
                 duration: 3000
             });
-        } catch (error) {
+        } }catch (error) {
             console.error("Error adding student:", error);
             toast({
                 variant: 'destructive',
