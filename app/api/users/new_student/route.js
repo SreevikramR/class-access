@@ -7,7 +7,7 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export async function GET(request) {
+export async function POST(request) {
     const token = request.headers.get('jwt');
     const refresh_token = request.headers.get('refresh_token');
     let teacherUUID = '';
