@@ -11,7 +11,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import { useToast } from "@/components/ui/use-toast";
-
+import fetchTimeout from "@/components/util_function/fetch";
+// i am back
 const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [classCreationStep, setClassCreationStep] = useState(0)
     const [className, setClassName] = useState("")
@@ -23,6 +24,8 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [error, setError] = useState('')
     const { toast } = useToast()
     const [students, setStudents] = useState([])
+    const [newStudentEmail, setNewStudentEmail] = useState('')
+    const [newStudentNotes, setNewStudentNotes] = useState('')
 
     const generateRandomString = (length) => {
         const getRandomCharacter = () => {
@@ -294,6 +297,60 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             </div>
         )
     }
+	    const handleAddStudent = async () => {
+        if (!newStudentEmail) {
+            toast({ title: 'Incomplete Fields', description: 'Student email is required.', variant: "destructive", });
+            return;
+        }
+    try {
+		const controller = new AbortController()
+	    const { signal } = controller;
+        const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+        const response = await fetchTimeout(`/api/users/new_student?email=${newStudentEmail}&notes=${newStudentNotes}&classes=${0}`, 5500,{signal,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'jwt': jwt,
+	            'access_token': (await supabaseClient.auth.getSession()).data.session.access_token
+            },
+        });
+
+        if (response.status === 409) {
+            toast({
+                variant: 'destructive',
+                title: "Student already exists",
+                description: "The student with this email is already registered.",
+                duration: 3000
+            });
+            return;
+        }
+
+        const result = await response.json();
+
+        if (response.status === 200) {
+            const newStudent = result[0];
+            setStudents([...students, newStudent]);
+            setSelectedStudents([...selectedStudents, newStudent.id]);
+            setNewStudentEmail('');
+            setNewStudentNotes('');
+
+            toast({
+                className: "bg-green-500 border-black border-2",
+                title: "Student Added",
+                description: "The new student has been added and selected",
+                duration: 3000
+            });
+        } }catch (error) {
+            console.error("Error adding student:", error);
+            toast({
+                variant: 'destructive',
+                title: "Failed to add student",
+                description: "Try again.",
+                duration: 3000
+            });
+        }
+    };
+
     const fetchStudents = async () => {
         try {
             const { data, error } = await supabaseClient
@@ -366,14 +423,26 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                         <div className='text-center font-semibold mb-2'>New Student</div>
                         <div>
                             <Label htmlFor="email" className="font-normal">Email</Label>
-                            <Input id="email" placeholder="email@domain.com" />
+                            <Input
+                            id="student-email"
+                            type="email"
+                            value={newStudentEmail}
+                            onChange={(e) => setNewStudentEmail(e.target.value)}
+                            placeholder="Student Email"
+                            required
+                        />
                         </div>
                         <div className='mt-2'>
                             <Label htmlFor="email" className="font-normal">Notes</Label>
-                            <Input id="notes" placeholder="Optional" />
+                            <Textarea
+                            id="student-notes"
+                            value={newStudentNotes}
+                            onChange={(e) => setNewStudentNotes(e.target.value)}
+                            placeholder="Additional Notes"
+                        />
                         </div>
                         <div className='mt-4 w-full'>
-                            <Button className="w-full">Add</Button>
+                            <Button type="button" onClick={handleAddStudent} className="gap-2">Add Student<CircleArrowRight className="h-5 w-5" /></Button>
                         </div>
                     </div>
                 </div>

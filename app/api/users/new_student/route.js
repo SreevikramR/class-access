@@ -7,14 +7,20 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export async function GET(request) {
+export async function POST(request) {
     const token = request.headers.get('jwt');
+    const refresh_token = request.headers.get('refresh_token');
     let teacherUUID = '';
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         teacherUUID = decoded.sub;
     } catch (err) {
+        return new Response('Invalid Token', { status: 401 });
+    }
+
+    const { sessionData, sessionError } = await supabase.auth.setSession({jwt, refresh_token});
+    if (sessionError) {
         return new Response('Invalid Token', { status: 401 });
     }
 
