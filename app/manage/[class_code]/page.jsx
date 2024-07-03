@@ -1,11 +1,11 @@
 'use client'
 import { useEffect, useState } from "react";
-import { useRouter } from 'next/navigation';
 import { supabaseClient } from '@/components/util_function/supabaseCilent';
 import { useToast } from "@/components/ui/use-toast";
 import { Copy, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import Header from "@/components/page_components/header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -14,7 +14,6 @@ export default function ManageClass({ params }) {
     const [classData, setClassData] = useState(null);
     const [studentData, setStudentData] = useState([]);
     const { toast } = useToast();
-    const router = useRouter();
     const classCode = params.class_code;
 
     useEffect(() => {
@@ -63,17 +62,55 @@ export default function ManageClass({ params }) {
         }
     }, [classCode, toast]);
 
-    console.log("class", classData);
-    console.log("Student", studentData);
+    const StudentDetailsPopUp = () => {
+        return (
+            <>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Student Details</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid items-center grid-cols-4 gap-4">
+                            <Label htmlFor="name" className="text-right">
+                                Name
+                            </Label>
+                            <div className="col-span-3">Student Name</div>
+                        </div>
+                        <div className="grid items-center grid-cols-4 gap-4">
+                            <Label htmlFor="phone" className="text-right">
+                                Phone
+                            </Label>
+                            <div className="col-span-3">Phone</div>
+                        </div>
+                        <div className="grid items-center grid-cols-4 gap-4">
+                            <Label htmlFor="classes" className="text-right">
+                                Classes
+                            </Label>
+                            <div className="col-span-3 flex items-center gap-2">
+                                <Button variant="outline" onClick={()=>{}}>
+                                    -
+                                </Button>
+                                <div>3</div>
+                                <Button variant="outline" onClick={()=>{}}>
+                                    +
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button type="button">Close</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </>
+        )
+    }
 
     return (
         <div className="min-h-screen bg-gray-100">
             <Header />
             <main className="p-6 space-y-8">
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                    <DialogContent className="sm:max-w-[425px] md:max-w-[45vw]">
-                        {/* Dialog content */}
-                    </DialogContent>
+                    <StudentDetailsPopUp />
                 </Dialog>
                 <div className="w-full grid grid-cols-2">
                     <section className="space-y-1">
@@ -105,18 +142,14 @@ export default function ManageClass({ params }) {
                                     <TableHead>Name</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>Classes Left</TableHead>
-                                    <TableHead>Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {studentData.length > 0 ? studentData.map(student => (
-                                    <TableRow key={student.id}>
+                                    <TableRow key={student.id} className="hover:cursor-pointer" onClick={() => setIsOpen(true)}>
                                         <TableCell>{student.first_name} {student.last_name}</TableCell>
                                         <TableCell>{student.email}</TableCell>
                                         <TableCell>{student.classes_left[classData.id]}</TableCell>
-                                        <TableCell>
-                                            {/* Add actions here */}
-                                        </TableCell>
                                     </TableRow>
                                 )) : (
                                     <TableRow>
