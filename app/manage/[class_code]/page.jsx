@@ -12,8 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Header from "@/components/page_components/header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import fetchTimeout from "@/components/util_function/fetch";
-
-
+import AuthWrapper from "@/components/page_components/authWrapper";
 
 export default function ManageClass({ params }) {
     const [isOpenManage, setIsOpenManage] = useState(false);
@@ -427,68 +426,70 @@ const handleAddExistingStudents = async () => {
 
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <Header />
-            <main className="p-6 space-y-8">
-                <Dialog open={isOpenManage} onOpenChange={setIsOpenManage}>
-                    <StudentDetailsPopUp />
-                </Dialog>
-                <Dialog open={isNewStudentOpen} onOpenChange={setIsNewStudentOpen}>
-                    <DialogContent className="max-w-[40vw]">
-                        {step === 0 && _newOrExisting()}
-                        {step === 1 && _newStudent()}
-                        {step === 2 && _existingStudent()}
-                    </DialogContent>
-                </Dialog>
-                <div className="w-full grid grid-cols-2">
-                    <section className="space-y-1">
-                        <h1 className="text-3xl font-bold">{classData ? classData.name : 'Class Name'}</h1>
-                        <p className="font-medium pt-4">{classData ? classData.description : 'No description available'}</p>
-                    </section>
-                    <section className="space-y-1 bg-background border-2 p-2 rounded-lg justify-center flex flex-col">
-                        <p className="text-gray-600">Please share the class link with your students</p>
-                        <p className="font-medium flex flex-row">
-                            Class Link: <span className="font-normal pl-1">classaccess.vercel.app/join/{classCode}</span>
-                            <Copy className="ml-2 h-5 w-5 align-middle"/>
-                        </p>
-                    </section>
-                </div>
-                <section>
-                    <div className="flex items-center justify-between my-2">
-                        <h2 className="text-2xl font-semibold px-2">My Students</h2>
-                        <Button size="sm" className="h-7 gap-1" onClick={() => setIsNewStudentOpen(true)}>
-                            <PlusCircle className="h-3.5 w-3.5"/>
-                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                Add Students
-                            </span>
-                        </Button>
+        <AuthWrapper>
+            <div className="min-h-screen bg-gray-100">
+                <Header />
+                <main className="p-6 space-y-8">
+                    <Dialog open={isOpenManage} onOpenChange={setIsOpenManage}>
+                        <StudentDetailsPopUp />
+                    </Dialog>
+                    <Dialog open={isNewStudentOpen} onOpenChange={setIsNewStudentOpen}>
+                        <DialogContent className="max-w-[40vw]">
+                            {step === 0 && _newOrExisting()}
+                            {step === 1 && _newStudent()}
+                            {step === 2 && _existingStudent()}
+                        </DialogContent>
+                    </Dialog>
+                    <div className="w-full grid grid-cols-2">
+                        <section className="space-y-1">
+                            <h1 className="text-3xl font-bold">{classData ? classData.name : 'Class Name'}</h1>
+                            <p className="font-medium pt-4">{classData ? classData.description : 'No description available'}</p>
+                        </section>
+                        <section className="space-y-1 bg-background border-2 p-2 rounded-lg justify-center flex flex-col">
+                            <p className="text-gray-600">Please share the class link with your students</p>
+                            <p className="font-medium flex flex-row">
+                                Class Link: <span className="font-normal pl-1">classaccess.vercel.app/join/{classCode}</span>
+                                <Copy className="ml-2 h-5 w-5 align-middle"/>
+                            </p>
+                        </section>
                     </div>
-                    <div className="mt-4 overflow-x-auto bg-background rounded-lg border p-4">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Classes Left</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {studentData.length > 0 ? studentData.map(student => (
-                                    <TableRow key={student.id} className="hover:cursor-pointer" onClick={() => setIsOpenManage(true)}>
-                                        <TableCell>{student.first_name} {student.last_name}</TableCell>
-                                        <TableCell>{student.email}</TableCell>
-                                        <TableCell>{student.classes_left[classData.id]}</TableCell>
-                                    </TableRow>
-                                )) : (
+                    <section>
+                        <div className="flex items-center justify-between my-2">
+                            <h2 className="text-2xl font-semibold px-2">My Students</h2>
+                            <Button size="sm" className="h-7 gap-1" onClick={() => setIsNewStudentOpen(true)}>
+                                <PlusCircle className="h-3.5 w-3.5"/>
+                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                    Add Students
+                                </span>
+                            </Button>
+                        </div>
+                        <div className="mt-4 overflow-x-auto bg-background rounded-lg border p-4">
+                            <Table>
+                                <TableHeader>
                                     <TableRow>
-                                        <TableCell colSpan={4}>No students data available yet.</TableCell>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Email</TableHead>
+                                        <TableHead>Classes Left</TableHead>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </section>
-            </main>
-        </div>
+                                </TableHeader>
+                                <TableBody>
+                                    {studentData.length > 0 ? studentData.map(student => (
+                                        <TableRow key={student.id} className="hover:cursor-pointer" onClick={() => setIsOpenManage(true)}>
+                                            <TableCell>{student.first_name} {student.last_name}</TableCell>
+                                            <TableCell>{student.email}</TableCell>
+                                            <TableCell>{student.classes_left[classData.id]}</TableCell>
+                                        </TableRow>
+                                    )) : (
+                                        <TableRow>
+                                            <TableCell colSpan={4}>No students data available yet.</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </section>
+                </main>
+            </div>
+        </AuthWrapper>
     );
 }
