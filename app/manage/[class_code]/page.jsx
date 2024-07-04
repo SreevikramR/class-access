@@ -196,17 +196,32 @@ const handleAddExistingStudents = async () => {
     }
 
     try {
-        const updatedStudents = [...(classData.students || []), ...selectedStudents];
+        // Get the current students in the class
+        const currentStudents = classData.students || [];
+
+        // Filter out students that are already in the class
+        const newStudents = selectedStudents.filter(id => !currentStudents.includes(id));
+
+        if (newStudents.length === 0) {
+            toast({
+                title: 'Info',
+                description: 'All selected students are already in the class.',
+            });
+            setIsNewStudentOpen(false);
+            setSelectedStudents([]);
+            return;
+        }
+
+        const updatedStudents = [...currentStudents, ...newStudents];
         await updateClassStudents(updatedStudents);
 
         // Update the local state
-        setClassData({ ...classData, students: updatedStudents });
-        fetchStudentData(updatedStudents);
+        setClassData(prevData => ({ ...prevData, students: updatedStudents }));
+        await fetchStudentData(updatedStudents);
 
         toast({
-	        className: "bg-green-500 border-black border-2",
             title: 'Success',
-            description: 'Students added successfully.',
+            description: `${newStudents.length} new student(s) added successfully.`,
         });
 
         setIsNewStudentOpen(false);
