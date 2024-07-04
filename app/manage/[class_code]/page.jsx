@@ -150,6 +150,10 @@ const handleAddNewStudent = async () => {
             const result = await response.json();
             const newStudent = result[0];
 
+            setStudents([...students, newStudent]);
+            setSelectedStudents([...selectedStudents, newStudent.id]);
+
+
             // Update the class with the new student
             const updatedStudents = [...(classData.students || []), newStudent.id];
             await updateClassStudents(updatedStudents);
@@ -165,7 +169,7 @@ const handleAddNewStudent = async () => {
                 duration: 3000
             });
 
-            setIsNewStudentOpen(false);
+
             setEmail('');
             setNumClasses(0);
             setNotes('');
@@ -178,8 +182,6 @@ const handleAddNewStudent = async () => {
             description: "Try again.",
             duration: 3000
         });
-    } finally {
-        setIsCreatingUser(false);
     }
 };
 
@@ -202,6 +204,7 @@ const handleAddExistingStudents = async () => {
         fetchStudentData(updatedStudents);
 
         toast({
+	        className: "bg-green-500 border-black border-2",
             title: 'Success',
             description: 'Students added successfully.',
         });
