@@ -31,6 +31,53 @@ export default function ManageClass({ params }) {
         fetchStudents();
     }, [])
 
+    useEffect(() => {
+        async function fetchClassData() {
+            console.log('Fetching class with code:', classCode);
+            const { data, error } = await supabaseClient
+                .from('classes')
+                .select()
+                .eq('class_code', classCode);
+
+            if (error) {
+                console.error('Error fetching class data:', error);
+                toast({
+                    title: 'Error',
+                    description: 'Failed to load class data. Please try again.',
+                    variant: "destructive"
+                });
+            } else {
+                setClassData(data[0]);
+                fetchStudentData(data[0].students);
+            }
+        }
+
+        async function fetchStudentData(studentUUIDs) {
+            if (studentUUIDs && studentUUIDs.length > 0) {
+                const { data, error } = await supabaseClient
+                    .from('students')
+                    .select('*')
+                    .in('id', studentUUIDs);
+
+                if (error) {
+                    console.error('Error fetching students data:', error);
+                    toast({
+                        title: 'Error',
+                        description: 'Failed to load student data. Please try again.',
+                        variant: "destructive"
+                    });
+                } else {
+                    setStudentData(data);
+                }
+            }
+        }
+
+        if (classCode) {
+            fetchClassData();
+        }
+    }, [classCode, toast]);
+
+
     const _newOrExisting = () => {
         return (
             <>
@@ -256,7 +303,7 @@ export default function ManageClass({ params }) {
                         {step === 0 && _newOrExisting()}
                         {step === 1 && _newStudent()}
                         {step === 2 && _existingStudent()}
-                    </DialogContent>//
+                    </DialogContent>
                 </Dialog>
                 <div className="w-full grid grid-cols-2">
                     <section className="space-y-1">
