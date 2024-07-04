@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Button } from './ui/button';
 import axios from 'axios';
+import { supabaseClient } from './util_function/supabaseCilent';
+import fetchTimeout from './util_function/fetch';
+
 const ZoomButton = () => {
 	const [meetingLink, setMeetingLink] = useState(null);
 	const [loading, setLoading] = useState(false);
@@ -12,9 +15,15 @@ const ZoomButton = () => {
 
 		try {
 			console.log('Attempting to create meeting...');
-			const response = await axios.post('/api/zoom/create_meeting');
-			console.log('Response:', response);
-			setMeetingLink(response.data.meetingLink);
+			const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+			const supabase_refresh = (await supabaseClient.auth.getSession()).data.session.refresh_token;
+			
+			const controller = new AbortController()
+			const { signal } = controller;
+			const url = new URL(`${window.location.origin}/api/zoom/create_meeting`)
+			const response = await fetchTimeout(url, 10000, { signal, method: 'POST', headers: { 'jwt': jwt, 'supabase_refresh': supabase_refresh } });
+
+			setMeetingLink((await response.json()).meetingLink);
 		} catch (err) {
 			console.error('Error details:', err.response ? err.response.data : err);
 			setError(err.message || 'An error occurred while creating the meeting');
