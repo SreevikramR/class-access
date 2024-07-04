@@ -256,7 +256,7 @@ export default function ManageClass({ params }) {
                         {step === 0 && _newOrExisting()}
                         {step === 1 && _newStudent()}
                         {step === 2 && _existingStudent()}
-                    </DialogContent>
+                    </DialogContent>//
                 </Dialog>
                 <div className="w-full grid grid-cols-2">
                     <section className="space-y-1">
