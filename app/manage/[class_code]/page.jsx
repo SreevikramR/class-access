@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Checkbox } from "@/components/ui/checkbox";
 import Header from "@/components/page_components/header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import fetchTimeout from "@/components/util_function/fetch";
 import AuthWrapper from "@/components/page_components/authWrapper";
 
 export default function ManageClass({ params }) {
@@ -30,7 +31,226 @@ export default function ManageClass({ params }) {
 
     useEffect(() => {
         fetchStudents();
-    }, [])
+    }, []);
+async function fetchStudentData(studentUUIDs) {
+    if (studentUUIDs && studentUUIDs.length > 0) {
+        const { data, error } = await supabaseClient
+            .from('students')
+            .select('*')
+            .in('id', studentUUIDs);
+
+        if (error) {
+            console.error('Error fetching students data:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to load student data. Please try again.',
+                variant: "destructive"
+            });
+        } else {
+            setStudentData(data);
+        }
+    } else {
+        setStudentData([]);
+    }
+}
+    useEffect(() => {
+        async function fetchClassData() {
+            console.log('Fetching class with code:', classCode);
+            const { data, error } = await supabaseClient
+                .from('classes')
+                .select()
+                .eq('class_code', classCode);
+
+            if (error) {
+                console.error('Error fetching class data:', error);
+                toast({
+                    title: 'Error',
+                    description: 'Failed to load class data. Please try again.',
+                    variant: "destructive"
+                });
+            } else {
+                setClassData(data[0]);
+                fetchStudentData(data[0].students);
+            }
+        }
+
+
+
+        if (classCode) {
+            fetchClassData();
+        }
+    }, [classCode, toast]);
+
+    const fetchStudents = async () => {
+        try {
+            const { data, error } = await supabaseClient
+                .from('students')
+                .select('*')
+                .contains('teachers', `{${(await supabaseClient.auth.getUser()).data.user.id}}`);
+
+            if (error) throw error;
+
+            // Transform the data to match the expected format
+            const formattedStudents = data.map(student => ({
+                id: student.id,
+                name: student.first_name + ' ' + student.last_name,
+                email: student.email,
+            }));
+
+            setStudents(formattedStudents);
+            console.log(formattedStudents);
+        } catch (error) {
+            console.error('Error fetching students:', error);
+            toast({
+                variant: 'destructive',
+                title: "Failed to fetch students",
+                description: "Please try again.",
+                duration: 3000
+            });
+        }
+    };
+const handleAddNewStudent = async () => {
+    if (!email) {
+        toast({
+            title: 'Error',
+            description: 'Email is required.',
+            variant: "destructive"
+        });
+        return;
+    }
+
+    setIsCreatingUser(true);
+
+    try {
+        const controller = new AbortController();
+        const { signal } = controller;
+        const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+        const response = await fetchTimeout(`/api/users/new_student?email=${email}&notes=${notes}&classes=${numClasses}`, 5500, {
+            signal,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'jwt': jwt,
+                'access_token': jwt
+            },
+        });
+
+        if (response.status === 409) {
+            toast({
+                variant: 'destructive',
+                title: "Student already exists",
+                description: "The student with this email is already registered.",
+                duration: 3000
+            });
+            return;
+        }
+
+        if (response.status === 200) {
+            const result = await response.json();
+            const newStudent = result[0];
+
+            setStudents([...students, newStudent]);
+            setSelectedStudents([...selectedStudents, newStudent.id]);
+
+
+            // Update the class with the new student
+            const updatedStudents = [...(classData.students || []), newStudent.id];
+            await updateClassStudents(updatedStudents);
+
+            // Update local state
+            setClassData({ ...classData, students: updatedStudents });
+            fetchStudentData(updatedStudents);
+
+            toast({
+                className: "bg-green-500 border-black border-2",
+                title: "Student Added",
+                description: "The new student has been added to the class",
+                duration: 3000
+            });
+
+
+            setEmail('');
+            setNumClasses(0);
+            setNotes('');
+        }
+    } catch (error) {
+        console.error("Error adding student:", error);
+        toast({
+            variant: 'destructive',
+            title: "Failed to add student",
+            description: "Try again.",
+            duration: 3000
+        });
+    }
+};
+
+const handleAddExistingStudents = async () => {
+    if (selectedStudents.length === 0) {
+        toast({
+            title: 'Alert',
+            description: 'At least one student must be selected.',
+            variant: "destructive"
+        });
+        return;
+    }
+
+    try {
+        // Get the current students in the class
+        const currentStudents = classData.students || [];
+
+        // Filter out students that are already in the class
+        const newStudents = selectedStudents.filter(id => !currentStudents.includes(id));
+
+        if (newStudents.length === 0) {
+            toast({
+                title: 'Info',
+                description: 'All selected students are already in the class.',
+            });
+            setIsNewStudentOpen(false);
+            setSelectedStudents([]);
+            return;
+        }
+
+        const updatedStudents = [...currentStudents, ...newStudents];
+        await updateClassStudents(updatedStudents);
+
+        // Update the local state
+        setClassData(prevData => ({ ...prevData, students: updatedStudents }));
+        await fetchStudentData(updatedStudents);
+
+        toast({
+            title: 'Success',
+            description: `${newStudents.length} new student(s) added successfully.`,
+        });
+
+        setIsNewStudentOpen(false);
+        setSelectedStudents([]);
+    } catch (error) {
+        console.error('Error adding students:', error);
+        toast({
+            title: 'Error',
+            description: 'Failed to add students. Please try again.',
+            variant: "destructive"
+        });
+    }
+};
+
+    const updateClassStudents = async (students) => {
+        const { data, error } = await supabaseClient
+            .from('classes')
+            .update({ students })
+            .eq('class_code', classCode);
+
+        if (error) {
+            console.error('Error updating class students:', error);
+            toast({
+                variant: 'destructive',
+                title: "Failed to update class students",
+                description: "Please try again.",
+                duration: 3000
+            });
+        }
+    };
 
     const _newOrExisting = () => {
         return (
@@ -54,37 +274,7 @@ export default function ManageClass({ params }) {
                     </div>
                 </div>
             </>
-        )
-    }
-
-    const fetchStudents = async () => {
-        try {
-            const { data, error } = await supabaseClient
-                .from('students')
-                .select('*')
-                .contains('teachers', `{${(await supabaseClient.auth.getUser()).data.user.id}}`);
-
-            if (error) throw error;
-
-            // Transform the data to match the expected format
-            const formattedStudents = data.map(student => ({
-                id: student.id,
-                name: student.first_name + ' ' + student.last_name,
-                email: student.email,
-
-            }));
-
-            setStudents(formattedStudents);
-            console.log(formattedStudents)
-        } catch (error) {
-            console.error('Error fetching students:', error);
-            toast({
-                variant: 'destructive',
-                title: "Failed to fetch students",
-                description: "Please try again.",
-                duration: 3000
-            });
-        }
+        );
     };
 
     const StudentDetailsPopUp = () => {
@@ -127,8 +317,8 @@ export default function ManageClass({ params }) {
                     </DialogFooter>
                 </DialogContent>
             </>
-        )
-    }
+        );
+    };
 
     const _studentTileForStudentList = (student) => {
         const isSelected = selectedStudents.includes(student.id);
@@ -174,21 +364,11 @@ export default function ManageClass({ params }) {
                 </div>
 
                 <DialogFooter>
-                    <div className='flex justify-between flex-wrap w-full'>
-                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => {setStep(0)}}>Back</Button>
-                        <Button type="button" onClick={() => {
-                            if (selectedStudents.length === 0) {
-                                toast({
-                                    title: 'Alert',
-                                    description: 'At least one student must be selected.',
-                                    variant: "destructive"
-                                })
-                                return
-                            }
-                            // setClassCreationStep(4);
-                        }} className="gap-2">Verify<CircleArrowRight className="h-5 w-5" /></Button>
-                    </div>
-                </DialogFooter>
+                <div className='flex justify-between flex-wrap w-full'>
+                    <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => {setStep(0)}}>Back</Button>
+                    <Button type="button" onClick={handleAddExistingStudents} className="gap-2">Add Students<CircleArrowRight className="h-5 w-5" /></Button>
+                </div>
+            </DialogFooter>
             </>
         )
     }
@@ -230,15 +410,15 @@ export default function ManageClass({ params }) {
                         <Label htmlFor="notes">Notes</Label>
                         <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
                     </div>
-                    <DialogFooter>
-                        <div className="flex flex-row w-full justify-between">
-                            <div>
-                                <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
-                            </div>
-                            <Button type="button" onClick={() => {}}
-                                className={`${isCreatingUser ? "cursor-progress" : ""}`}>Submit</Button>
-                        </div>
-                    </DialogFooter>
+            <DialogFooter>
+                <div className="flex flex-row w-full justify-between">
+                    <div>
+                        <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
+                    </div>
+                    <Button type="button" onClick={handleAddNewStudent}
+                        className={`${isCreatingUser ? "cursor-progress" : ""}`}>Submit</Button>
+                </div>
+            </DialogFooter>
                 </form>
             </>
         )
