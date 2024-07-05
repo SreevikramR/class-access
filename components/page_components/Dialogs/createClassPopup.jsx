@@ -106,7 +106,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 			    // Update status object
 			    let updatedStatus = {
 			        ...(studentData.status || {}),
-			        [uuid]: '0'
+			        [uuid]: 'pending'
 			    };
 
 			    const { data: updateData, error: updateError } = await supabaseClient
