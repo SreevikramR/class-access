@@ -86,7 +86,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 			    console.log(student)
 			    const { data: studentData, error: fetchError } = await supabaseClient
 			        .from('students')
-			        .select('class_id, classes_left, status')
+			        .select('class_id, classes_left, status,teachers')
 			        .eq('id', student)
 			        .single();
 
@@ -108,15 +108,17 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 			        ...(studentData.status || {}),
 			        [uuid]: 'pending'
 			    };
+			    let updatedteacher = Array.isArray(studentData.teachers)
+			        ? [...studentData.teachers, (await supabaseClient.auth.getUser()).data.user.id(await supabaseClient.auth.getUser()).data.user.id]
+			        : [(await supabaseClient.auth.getUser()).data.user.id];
 
 			    const { data: updateData, error: updateError } = await supabaseClient
 			        .from('students')
 			        .update({
 			            class_id: updatedClassId,
 			            classes_left: updatedClassesLeft,
-			            status: updatedStatus
-			        })
-			        .eq('id', student);
+			            status: updatedStatus,
+						teachers: updatedteacher})
 
 			    if (updateError) throw updateError;
 			}
