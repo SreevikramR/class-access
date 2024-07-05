@@ -109,7 +109,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 			        [uuid]: 'pending'
 			    };
 			    let updatedteacher = Array.isArray(studentData.teachers)
-			        ? [...studentData.teachers, (await supabaseClient.auth.getUser()).data.user.id(await supabaseClient.auth.getUser()).data.user.id]
+			        ? [...studentData.teachers, (await supabaseClient.auth.getUser()).data.user.id]
 			        : [(await supabaseClient.auth.getUser()).data.user.id];
 
 			    const { data: updateData, error: updateError } = await supabaseClient
