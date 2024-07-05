@@ -52,7 +52,7 @@ export async function POST(request) {
                 email: email,
                 classes_left: classes_jsonb,
                 notes: notes_jsonb,
-                teachers: [teacherUUID],
+                teachers: [],
                 status: status_jsonb,
             },
         ]).select();
