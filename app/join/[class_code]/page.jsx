@@ -11,14 +11,14 @@ import { useToast } from '@/components/ui/use-toast';
 
 export default function Component({ params: { class_code } }) {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	const [isUnauthorized, setIsUnauthorized] = useState(false);
 	const [noAccount, setNoAccount] = useState(false);
-	const [credits, setCredits] = useState(1); // Replace 1 with your actual credit value
+	const [credits, setCredits] = useState(null); // Replace 1 with your actual credit value
 	const [willPay, setWillPay] = useState(false);
 	const [classDoesNotExist, setClassDoesNotExist] = useState(false);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [className, setClassName] = useState("Class Name");
+	const [classLink, setClassLink] = useState("")
 	const { toast } = useToast()
 
 	useEffect(() => {
@@ -32,6 +32,7 @@ export default function Component({ params: { class_code } }) {
 				password: password,
 			})
 			setIsLoggedIn(true)
+			fetchUser()
 		} catch (error) {
 			toast({
 				title: 'Unable to Login',
@@ -64,15 +65,18 @@ export default function Component({ params: { class_code } }) {
 			console.log(class_code)
 			
 			const { data: classData, error: classError } = await supabaseClient.from('classes').select("name, id").eq('class_code', class_code);
-			console.log(classData, classError)
 			if (classData.length == 0) {
 				setClassDoesNotExist(true)
 				return
 			}
 			setClassName(classData[0].name)
 			const { data, error } = await supabaseClient.from('students').select('classes_left').eq('id', user.data.user.id);
+			console.log(data)
 			setCredits(data[0].classes_left[classData[0].id])
-			console.log(data);
+			const { data: classData2, error: classError2 } = await supabaseClient.from('classes').select('zoom_link').eq('class_code', class_code);
+			if (classData2[0].zoom_link !== null) {
+				setClassLink(classData2[0].zoom_link)
+			}
 
 			if (data.length > 0) {
 				setIsLoggedIn(true)
@@ -112,7 +116,6 @@ export default function Component({ params: { class_code } }) {
 				{!classDoesNotExist && ( <>
 				{isLoggedIn && (
 					<>
-					{!isUnauthorized && (
 						<div className="w-full flex justify-center items-center">
 							{credits == 0 && (
 								<Card className="w-[36vw] border-2">
@@ -162,7 +165,7 @@ export default function Component({ params: { class_code } }) {
 											</div>
 											{willPay && (
 												<div className="flex justify-end">
-													<Button className="w-full sm:w-auto bg-green-700 hover:bg-green-500">Join Class</Button>
+													<Button className="w-full sm:w-auto bg-green-700 hover:bg-green-500" onClick={() => window.location.href = classLink}>Join Class</Button>
 												</div>
 											)}
 										</div>
@@ -170,17 +173,12 @@ export default function Component({ params: { class_code } }) {
 								</Card>
 							)}
 							{credits >= 2 && (
-								<div>Redirecting you to your class...</div>
+								<>
+									<span className='hidden'>{window.location.href = classLink}</span>
+									<div>Redirecting you to your class...</div>
+								</>
 							)}
 						</div>
-					)}
-					{isUnauthorized && (
-							<Card className="w-[36vw] border-2 p-10">
-								<div className="text-center">
-									<h1 className="font-semibold text-lg text-foreground">You do not have access to this class. Please contact your instructor for more details</h1>
-								</div>
-							</Card>
-							)}
 					</>
 				)}
 				{!isLoggedIn && (
