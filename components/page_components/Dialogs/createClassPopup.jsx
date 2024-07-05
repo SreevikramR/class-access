@@ -12,7 +12,8 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@
 import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import { useToast } from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
-// i am back
+import createZoomMeeting from '@/components/util_function/createZoomMeeting'
+
 const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [classCreationStep, setClassCreationStep] = useState(0)
     const [className, setClassName] = useState("")
@@ -41,6 +42,19 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 
     const handleCreateClass = async () => {
         const code = generateRandomString(6)
+        const classLink = await createZoomMeeting();
+        console.log(classLink)
+        if (classLink === "ERROR") {
+            console.error("Error creating Zoom meeting");
+            toast({
+                variant: 'destructive',
+                title: "Failed to create class",
+                description: "Try again.",
+                duration: 3000
+            });
+            return;
+        }
+
         const classData = {
             name: className,
             description: classDescription,
@@ -49,8 +63,10 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
             end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
             students: selectedStudents, // This will send student IDs to Supabase in an array
-            class_code: code
+            class_code: code,
+            zoom_link: classLink,
         };
+
         const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
         const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
         if (authError || !user) {
@@ -466,10 +482,6 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             startTime: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
             endTime: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
             capacity: selectedStudents.length, // Assuming capacity is the number of selected students
-            teacher_id: "",
-            isOnline: 'link goes here',
-            onlineLink: 'link goes here',
-
         };
 
         return (
