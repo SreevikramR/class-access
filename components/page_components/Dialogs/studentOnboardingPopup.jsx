@@ -112,7 +112,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, 
     const _login = () => (
         <Card className="w-fill border-0">
             <div className="text-center">
-                <h1 className="font-semibold text-xl text-foreground pt-6">Please Login to Join your class</h1>
+                <h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Please Login to Join your class</h1>
             </div>
             <div className="rounded-lg bg-white p-3 pt-0">
                 <div className="grid gap-4">
@@ -132,7 +132,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, 
                             <Label htmlFor="password">Password</Label>
                             <Link
                                 href="/forgot-password"
-                                className="ml-auto inline-block text-sm underline"
+                                className="ml-auto inline-block text-xs sm:text-sm underline"
                             >
                                 Forgot your password?
                             </Link>
@@ -157,7 +157,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, 
                     <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
                         Google
                     </Button>
-                    <div className='text-md cursor-pointer text-blue-700 underline w-fit' onClick={() => setStep(1)}>Don&apos;t have an Account?</div>
+                    <div className='sm:text-md text-sm cursor-pointer text-blue-700 underline w-fit' onClick={() => setStep(1)}>Don&apos;t have an Account?</div>
                 </div>
             </div>
         </Card>
@@ -167,11 +167,11 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, 
         <div>
             <DialogHeader>
                 <DialogTitle>Welcome!</DialogTitle>
-                <DialogDescription>Please create an account by entering your details below</DialogDescription>
+                <DialogDescription className="sm:text-xs text-pretty">Please create an account by entering your details below</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-                <div className="grid items-center grid-cols-4 gap-4">
-                    <Label htmlFor="first-name" className="text-right">
+                <div className="sm:grid items-center sm:grid-cols-4 gap-4">
+                    <Label htmlFor="first-name" className="text-right text-xs sm:text-base">
                         First Name
                     </Label>
                     <Input
@@ -182,8 +182,8 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, 
                         onChange={(e) => setFirstName(e.target.value)}
                     />
                 </div>
-                <div className="grid items-center grid-cols-4 gap-4">
-                    <Label htmlFor="last-name" className="text-right">
+                <div className="sm:grid items-center sm:grid-cols-4 gap-4">
+                    <Label htmlFor="last-name" className="text-right text-xs sm:text-base">
                         Last Name
                     </Label>
                     <Input
@@ -196,9 +196,9 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, 
                 </div>
             </div>
             <DialogFooter>
-                <div className="flex flex-row w-full justify-between mt-4">
+                <div className="flex sm:flex-row flex-col-reverse w-full justify-between mt-4">
                     <div className="flex flex-col">
-                        <div className="text-sm text-muted-foreground">Already Have an Account?</div>
+                        <div className="text-sm text-muted-foreground mt-4 sm:mt-0">Already Have an Account?</div>
                         <div className="text-sm hover:cursor-pointer w-fit" onClick={() => setStep(0)}>Login</div>
                     </div>
                     <Button type="button" className="gap-2" onClick={() => { setStep(2) }}>Next<CircleArrowRight className="h-5 w-5" /></Button>
@@ -219,7 +219,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, 
 
             <div className="mb-10">
                 <div className="text-sm mt-4 mb-2 text-muted-foreground">Please enter a new password for your account</div>
-                <div className="grid items-center grid-cols-4 gap-4 mb-4">
+                <div className="sm:grid items-center sm:grid-cols-4 gap-4 mb-4">
                     <Label htmlFor="password" className="text-center">
                         Password
                     </Label>
@@ -232,7 +232,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, 
                         onChange={(e) => setPassword(e.target.value)}
                     />
                 </div>
-                <div className="grid items-center grid-cols-4 gap-4">
+                <div className="sm:grid items-center sm:grid-cols-4 gap-4">
                     <Label htmlFor="confirm-password" className="text-center">
                         Re-enter Password
                     </Label>
@@ -258,7 +258,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, 
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="max-w-[36vw]">
+            <DialogContent className="lg:w-[36vw] sm:w-[60vw] w-[90vw]">
                 {step === 0 && _login()}
                 {step === 1 && _nameAndPassword()}
                 {step === 2 && _phoneAndJoin()}

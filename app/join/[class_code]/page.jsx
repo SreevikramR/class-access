@@ -107,9 +107,9 @@ export default function Component({ params: { class_code } }) {
 		<div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
 			<main>
 				{classDoesNotExist && (
-					<Card className="w-[36vw] border-2 p-10">
+					<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10">
 						<div className="text-center">
-							<h1 className="font-semibold text-lg text-foreground">Class you are looking for does not exist. Please contact your instructor for more details</h1>
+							<h1 className="font-semibold text-md sm:text-lg text-foreground text-pretty">Class you are looking for does not exist. Please contact your instructor for more details</h1>
 						</div>
 					</Card>
 				)}
@@ -118,17 +118,16 @@ export default function Component({ params: { class_code } }) {
 					<>
 						<div className="w-full flex justify-center items-center">
 							{credits == 0 && (
-								<Card className="w-[36vw] border-2">
+								<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2">
 									<div className="text-center">
-										<h1 className="font-bold text-foreground sm:text-2xl pt-6">{className}</h1>
-										<h2><p className="text-muted-foreground">Teacher: John Doe</p></h2>
+										<h1 className="font-bold text-foreground text-xl sm:text-2xl pt-6 text-pretty">{className}</h1>
 									</div>
 									<div className="rounded-lg bg-white p-3 pt-0">
 										<div className="flex flex-col sm:flex-row"></div>
 										<div className="mt-6 rounded-lg bg-red-500 px-4 py-3 text-red-50">
 											<div className="flex items-center">
 												<TriangleAlertIcon className="mr-2 h-5 w-5" />
-												<p className="text-sm font-medium">
+												<p className="sm:text-sm text-xs font-medium text-pretty">
 													We see that you have not paid yet. Please pay to join the class.
 												</p>
 											</div>
@@ -137,22 +136,21 @@ export default function Component({ params: { class_code } }) {
 								</Card>
 							)}
 							{credits == 1 && (
-								<Card className="w-[36vw] border-2">
+								<Card className="lg:w-[40vw] sm:w-[60vw] w-[90vw] border-2">
 									<div className="text-center">
-										<h1 className="font-bold text-foreground sm:text-2xl pt-6">{className}</h1>
-										<h2><p className="text-muted-foreground">Teacher: John Doe</p></h2>
+										<h1 className="font-bold text-foreground text-xl sm:text-2xl pt-6 text-pretty">{className}</h1>
 									</div>
 									<div className="rounded-lg bg-white p-3 pt-0">
 										<div className="flex flex-col sm:flex-row"></div>
 										<div className="mt-6 rounded-lg bg-red-500 px-4 py-3 text-red-50">
 											<div className="flex items-center">
 												<TriangleAlertIcon className="mr-2 h-5 w-5" />
-												<p className="text-sm font-medium">
+												<p className="sm:text-sm text-xs font-medium text-pretty">
 													Kindly Pay before your next class
 												</p>
 											</div>
 										</div>
-										<div className="mt-6 flex justify-between items-center">
+										<div className="mt-6 flex flex-col sm:flex-row justify-between items-center">
 											<div className='p-1 py-2 flex flex-row justify-center'>
 												<input
 													type="checkbox"
@@ -161,7 +159,7 @@ export default function Component({ params: { class_code } }) {
 													onChange={() => setWillPay(!willPay)}
 													className="mr-2 w-5 h-5 border-2 checked:accent-green-600"
 													/>
-												<label htmlFor="willPay" className="text-foreground text-md items-center">I will complete the payment</label>
+												<label htmlFor="willPay" className="text-foreground text-sm sm:text-md items-center text-pretty">I will complete the payment</label>
 											</div>
 											{willPay && (
 												<div className="flex justify-end">
@@ -184,9 +182,9 @@ export default function Component({ params: { class_code } }) {
 				{!isLoggedIn && (
 					<>
 						{!noAccount && (
-							<Card className="w-[36vw] border-2">
+							<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2">
 								<div className="text-center">
-									<h1 className="font-semibold text-xl text-foreground pt-6">Please Login to Join your class</h1>
+									<h1 className="font-semibold text-md pb-4 lg:text-xl text-foreground pt-6 text-pretty">Please Login to Join your class</h1>
 								</div>
 								<div className="rounded-lg bg-white p-3 pt-0">
 									<div className="grid gap-4">
@@ -206,7 +204,7 @@ export default function Component({ params: { class_code } }) {
 												<Label htmlFor="password">Password</Label>
 												<Link
 													href="/forgot-password"
-													className="ml-auto inline-block text-sm underline"
+													className="ml-auto inline-block text-xs sm:text-sm underline"
 												>
 													Forgot your password?
 												</Link>
@@ -231,15 +229,15 @@ export default function Component({ params: { class_code } }) {
 										<Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
 											Google
 										</Button>
-										<div className='text-md cursor-pointer text-blue-700 underline w-fit' onClick={() => setNoAccount(true)}>Don&apos;t have an Account?</div>	
+										<div className='sm:text-md text-sm cursor-pointer text-blue-700 underline w-fit' onClick={() => setNoAccount(true)}>Don&apos;t have an Account?</div>	
 									</div>
 								</div>
 							</Card>
 						)}
 						{noAccount && (
-							<Card className="w-[36vw] border-2 p-10">
+							<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10">
 								<div className="text-center">
-									<h1 className="font-semibold text-lg text-foreground">Please contact your instructor to gain access to the class</h1>
+									<h1 className="font-semibold text-md sm:text-lg text-foreground text-pretty">Please contact your instructor to gain access to the class</h1>
 								</div>
 							</Card>
 						)}
