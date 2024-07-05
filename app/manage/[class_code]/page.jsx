@@ -125,7 +125,7 @@ const handleAddNewStudent = async () => {
         const controller = new AbortController();
         const { signal } = controller;
         const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-        const response = await fetchTimeout(`/api/users/new_student?email=${email}&notes=${notes}&classes=${numClasses}`, 5500, {
+        const response = await fetchTimeout(`/api/users/new_student?email=${email}&notes=${notes}`, 5500, {
             signal,
             method: 'POST',
             headers: {
@@ -156,7 +156,7 @@ const handleAddNewStudent = async () => {
                 .update({
                     class_id: [classData.id],
                     classes_left: { [classData.id]: numClasses.toString() },
-                    status: { [classData.id]: 'pending' }
+                    status: { [classData.id]: 'Invited' }
                 })
                 .eq('id', newStudent.id);
 
