@@ -15,7 +15,7 @@ export default function Component({ params: { class_code } }) {
 	const [noAccount, setNoAccount] = useState(false);
 	const [credits, setCredits] = useState(1); // Replace 1 with your actual credit value
 	const [willPay, setWillPay] = useState(false);
-
+	const [classDoesNotExist, setClassDoesNotExist] = useState(false);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const { toast } = useToast()
@@ -24,7 +24,21 @@ export default function Component({ params: { class_code } }) {
 		fetchUser()
 	}, [])
 
-	const handleLogin = () => {}
+	const handleLogin = async () => {
+		try {
+			const { data } = await supabaseClient.auth.signInWithPassword({
+				email: email,
+				password: password,
+			})
+			setIsLoggedIn(true)
+		} catch (error) {
+			toast({
+				title: 'Unable to Login',
+				description: error.message,
+				variant: "destructive"
+			})
+		}
+	}
 	const handleGoogleLogin = async () => {
 		console.log(`${window.location.origin}/oauth/google/callback`)
 		try {
@@ -46,7 +60,17 @@ export default function Component({ params: { class_code } }) {
 	const fetchUser = async () => {
 		const user = await supabaseClient.auth.getUser();
 		if (user.data.user != null) {
-			const { data, error } = await supabaseClient.from('students').select('*').eq('id', user.data.user.id);
+			console.log(class_code)
+			
+			const { data: classData, error: classError } = await supabaseClient.from('classes').select("name").eq('class_code', class_code);
+			console.log(classData, classError)
+			if (classData.length == 0) {
+				setClassDoesNotExist(true)
+				return
+			}
+			const { data, error } = await supabaseClient.from('students').select('classes_left').eq('id', user.data.user.id);
+			console.log(data);
+
 			if (data.length > 0) {
 				setIsLoggedIn(true)
 			} else {
@@ -75,6 +99,14 @@ export default function Component({ params: { class_code } }) {
 	return (
 		<div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
 			<main>
+				{classDoesNotExist && (
+					<Card className="w-[36vw] border-2 p-10">
+						<div className="text-center">
+							<h1 className="font-semibold text-lg text-foreground">Class you are looking for does not exist. Please contact your instructor for more details</h1>
+						</div>
+					</Card>
+				)}
+				{!classDoesNotExist && ( <>
 				{isLoggedIn && (
 					<>
 					{!isUnauthorized && (
@@ -212,6 +244,7 @@ export default function Component({ params: { class_code } }) {
 						)}
 					</>
 				)}
+				</>)}
 			</main>
 		</div>
 	);
