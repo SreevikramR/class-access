@@ -70,14 +70,14 @@ export default function Component({ params: { class_code }}) {
     const _joinedClass = () => {
         return (
             <Card className="flex flex-col items-center justify-center bg-background">
-                <div className="max-w-md p-6 rounded-lg bg-card">
+                <div className="sm:max-w-md max-w-[90vw] p-6 rounded-lg bg-card">
                     <div className="flex flex-col items-center space-y-4 text-center">
                         <CircleCheckIcon className="text-green-500 size-12" />
-                        <h1 className="text-3xl font-bold">You&#39;re all set!</h1>
-                        <p className="text-muted-foreground">
+                        <h1 className="sm:text-3xl text-xl font-bold">You&#39;re all set!</h1>
+                        <p className="text-muted-foreground text-pretty sm:text-base text-sm">
                             Great! You&#39;ve successfully joined the class. Be sure to join at the scheduled time to participate.
                         </p>
-                        <p className="text-muted-foreground">
+                        <p className="text-muted-foreground text-pretty sm:text-base text-sm">
                             Look for a link from your instructor to join the class.
                         </p>
                     </div>
@@ -94,18 +94,18 @@ export default function Component({ params: { class_code }}) {
         <main className="flex flex-col items-center justify-center h-screen">
             { joinedClass && _joinedClass()}
             { !joinedClass &&
-                <div>
+                <div className="lg:w-[46vw] sm:w-[60vw] w-[90vw]">
                     {!isLoggedIn && (
                         <StudentOnboardingPopup isOpen={isOpen} setIsOpen={setIsOpen} onComplete={handleComplete} classCode={class_code} />
                     )}
-                    <Card className="w-full max-w-md p-6 space-y-4">
+                    <Card className="w-full p-6 space-y-4">
                         <div className="flex flex-col items-center space-y-2">
-                            <div className="inline-block rounded-lg px-3 py-1 text-sm font-medium">
+                            <div className="inline-block rounded-lg px-3 py-1 text-xs sm:text-sm font-medium text-pretty">
                                 You&#39;ve been invited to join
                             </div>
-                            <h2 className="text-2xl font-bold">Introduction to Web Development</h2>
-                            <p className="text-muted-foreground">Taught by John Doe</p>
-                            <p className="text-muted-foreground">Tuesdays and Thursdays, 7pm - 9pm</p>
+                            <h2 className="sm:text-2xl text-lg text-center font-bold text-pretty">Introduction to Web Development</h2>
+                            <p className="text-muted-foreground text-xs sm:text-base">Taught by John Doe</p>
+                            <p className="text-muted-foreground sm:text-base text-xs text-pretty">Tuesdays and Thursdays, 7pm - 9pm</p>
                         </div>
                         <div className="flex gap-2">
                             <Button variant="outline" className="w-full">
