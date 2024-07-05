@@ -18,6 +18,7 @@ export default function Component({ params: { class_code } }) {
 	const [classDoesNotExist, setClassDoesNotExist] = useState(false);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [className, setClassName] = useState("Class Name");
 	const { toast } = useToast()
 
 	useEffect(() => {
@@ -62,13 +63,15 @@ export default function Component({ params: { class_code } }) {
 		if (user.data.user != null) {
 			console.log(class_code)
 			
-			const { data: classData, error: classError } = await supabaseClient.from('classes').select("name").eq('class_code', class_code);
+			const { data: classData, error: classError } = await supabaseClient.from('classes').select("name, id").eq('class_code', class_code);
 			console.log(classData, classError)
 			if (classData.length == 0) {
 				setClassDoesNotExist(true)
 				return
 			}
+			setClassName(classData[0].name)
 			const { data, error } = await supabaseClient.from('students').select('classes_left').eq('id', user.data.user.id);
+			setCredits(data[0].classes_left[classData[0].id])
 			console.log(data);
 
 			if (data.length > 0) {
@@ -114,7 +117,7 @@ export default function Component({ params: { class_code } }) {
 							{credits == 0 && (
 								<Card className="w-[36vw] border-2">
 									<div className="text-center">
-										<h1 className="font-bold text-foreground sm:text-2xl pt-6">Class Name</h1>
+										<h1 className="font-bold text-foreground sm:text-2xl pt-6">{className}</h1>
 										<h2><p className="text-muted-foreground">Teacher: John Doe</p></h2>
 									</div>
 									<div className="rounded-lg bg-white p-3 pt-0">
@@ -133,7 +136,7 @@ export default function Component({ params: { class_code } }) {
 							{credits == 1 && (
 								<Card className="w-[36vw] border-2">
 									<div className="text-center">
-										<h1 className="font-bold text-foreground sm:text-2xl pt-6">Class Name</h1>
+										<h1 className="font-bold text-foreground sm:text-2xl pt-6">{className}</h1>
 										<h2><p className="text-muted-foreground">Teacher: John Doe</p></h2>
 									</div>
 									<div className="rounded-lg bg-white p-3 pt-0">
