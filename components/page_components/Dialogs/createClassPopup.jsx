@@ -98,15 +98,46 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             } else {
                 updatedUuidArray = [uuid];
             }
-            for (const student of selectedStudents) {
-                console.log(student)
-                const { data: updateData, error: updateError } = await supabaseClient
-                    .from('students')
-                    .update({ class_id: updatedUuidArray })
-                    .eq('id', student);
+			for (const student of selectedStudents) {
+			    console.log(student)
+			    const { data: studentData, error: fetchError } = await supabaseClient
+			        .from('students')
+			        .select('class_id, classes_left, status,teachers')
+			        .eq('id', student)
+			        .single();
 
-                if (updateError) throw updateError;
-            }
+			    if (fetchError) throw fetchError;
+
+			    // Update class_id array
+			    let updatedClassId = Array.isArray(studentData.class_id)
+			        ? [...studentData.class_id, uuid]
+			        : [uuid];
+
+			    // Update classes_left object
+			    let updatedClassesLeft = {
+			        ...(studentData.classes_left || {}),
+			        [uuid]: '0'
+			    };
+
+			    // Update status object
+			    let updatedStatus = {
+			        ...(studentData.status || {}),
+			        [uuid]: 'pending'
+			    };
+			    let updatedteacher = Array.isArray(studentData.teachers)
+			        ? [...studentData.teachers, (await supabaseClient.auth.getUser()).data.user.id]
+			        : [(await supabaseClient.auth.getUser()).data.user.id];
+
+			    const { data: updateData, error: updateError } = await supabaseClient
+			        .from('students')
+			        .update({
+			            class_id: updatedClassId,
+			            classes_left: updatedClassesLeft,
+			            status: updatedStatus,
+						teachers: updatedteacher})
+				    .eq('id',student)
+			    if (updateError) throw updateError;
+			}
             console.log("Class created successfully and students updated!");
             toast({
                 className: "bg-green-500 border-black border-2",
