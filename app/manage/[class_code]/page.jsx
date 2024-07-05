@@ -142,6 +142,7 @@ const handleAddNewStudent = async () => {
                 description: "The student with this email is already registered.",
                 duration: 3000
             });
+            setIsCreatingUser(false);
             return;
         }
 
@@ -149,9 +150,19 @@ const handleAddNewStudent = async () => {
             const result = await response.json();
             const newStudent = result[0];
 
-            setStudents([...students, newStudent]);
-            setSelectedStudents([...selectedStudents, newStudent.id]);
+            // Update the new student's record with class-specific data
+            const { error: updateError } = await supabaseClient
+                .from('students')
+                .update({
+                    class_id: [classData.id],
+                    classes_left: { [classData.id]: numClasses.toString() },
+                    status: { [classData.id]: 'pending' }
+                })
+                .eq('id', newStudent.id);
 
+            if (updateError) throw updateError;
+
+            setStudents([...students, newStudent]);
 
             // Update the class with the new student
             const updatedStudents = [...(classData.students || []), newStudent.id];
@@ -159,7 +170,7 @@ const handleAddNewStudent = async () => {
 
             // Update local state
             setClassData({ ...classData, students: updatedStudents });
-            fetchStudentData(updatedStudents);
+            await fetchStudentData(updatedStudents);
 
             toast({
                 className: "bg-green-500 border-black border-2",
@@ -167,7 +178,6 @@ const handleAddNewStudent = async () => {
                 description: "The new student has been added to the class",
                 duration: 3000
             });
-
 
             setEmail('');
             setNumClasses(0);
@@ -195,10 +205,7 @@ const handleAddExistingStudents = async () => {
     }
 
     try {
-        // Get the current students in the class
         const currentStudents = classData.students || [];
-
-        // Filter out students that are already in the class
         const newStudents = selectedStudents.filter(id => !currentStudents.includes(id));
 
         if (newStudents.length === 0) {
@@ -212,9 +219,39 @@ const handleAddExistingStudents = async () => {
         }
 
         const updatedStudents = [...currentStudents, ...newStudents];
+
+        // Update each student's record
+        for (const studentId of newStudents) {
+            const { data: studentData, error: fetchError } = await supabaseClient
+                .from('students')
+                .select('classes_left, status, class_id')
+                .eq('id', studentId)
+                .single();
+
+            if (fetchError) throw fetchError;
+
+            let updatedClassesLeft = { ...(studentData.classes_left || {}), [classData.id]: numClasses };
+            let updatedStatus = { ...(studentData.status || {}), [classData.id]: 'Pending' };
+            let updatedClassId = Array.isArray(studentData.class_id)
+                ? [...studentData.class_id, classData.id]
+                : [classData.id];
+
+            const { error: updateError } = await supabaseClient
+                .from('students')
+                .update({
+                    class_id: updatedClassId,
+                    classes_left: updatedClassesLeft,
+                    status: updatedStatus
+                })
+                .eq('id', studentId);
+
+            if (updateError) throw updateError;
+        }
+
+        // Update the class with new students
         await updateClassStudents(updatedStudents);
 
-        // Update the local state
+        // Update local state
         setClassData(prevData => ({ ...prevData, students: updatedStudents }));
         await fetchStudentData(updatedStudents);
 
@@ -234,7 +271,6 @@ const handleAddExistingStudents = async () => {
         });
     }
 };
-
     const updateClassStudents = async (students) => {
         const { data, error } = await supabaseClient
             .from('classes')
