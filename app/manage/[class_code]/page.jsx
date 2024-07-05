@@ -13,7 +13,7 @@ import Header from "@/components/page_components/header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import fetchTimeout from "@/components/util_function/fetch";
 import AuthWrapper from "@/components/page_components/authWrapper";
-
+// I am here
 export default function ManageClass({ params }) {
     const [isOpenManage, setIsOpenManage] = useState(false);
     const [classData, setClassData] = useState(null);
