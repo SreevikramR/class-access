@@ -119,7 +119,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 			            classes_left: updatedClassesLeft,
 			            status: updatedStatus,
 						teachers: updatedteacher})
-
+				    .eq('id',student)
 			    if (updateError) throw updateError;
 			}
             console.log("Class created successfully and students updated!");
