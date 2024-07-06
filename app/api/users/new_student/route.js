@@ -40,20 +40,16 @@ export async function POST(request) {
             return new Response(JSON.stringify(signupError), { status: 500 });
         }
 
-        let classes_jsonb = {};
-        classes_jsonb[teacherUUID] = classes;
+
         let notes_jsonb = {};
         notes_jsonb[teacherUUID] = notes;
-        let status_jsonb = {};
-        status_jsonb[teacherUUID] = 'Pending';
+
 
         const { data: insertData, error: insertError } = await supabase.from('students').insert([
             {
                 email: email,
-                classes_left: classes_jsonb,
                 notes: notes_jsonb,
-                teachers: [teacherUUID],
-                status: status_jsonb,
+
             },
         ]).select();
 

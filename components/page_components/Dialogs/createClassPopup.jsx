@@ -122,7 +122,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 			    // Update status object
 			    let updatedStatus = {
 			        ...(studentData.status || {}),
-			        [uuid]: 'pending'
+			        [uuid]: 'Invited'
 			    };
 			    let updatedteacher = Array.isArray(studentData.teachers)
 			        ? [...studentData.teachers, (await supabaseClient.auth.getUser()).data.user.id]
@@ -353,7 +353,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 		const controller = new AbortController()
 	    const { signal } = controller;
         const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-        const response = await fetchTimeout(`/api/users/new_student?email=${newStudentEmail}&notes=${newStudentNotes}&classes=${0}`, 5500,{signal,
+        const response = await fetchTimeout(`/api/users/new_student?email=${newStudentEmail}&notes=${newStudentNotes}`, 5500,{signal,
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

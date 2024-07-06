@@ -13,7 +13,7 @@ import Header from "@/components/page_components/header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import fetchTimeout from "@/components/util_function/fetch";
 import AuthWrapper from "@/components/page_components/authWrapper";
-
+// I am here
 export default function ManageClass({ params }) {
     const [isOpenManage, setIsOpenManage] = useState(false);
     const [classData, setClassData] = useState(null);
@@ -28,6 +28,8 @@ export default function ManageClass({ params }) {
     const [students, setStudents] = useState([]);
     const { toast } = useToast();
     const classCode = params.class_code;
+	const [selectedStudent, setSelectedStudent] = useState(null);
+
 
     useEffect(() => {
         fetchStudents();
@@ -125,7 +127,7 @@ const handleAddNewStudent = async () => {
         const controller = new AbortController();
         const { signal } = controller;
         const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-        const response = await fetchTimeout(`/api/users/new_student?email=${email}&notes=${notes}&classes=${numClasses}`, 5500, {
+        const response = await fetchTimeout(`/api/users/new_student?email=${email}&notes=${notes}`, 5500, {
             signal,
             method: 'POST',
             headers: {
@@ -156,7 +158,7 @@ const handleAddNewStudent = async () => {
                 .update({
                     class_id: [classData.id],
                     classes_left: { [classData.id]: numClasses.toString() },
-                    status: { [classData.id]: 'pending' }
+                    status: { [classData.id]: 'Invited' }
                 })
                 .eq('id', newStudent.id);
 
@@ -313,49 +315,88 @@ const handleAddExistingStudents = async () => {
         );
     };
 
-    const StudentDetailsPopUp = (student) => {
-        return (
-            <>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Student Details</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid items-center grid-cols-4 gap-4">
-                            <Label htmlFor="name" className="text-right">
-                                {student.first_name} {student.last_name}
-                            </Label>
-                            <div className="col-span-3">Student Name</div>
-                        </div>
-                        <div className="grid items-center grid-cols-4 gap-4">
-                            <Label htmlFor="phone" className="text-right">
-	                            {student.phone || "No Number available"}
-                            </Label>
-                            <div className="col-span-3">Phone</div>
-                        </div>
-                        <div className="grid items-center grid-cols-4 gap-4">
-                            <Label htmlFor="classes" className="text-right">
-	                            {student.classes_left}
-                            </Label>
-                            <div className="col-span-3 flex items-center gap-2">
-                                <Button variant="outline" onClick={()=>{}}>
-                                    -
-                                </Button>
-                                <div>3</div>
-                                <Button variant="outline" onClick={()=>{}}>
-                                    +
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button type="button">Close</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </>
-        );
+
+ const StudentDetailsPopUp = ({ student, classId, onClose, onUpdate }) => {
+    const [classes, setClasses] = useState(0);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        if (student && student.classes_left && student.classes_left[classId]) {
+            setClasses(parseInt(student.classes_left[classId]));
+        }
+    }, [student, classId]);
+
+    const handleIncrement = () => setClasses(prev => prev + 1);
+    const handleDecrement = () => setClasses(prev => Math.max(0, prev - 1));
+
+	const handleSave = async () => {
+        try {
+            const { data, error } = await supabaseClient
+                .from('students')
+                .update({
+                    classes_left: { ...student.classes_left, [classId]: classes.toString() }
+                })
+                .eq('id', student.id);
+
+            if (error) throw error;
+
+            toast({
+                title: "Classes Updated",
+                description: "The class count has been updated successfully.",
+            });
+            onUpdate();
+            onClose();
+        } catch (error) {
+            console.error("Error updating classes:", error);
+            toast({
+                variant: 'destructive',
+                title: "Failed to update classes",
+                description: "Please try again.",
+            });
+        }
+
     };
 
+    return (
+        <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle>Student Details</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="grid items-center grid-cols-4 gap-4">
+                    <Label htmlFor="name" className="text-right">
+                        Name
+                    </Label>
+                    <div className="col-span-3">{student.first_name} {student.last_name}</div>
+                </div>
+                <div className="grid items-center grid-cols-4 gap-4">
+                    <Label htmlFor="email" className="text-right">
+                        Email
+                    </Label>
+                    <div className="col-span-3">{student.email}</div>
+                </div>
+                <div className="grid items-center grid-cols-4 gap-4">
+                    <Label htmlFor="classes" className="text-right">
+                        Classes
+                    </Label>
+                    <div className="col-span-3 flex items-center gap-2">
+                        <Button variant="outline" onClick={handleDecrement}>
+                            -
+                        </Button>
+                        <div>{classes}</div>
+                        <Button variant="outline" onClick={handleIncrement}>
+                            +
+                        </Button>
+                    </div>
+                </div>
+            </div>
+            <DialogFooter>
+
+                <Button type="button" onClick={handleSave}>Save</Button>
+            </DialogFooter>
+        </DialogContent>
+    );
+};
     const _studentTileForStudentList = (student) => {
         const isSelected = selectedStudents.includes(student.id);
 
@@ -466,9 +507,19 @@ const handleAddExistingStudents = async () => {
             <div className="min-h-screen bg-gray-100">
                 <Header />
                 <main className="p-6 space-y-8">
-                    <Dialog open={isOpenManage} onOpenChange={setIsOpenManage}>
-                        <StudentDetailsPopUp />
-                    </Dialog>
+				<Dialog open={isOpenManage} onOpenChange={setIsOpenManage}>
+				    {selectedStudent && (
+				        <StudentDetailsPopUp
+				            student={selectedStudent}
+				            classId={classData.id}
+				            onClose={() => {
+				                setIsOpenManage(false);
+				                setSelectedStudent(null);
+				            }}
+				            onUpdate={() => fetchStudentData(classData.students)} // Refresh student data
+				        />
+				    )}
+				</Dialog>
                     <Dialog open={isNewStudentOpen} onOpenChange={setIsNewStudentOpen}>
                         <DialogContent className="max-w-[40vw]">
                             {step === 0 && _newOrExisting()}
@@ -510,7 +561,13 @@ const handleAddExistingStudents = async () => {
                                 </TableHeader>
                                 <TableBody>
                                     {studentData.length > 0 ? studentData.map(student => (
-                                        <TableRow key={student.id} className="hover:cursor-pointer" onClick={() => setIsOpenManage(true)}>
+                                        <TableRow
+										    key={student.id}
+										    className="hover:cursor-pointer"
+										    onClick={() => {
+										        setSelectedStudent(student);
+										        setIsOpenManage(true);
+										    }}>
                                             <TableCell>{student.first_name} {student.last_name}</TableCell>
                                             <TableCell>{student.email}</TableCell>
                                             <TableCell>{student.classes_left[classData.id]}</TableCell>
