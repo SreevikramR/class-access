@@ -313,7 +313,7 @@ const handleAddExistingStudents = async () => {
         );
     };
 
-    const StudentDetailsPopUp = () => {
+    const StudentDetailsPopUp = (student) => {
         return (
             <>
                 <DialogContent className="sm:max-w-[425px]">
@@ -323,19 +323,19 @@ const handleAddExistingStudents = async () => {
                     <div className="grid gap-4 py-4">
                         <div className="grid items-center grid-cols-4 gap-4">
                             <Label htmlFor="name" className="text-right">
-                                Name
+                                {student.first_name} {student.last_name}
                             </Label>
                             <div className="col-span-3">Student Name</div>
                         </div>
                         <div className="grid items-center grid-cols-4 gap-4">
                             <Label htmlFor="phone" className="text-right">
-                                Phone
+	                            {student.phone || "No Number available"}
                             </Label>
                             <div className="col-span-3">Phone</div>
                         </div>
                         <div className="grid items-center grid-cols-4 gap-4">
                             <Label htmlFor="classes" className="text-right">
-                                Classes
+	                            {student.classes_left}
                             </Label>
                             <div className="col-span-3 flex items-center gap-2">
                                 <Button variant="outline" onClick={()=>{}}>
