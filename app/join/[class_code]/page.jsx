@@ -11,20 +11,36 @@ import { useToast } from '@/components/ui/use-toast';
 
 export default function Component({ params: { class_code } }) {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	const [isUnauthorized, setIsUnauthorized] = useState(false);
 	const [noAccount, setNoAccount] = useState(false);
-	const [credits, setCredits] = useState(1); // Replace 1 with your actual credit value
+	const [credits, setCredits] = useState(null); // Replace 1 with your actual credit value
 	const [willPay, setWillPay] = useState(false);
-
+	const [classDoesNotExist, setClassDoesNotExist] = useState(false);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [className, setClassName] = useState("Class Name");
+	const [classLink, setClassLink] = useState("")
 	const { toast } = useToast()
 
 	useEffect(() => {
 		fetchUser()
 	}, [])
 
-	const handleLogin = () => {}
+	const handleLogin = async () => {
+		try {
+			const { data } = await supabaseClient.auth.signInWithPassword({
+				email: email,
+				password: password,
+			})
+			setIsLoggedIn(true)
+			fetchUser()
+		} catch (error) {
+			toast({
+				title: 'Unable to Login',
+				description: error.message,
+				variant: "destructive"
+			})
+		}
+	}
 	const handleGoogleLogin = async () => {
 		console.log(`${window.location.origin}/oauth/google/callback`)
 		try {
@@ -46,7 +62,22 @@ export default function Component({ params: { class_code } }) {
 	const fetchUser = async () => {
 		const user = await supabaseClient.auth.getUser();
 		if (user.data.user != null) {
-			const { data, error } = await supabaseClient.from('students').select('*').eq('id', user.data.user.id);
+			console.log(class_code)
+			
+			const { data: classData, error: classError } = await supabaseClient.from('classes').select("name, id").eq('class_code', class_code);
+			if (classData.length == 0) {
+				setClassDoesNotExist(true)
+				return
+			}
+			setClassName(classData[0].name)
+			const { data, error } = await supabaseClient.from('students').select('classes_left').eq('id', user.data.user.id);
+			console.log(data)
+			setCredits(data[0].classes_left[classData[0].id])
+			const { data: classData2, error: classError2 } = await supabaseClient.from('classes').select('zoom_link').eq('class_code', class_code);
+			if (classData2[0].zoom_link !== null) {
+				setClassLink(classData2[0].zoom_link)
+			}
+
 			if (data.length > 0) {
 				setIsLoggedIn(true)
 			} else {
@@ -75,22 +106,28 @@ export default function Component({ params: { class_code } }) {
 	return (
 		<div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
 			<main>
+				{classDoesNotExist && (
+					<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10">
+						<div className="text-center">
+							<h1 className="font-semibold text-md sm:text-lg text-foreground text-pretty">Class you are looking for does not exist. Please contact your instructor for more details</h1>
+						</div>
+					</Card>
+				)}
+				{!classDoesNotExist && ( <>
 				{isLoggedIn && (
 					<>
-					{!isUnauthorized && (
 						<div className="w-full flex justify-center items-center">
 							{credits == 0 && (
-								<Card className="w-[36vw] border-2">
+								<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2">
 									<div className="text-center">
-										<h1 className="font-bold text-foreground sm:text-2xl pt-6">Class Name</h1>
-										<h2><p className="text-muted-foreground">Teacher: John Doe</p></h2>
+										<h1 className="font-bold text-foreground text-xl sm:text-2xl pt-6 text-pretty">{className}</h1>
 									</div>
 									<div className="rounded-lg bg-white p-3 pt-0">
 										<div className="flex flex-col sm:flex-row"></div>
 										<div className="mt-6 rounded-lg bg-red-500 px-4 py-3 text-red-50">
 											<div className="flex items-center">
 												<TriangleAlertIcon className="mr-2 h-5 w-5" />
-												<p className="text-sm font-medium">
+												<p className="sm:text-sm text-xs font-medium text-pretty">
 													We see that you have not paid yet. Please pay to join the class.
 												</p>
 											</div>
@@ -99,22 +136,21 @@ export default function Component({ params: { class_code } }) {
 								</Card>
 							)}
 							{credits == 1 && (
-								<Card className="w-[36vw] border-2">
+								<Card className="lg:w-[40vw] sm:w-[60vw] w-[90vw] border-2">
 									<div className="text-center">
-										<h1 className="font-bold text-foreground sm:text-2xl pt-6">Class Name</h1>
-										<h2><p className="text-muted-foreground">Teacher: John Doe</p></h2>
+										<h1 className="font-bold text-foreground text-xl sm:text-2xl pt-6 text-pretty">{className}</h1>
 									</div>
 									<div className="rounded-lg bg-white p-3 pt-0">
 										<div className="flex flex-col sm:flex-row"></div>
 										<div className="mt-6 rounded-lg bg-red-500 px-4 py-3 text-red-50">
 											<div className="flex items-center">
 												<TriangleAlertIcon className="mr-2 h-5 w-5" />
-												<p className="text-sm font-medium">
+												<p className="sm:text-sm text-xs font-medium text-pretty">
 													Kindly Pay before your next class
 												</p>
 											</div>
 										</div>
-										<div className="mt-6 flex justify-between items-center">
+										<div className="mt-6 flex flex-col sm:flex-row justify-between items-center">
 											<div className='p-1 py-2 flex flex-row justify-center'>
 												<input
 													type="checkbox"
@@ -123,11 +159,11 @@ export default function Component({ params: { class_code } }) {
 													onChange={() => setWillPay(!willPay)}
 													className="mr-2 w-5 h-5 border-2 checked:accent-green-600"
 													/>
-												<label htmlFor="willPay" className="text-foreground text-md items-center">I will complete the payment</label>
+												<label htmlFor="willPay" className="text-foreground text-sm sm:text-md items-center text-pretty">I will complete the payment</label>
 											</div>
 											{willPay && (
 												<div className="flex justify-end">
-													<Button className="w-full sm:w-auto bg-green-700 hover:bg-green-500">Join Class</Button>
+													<Button className="w-full sm:w-auto bg-green-700 hover:bg-green-500" onClick={() => window.location.href = classLink}>Join Class</Button>
 												</div>
 											)}
 										</div>
@@ -135,25 +171,20 @@ export default function Component({ params: { class_code } }) {
 								</Card>
 							)}
 							{credits >= 2 && (
-								<div>Redirecting you to your class...</div>
+								<>
+									<span className='hidden'>{window.location.href = classLink}</span>
+									<div>Redirecting you to your class...</div>
+								</>
 							)}
 						</div>
-					)}
-					{isUnauthorized && (
-							<Card className="w-[36vw] border-2 p-10">
-								<div className="text-center">
-									<h1 className="font-semibold text-lg text-foreground">You do not have access to this class. Please contact your instructor for more details</h1>
-								</div>
-							</Card>
-							)}
 					</>
 				)}
 				{!isLoggedIn && (
 					<>
 						{!noAccount && (
-							<Card className="w-[36vw] border-2">
+							<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2">
 								<div className="text-center">
-									<h1 className="font-semibold text-xl text-foreground pt-6">Please Login to Join your class</h1>
+									<h1 className="font-semibold text-md pb-4 lg:text-xl text-foreground pt-6 text-pretty">Please Login to Join your class</h1>
 								</div>
 								<div className="rounded-lg bg-white p-3 pt-0">
 									<div className="grid gap-4">
@@ -173,7 +204,7 @@ export default function Component({ params: { class_code } }) {
 												<Label htmlFor="password">Password</Label>
 												<Link
 													href="/forgot-password"
-													className="ml-auto inline-block text-sm underline"
+													className="ml-auto inline-block text-xs sm:text-sm underline"
 												>
 													Forgot your password?
 												</Link>
@@ -198,20 +229,21 @@ export default function Component({ params: { class_code } }) {
 										<Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
 											Google
 										</Button>
-										<div className='text-md cursor-pointer text-blue-700 underline w-fit' onClick={() => setNoAccount(true)}>Don&apos;t have an Account?</div>	
+										<div className='sm:text-md text-sm cursor-pointer text-blue-700 underline w-fit' onClick={() => setNoAccount(true)}>Don&apos;t have an Account?</div>	
 									</div>
 								</div>
 							</Card>
 						)}
 						{noAccount && (
-							<Card className="w-[36vw] border-2 p-10">
+							<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10">
 								<div className="text-center">
-									<h1 className="font-semibold text-lg text-foreground">Please contact your instructor to gain access to the class</h1>
+									<h1 className="font-semibold text-md sm:text-lg text-foreground text-pretty">Please contact your instructor to gain access to the class</h1>
 								</div>
 							</Card>
 						)}
 					</>
 				)}
+				</>)}
 			</main>
 		</div>
 	);

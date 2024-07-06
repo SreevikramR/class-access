@@ -12,7 +12,8 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@
 import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import { useToast } from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
-// i am back
+import createZoomMeeting from '@/components/util_function/createZoomMeeting'
+
 const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [classCreationStep, setClassCreationStep] = useState(0)
     const [className, setClassName] = useState("")
@@ -41,6 +42,19 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 
     const handleCreateClass = async () => {
         const code = generateRandomString(6)
+        const classLink = await createZoomMeeting();
+        console.log(classLink)
+        if (classLink === "ERROR") {
+            console.error("Error creating Zoom meeting");
+            toast({
+                variant: 'destructive',
+                title: "Failed to create class",
+                description: "Try again.",
+                duration: 3000
+            });
+            return;
+        }
+
         const classData = {
             name: className,
             description: classDescription,
@@ -49,8 +63,10 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
             end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
             students: selectedStudents, // This will send student IDs to Supabase in an array
-            class_code: code
+            class_code: code,
+            zoom_link: classLink,
         };
+
         const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
         const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
         if (authError || !user) {
@@ -82,15 +98,46 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             } else {
                 updatedUuidArray = [uuid];
             }
-            for (const student of selectedStudents) {
-                console.log(student)
-                const { data: updateData, error: updateError } = await supabaseClient
-                    .from('students')
-                    .update({ class_id: updatedUuidArray })
-                    .eq('id', student);
+			for (const student of selectedStudents) {
+			    console.log(student)
+			    const { data: studentData, error: fetchError } = await supabaseClient
+			        .from('students')
+			        .select('class_id, classes_left, status,teachers')
+			        .eq('id', student)
+			        .single();
 
-                if (updateError) throw updateError;
-            }
+			    if (fetchError) throw fetchError;
+
+			    // Update class_id array
+			    let updatedClassId = Array.isArray(studentData.class_id)
+			        ? [...studentData.class_id, uuid]
+			        : [uuid];
+
+			    // Update classes_left object
+			    let updatedClassesLeft = {
+			        ...(studentData.classes_left || {}),
+			        [uuid]: '0'
+			    };
+
+			    // Update status object
+			    let updatedStatus = {
+			        ...(studentData.status || {}),
+			        [uuid]: 'Invited'
+			    };
+			    let updatedteacher = Array.isArray(studentData.teachers)
+			        ? [...studentData.teachers, (await supabaseClient.auth.getUser()).data.user.id]
+			        : [(await supabaseClient.auth.getUser()).data.user.id];
+
+			    const { data: updateData, error: updateError } = await supabaseClient
+			        .from('students')
+			        .update({
+			            class_id: updatedClassId,
+			            classes_left: updatedClassesLeft,
+			            status: updatedStatus,
+						teachers: updatedteacher})
+				    .eq('id',student)
+			    if (updateError) throw updateError;
+			}
             console.log("Class created successfully and students updated!");
             toast({
                 className: "bg-green-500 border-black border-2",
@@ -306,7 +353,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 		const controller = new AbortController()
 	    const { signal } = controller;
         const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-        const response = await fetchTimeout(`/api/users/new_student?email=${newStudentEmail}&notes=${newStudentNotes}&classes=${0}`, 5500,{signal,
+        const response = await fetchTimeout(`/api/users/new_student?email=${newStudentEmail}&notes=${newStudentNotes}`, 5500,{signal,
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -466,10 +513,6 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             startTime: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
             endTime: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
             capacity: selectedStudents.length, // Assuming capacity is the number of selected students
-            teacher_id: "",
-            isOnline: 'link goes here',
-            onlineLink: 'link goes here',
-
         };
 
         return (

@@ -29,7 +29,7 @@ const Header = () => {
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 						<Button variant="outline" size="icon" className="rounded-full">
-							<img src="/placeholder.svg" width="32" height="32" className="rounded-full" alt="Avatar" />
+							{/* <img src="/placeholder.svg" width="32" height="32" className="rounded-full" alt="Avatar" /> */}
 							<span className="sr-only">User menu</span>
 						</Button>
 						</DropdownMenuTrigger>
