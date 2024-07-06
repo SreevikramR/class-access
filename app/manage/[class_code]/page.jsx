@@ -328,7 +328,7 @@ const handleAddExistingStudents = async () => {
     const handleIncrement = () => setClasses(prev => prev + 1);
     const handleDecrement = () => setClasses(prev => Math.max(0, prev - 1));
 
-    const handleSave = async () => {
+	const handleSave = async () => {
         try {
             const { data, error } = await supabaseClient
                 .from('students')
