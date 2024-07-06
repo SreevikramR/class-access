@@ -315,6 +315,7 @@ const handleAddExistingStudents = async () => {
         );
     };
 
+
  const StudentDetailsPopUp = ({ student, classId, onClose, onUpdate }) => {
     const [classes, setClasses] = useState(0);
     const { toast } = useToast();
@@ -353,6 +354,7 @@ const handleAddExistingStudents = async () => {
                 description: "Please try again.",
             });
         }
+
     };
 
     return (
