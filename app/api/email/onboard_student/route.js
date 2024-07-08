@@ -10,18 +10,27 @@ export async function POST(request) {
     const class_name = request.headers.get('class_name');
     const class_code = request.headers.get('class_code');
 
-    const link = `https://classaccess.vercel.app/join_class?code=${class_code}`;
+    console.log(student_email, teacher_name, class_name, class_code)
+
+    const link = `https://classaccess.tech/join_class/${class_code}`;
 
     const sender = {
-        email: "mailtrap@demomailtrap.com",
+        email: "no-reply@classaccess.tech",
         name: "Class Access",
     };
 
-    const recipients = [
-        {
-            email: "sreevikram.r@gmail.com",
-        }
-    ];
+    const student_emails = student_email.split(/\s*,\s*/);
+    console.log(student_emails);
+
+    let recipients = [];
+    for (var i = 0; i < student_emails.length; i++) {
+        console.log(student_emails[i]);
+        recipients.push({
+            "email": student_emails[i],
+        });
+    }
+
+    console.log(recipients);
 
     try {
         client.send({
