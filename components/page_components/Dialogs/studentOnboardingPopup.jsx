@@ -10,7 +10,7 @@ import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import { toast } from "@/components/ui/use-toast"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
-
+//
 export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, classCode }) {
     const [step, setStep] = useState(0)
     const [firstName, setFirstName] = useState("")
