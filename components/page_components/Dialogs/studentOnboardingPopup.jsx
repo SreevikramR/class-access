@@ -23,7 +23,42 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, 
     const [email, setEmail] = useState("")
     const [loginPassword, setLoginPassword] = useState("")
 
-    const handleLogin = async () => {}
+const handleLogin = async () => {
+    if (!email || !loginPassword) {
+        toast({
+            title: 'Error',
+            description: "Please enter both email and password",
+            variant: "destructive"
+        });
+        return;
+    }
+
+    try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: loginPassword,
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+            toast({
+                title: 'Success',
+                description: "Logged in successfully",
+                variant: "default"
+            });
+            setIsOpen(false);
+            onComplete(); // Call the onComplete function passed as prop
+        }
+    } catch (error) {
+        console.error("Login error:", error);
+        toast({
+            title: 'Login Failed',
+            description: error.message,
+            variant: "destructive"
+        });
+    }
+};
     const handleGoogleLogin = async () => {
         try {
             await supabaseClient.auth.signInWithOAuth({
@@ -108,7 +143,16 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, 
             });
         }
     };
-
+	useEffect(() => {
+    const checkUser = async () => {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) {
+            setIsOpen(false);
+            onComplete();
+        }
+    };
+    checkUser();
+}, []);
     const _login = () => (
         <Card className="w-fill border-0">
             <div className="text-center">
@@ -138,13 +182,13 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen, onComplete, 
                             </Link>
                         </div>
                         <Input
-                            id="password"
-                            placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"
-                            type="password"
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
+					    id="password"
+					    placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"
+					    type="password"
+					    required
+					    value={loginPassword}
+					    onChange={(e) => setLoginPassword(e.target.value)}
+					/>
                     </div>
                     <Button type="submit" onClick={handleLogin} className="w-full">
                         Login
