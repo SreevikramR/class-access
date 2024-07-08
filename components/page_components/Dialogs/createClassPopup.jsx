@@ -85,11 +85,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             const uuid = classInsertData[0].id
 
             if (classError) throw classError;
-            // const { data: studentsData, error: fetchStudentsError } = await supabaseClient
-            //   .from('classes')
-            //   .select()
-            //   .contains('students', [selectedStudents]);
-            // Update the students' table with the class UUID
+            const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select("first_name, last_name").eq('id', (await supabaseClient.auth.getUser()).data.user.id).single();
             console.log(uuid);
             if (error) throw error
             let updatedUuidArray;
@@ -98,15 +94,17 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             } else {
                 updatedUuidArray = [uuid];
             }
+            let studentEmails = [];
 			for (const student of selectedStudents) {
 			    console.log(student)
 			    const { data: studentData, error: fetchError } = await supabaseClient
-			        .from('students')
-			        .select('class_id, classes_left, status,teachers')
-			        .eq('id', student)
-			        .single();
-
+                .from('students')
+                .select('class_id, classes_left, status, teachers, email')
+                .eq('id', student)
+                .single();
+                
 			    if (fetchError) throw fetchError;
+                studentEmails.push(studentData.email)
 
 			    // Update class_id array
 			    let updatedClassId = Array.isArray(studentData.class_id)
@@ -137,7 +135,10 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 						teachers: updatedteacher})
 				    .eq('id',student)
 			    if (updateError) throw updateError;
+
 			}
+            const response = await fetchTimeout(`/api/email/onboard_student`, 5500, { method: 'POST', headers: { "student_email": studentEmails, "class_name": className, "class_code": code, "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`} });
+            console.log(response)
             console.log("Class created successfully and students updated!");
             toast({
                 className: "bg-green-500 border-black border-2",
@@ -184,9 +185,6 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                                     return
                                 }
                                 setClassCreationStep(1);
-
-
-
                             }} className="gap-2">Pick Days<CircleArrowRight className="h-5 w-5" /></Button>
                         </div>
                     </DialogFooter>
