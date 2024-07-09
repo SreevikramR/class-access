@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import {supabaseClient} from "@/components/util_function/supabaseCilent"
 import { useToast } from "@/components/ui/use-toast"
+import LoadingOverlay from "@/components/page_components/loadingOverlay"
 
 export default function LoginPage() {
 	const [email, setEmail] = useState("")
@@ -56,6 +57,7 @@ export default function LoginPage() {
 
 	return (
 		<div className="w-full h-screen lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
+			{loading && <LoadingOverlay/>}
 			<div className="hidden bg-muted lg:block">
 				<div className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale bg-slate-100">
 				</div>

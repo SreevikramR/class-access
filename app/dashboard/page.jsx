@@ -8,6 +8,7 @@ import { PlusCircle, Share2, Copy } from 'lucide-react';
 import Link from 'next/link'
 import CreateClassPopup from '@/components/page_components/Dialogs/createClassPopup'
 import AuthWrapper from '@/components/page_components/authWrapper'
+import LoadingOverlay from '@/components/page_components/loadingOverlay'
 
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -138,6 +139,7 @@ const Dashboard = ({ classInfo }) => {
 
 	return (
 		<AuthWrapper>
+			{loading && <LoadingOverlay />}
 			<div className="flex flex-col min-h-screen">
 				<Header />
 				<main className="flex-1 bg-gray-100 px-4 py-8 sm:px-6 grid gap-8">
