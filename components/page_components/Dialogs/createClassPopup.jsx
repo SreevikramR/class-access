@@ -45,16 +45,16 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
         const code = generateRandomString(6)
         // const classLink = await createZoomMeeting();
         // console.log(classLink)
-        if (zoomLink === "ERROR") {
-            console.error("Error creating Zoom meeting");
-            toast({
-                variant: 'destructive',
-                title: "Failed to create class",
-                description: "Try again.",
-                duration: 3000
-            });
-            return;
-        }
+        // if (zoomLink === "ERROR") {
+        //     console.error("Error creating Zoom meeting");
+        //     toast({
+        //         variant: 'destructive',
+        //         title: "Failed to create class",
+        //         description: "Try again.",
+        //         duration: 3000
+        //     });
+        //     return;
+        // }
 
 	    const classData = {
 	        name: className,
