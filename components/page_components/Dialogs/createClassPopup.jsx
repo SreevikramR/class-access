@@ -362,7 +362,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                 headers: {
                     'Content-Type': 'application/json',
                     'jwt': jwt,
-                    'access_token': (await supabaseClient.auth.getSession()).data.session.access_token
+                    'refresh_token': (await supabaseClient.auth.getSession()).data.session.refresh_token
                 },
             });
 
