@@ -12,7 +12,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@
 import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import { useToast } from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
-import createZoomMeeting from '@/components/util_function/createZoomMeeting'
+// import createZoomMeeting from '@/components/util_function/createZoomMeeting'
 
 const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [classCreationStep, setClassCreationStep] = useState(0)
@@ -43,7 +43,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 
     const handleCreateClass = async () => {
         const code = generateRandomString(6)
-        const classLink = await createZoomMeeting();
+        // const classLink = await createZoomMeeting();
         console.log(classLink)
         if (classLink === "ERROR") {
             console.error("Error creating Zoom meeting");
@@ -65,7 +65,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 	        end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
 	        students: selectedStudents,
 	        class_code: code,
-	        zoom_link: zoomLink, // Add this line
+	        zoom_link: zoomLink,
 	    };
 
         const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
