@@ -13,6 +13,7 @@ import Header from "@/components/page_components/header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import fetchTimeout from "@/components/util_function/fetch";
 import AuthWrapper from "@/components/page_components/authWrapper";
+import LoadingOverlay from "@/components/page_components/loadingOverlay";
 // I am here
 export default function ManageClass({ params }) {
     const [isOpenManage, setIsOpenManage] = useState(false);
@@ -21,7 +22,6 @@ export default function ManageClass({ params }) {
     const [step, setStep] = useState(0);
     const [studentData, setStudentData] = useState([]);
     const [selectedStudents, setSelectedStudents] = useState([]);
-    const [isCreatingUser, setIsCreatingUser] = useState(false);
     const [email, setEmail] = useState("");
     const [numClasses, setNumClasses] = useState(0);
     const [notes, setNotes] = useState("");
@@ -29,61 +29,66 @@ export default function ManageClass({ params }) {
     const { toast } = useToast();
     const classCode = params.class_code;
 	const [selectedStudent, setSelectedStudent] = useState(null);
-
-
+    const [loading, setLoading] = useState(false);
+    
     useEffect(() => {
         fetchStudents();
     }, []);
-async function fetchStudentData(studentUUIDs) {
-    if (studentUUIDs && studentUUIDs.length > 0) {
-        const { data, error } = await supabaseClient
-            .from('students')
-            .select('*')
-            .in('id', studentUUIDs);
 
-        if (error) {
-            console.error('Error fetching students data:', error);
-            toast({
-                title: 'Error',
-                description: 'Failed to load student data. Please try again.',
-                variant: "destructive"
-            });
-        } else {
-            setStudentData(data);
-        }
-    } else {
-        setStudentData([]);
-    }
-}
     useEffect(() => {
-        async function fetchClassData() {
-            console.log('Fetching class with code:', classCode);
-            const { data, error } = await supabaseClient
-                .from('classes')
-                .select()
-                .eq('class_code', classCode);
-
-            if (error) {
-                console.error('Error fetching class data:', error);
-                toast({
-                    title: 'Error',
-                    description: 'Failed to load class data. Please try again.',
-                    variant: "destructive"
-                });
-            } else {
-                setClassData(data[0]);
-                fetchStudentData(data[0].students);
-            }
-        }
-
-
-
         if (classCode) {
             fetchClassData();
         }
     }, [classCode, toast]);
 
+    async function fetchStudentData(studentUUIDs) {
+        setLoading(true)
+        if (studentUUIDs && studentUUIDs.length > 0) {
+            const { data, error } = await supabaseClient
+                .from('students')
+                .select('*')
+                .in('id', studentUUIDs);
+
+            if (error) {
+                console.error('Error fetching students data:', error);
+                toast({
+                    title: 'Error',
+                    description: 'Failed to load student data. Please try again.',
+                    variant: "destructive"
+                });
+            } else {
+                setStudentData(data);
+            }
+        } else {
+            setStudentData([]);
+        }
+        setLoading(false)
+    }
+
+    async function fetchClassData() {
+        setLoading(true)
+        console.log('Fetching class with code:', classCode);
+        const { data, error } = await supabaseClient
+            .from('classes')
+            .select()
+            .eq('class_code', classCode);
+
+        if (error) {
+            console.error('Error fetching class data:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to load class data. Please try again.',
+                variant: "destructive"
+            });
+        } else {
+            setClassData(data[0]);
+            fetchStudentData(data[0].students);
+        }
+        setLoading(false)
+    }
+
     const fetchStudents = async () => {
+        setLoading(true)
         try {
             const { data, error } = await supabaseClient
                 .from('students')
@@ -110,169 +115,175 @@ async function fetchStudentData(studentUUIDs) {
                 duration: 3000
             });
         }
+        setLoading(false)
     };
-const handleAddNewStudent = async () => {
-    if (!email) {
-        toast({
-            title: 'Error',
-            description: 'Email is required.',
-            variant: "destructive"
-        });
-        return;
-    }
 
-    setIsCreatingUser(true);
+    const handleAddNewStudent = async () => {
+        if (!email) {
+            toast({
+                title: 'Error',
+                description: 'Email is required.',
+                variant: "destructive"
+            });
+            return;
+        }
+        
+        setLoading(true)
+        try {
+            const controller = new AbortController();
+            const { signal } = controller;
+            const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+            const response = await fetchTimeout(`/api/users/new_student?email=${email}&notes=${notes}`, 5500, {
+                signal,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'jwt': jwt,
+                    'access_token': jwt
+                },
+            });
 
-    try {
-        const controller = new AbortController();
-        const { signal } = controller;
-        const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-        const response = await fetchTimeout(`/api/users/new_student?email=${email}&notes=${notes}`, 5500, {
-            signal,
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'jwt': jwt,
-                'access_token': jwt
-            },
-        });
+            if (response.status === 409) {
+                toast({
+                    variant: 'destructive',
+                    title: "Student already exists",
+                    description: "The student with this email is already registered.",
+                    duration: 3000
+                });
+                setLoading(false)
+                return;
+            }
 
-        if (response.status === 409) {
+            if (response.status === 200) {
+                const result = await response.json();
+                const newStudent = result[0];
+
+                // Update the new student's record with class-specific data
+                const { error: updateError } = await supabaseClient
+                    .from('students')
+                    .update({
+                        class_id: [classData.id],
+                        classes_left: { [classData.id]: numClasses.toString() },
+                        status: { [classData.id]: 'Invited' }
+                    })
+                    .eq('id', newStudent.id);
+
+                if (updateError) throw updateError;
+
+                setStudents([...students, newStudent]);
+
+                // Update the class with the new student
+                const updatedStudents = [...(classData.students || []), newStudent.id];
+                await updateClassStudents(updatedStudents);
+
+                // Update local state
+                setClassData({ ...classData, students: updatedStudents });
+                await fetchStudentData(updatedStudents);
+
+                toast({
+                    className: "bg-green-500 border-black border-2",
+                    title: "Student Added",
+                    description: "The new student has been added to the class",
+                    duration: 3000
+                });
+
+                setEmail('');
+                setNumClasses(0);
+                setNotes('');
+            }
+        } catch (error) {
+            console.error("Error adding student:", error);
             toast({
                 variant: 'destructive',
-                title: "Student already exists",
-                description: "The student with this email is already registered.",
+                title: "Failed to add student",
+                description: "Try again.",
                 duration: 3000
             });
-            setIsCreatingUser(false);
+        }
+        setLoading(false)
+    };
+
+    const handleAddExistingStudents = async () => {
+        if (selectedStudents.length === 0) {
+            toast({
+                title: 'Alert',
+                description: 'At least one student must be selected.',
+                variant: "destructive"
+            });
             return;
         }
 
-        if (response.status === 200) {
-            const result = await response.json();
-            const newStudent = result[0];
+        setLoading(true)
+        try {
+            const currentStudents = classData.students || [];
+            const newStudents = selectedStudents.filter(id => !currentStudents.includes(id));
 
-            // Update the new student's record with class-specific data
-            const { error: updateError } = await supabaseClient
-                .from('students')
-                .update({
-                    class_id: [classData.id],
-                    classes_left: { [classData.id]: numClasses.toString() },
-                    status: { [classData.id]: 'Invited' }
-                })
-                .eq('id', newStudent.id);
+            if (newStudents.length === 0) {
+                toast({
+                    title: 'Info',
+                    description: 'All selected students are already in the class.',
+                });
+                setIsNewStudentOpen(false);
+                setSelectedStudents([]);
+                setLoading(false)
+                return;
+            }
 
-            if (updateError) throw updateError;
+            const updatedStudents = [...currentStudents, ...newStudents];
 
-            setStudents([...students, newStudent]);
+            // Update each student's record
+            for (const studentId of newStudents) {
+                const { data: studentData, error: fetchError } = await supabaseClient
+                    .from('students')
+                    .select('classes_left, status, class_id')
+                    .eq('id', studentId)
+                    .single();
 
-            // Update the class with the new student
-            const updatedStudents = [...(classData.students || []), newStudent.id];
+                if (fetchError) throw fetchError;
+
+                let updatedClassesLeft = { ...(studentData.classes_left || {}), [classData.id]: numClasses };
+                let updatedStatus = { ...(studentData.status || {}), [classData.id]: 'Pending' };
+                let updatedClassId = Array.isArray(studentData.class_id)
+                    ? [...studentData.class_id, classData.id]
+                    : [classData.id];
+
+                const { error: updateError } = await supabaseClient
+                    .from('students')
+                    .update({
+                        class_id: updatedClassId,
+                        classes_left: updatedClassesLeft,
+                        status: updatedStatus
+                    })
+                    .eq('id', studentId);
+
+                if (updateError) console.log(updateError);
+            }
+
+            // Update the class with new students
             await updateClassStudents(updatedStudents);
 
             // Update local state
-            setClassData({ ...classData, students: updatedStudents });
+            setClassData(prevData => ({ ...prevData, students: updatedStudents }));
             await fetchStudentData(updatedStudents);
 
             toast({
-                className: "bg-green-500 border-black border-2",
-                title: "Student Added",
-                description: "The new student has been added to the class",
-                duration: 3000
+                title: 'Success',
+                description: `${newStudents.length} new student(s) added successfully.`,
             });
 
-            setEmail('');
-            setNumClasses(0);
-            setNotes('');
-        }
-    } catch (error) {
-        console.error("Error adding student:", error);
-        toast({
-            variant: 'destructive',
-            title: "Failed to add student",
-            description: "Try again.",
-            duration: 3000
-        });
-    }
-};
-
-const handleAddExistingStudents = async () => {
-    if (selectedStudents.length === 0) {
-        toast({
-            title: 'Alert',
-            description: 'At least one student must be selected.',
-            variant: "destructive"
-        });
-        return;
-    }
-
-    try {
-        const currentStudents = classData.students || [];
-        const newStudents = selectedStudents.filter(id => !currentStudents.includes(id));
-
-        if (newStudents.length === 0) {
-            toast({
-                title: 'Info',
-                description: 'All selected students are already in the class.',
-            });
             setIsNewStudentOpen(false);
             setSelectedStudents([]);
-            return;
+        } catch (error) {
+            console.error('Error adding students:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to add students. Please try again.',
+                variant: "destructive"
+            });
         }
+        setLoading(false)
+    };
 
-        const updatedStudents = [...currentStudents, ...newStudents];
-
-        // Update each student's record
-        for (const studentId of newStudents) {
-            const { data: studentData, error: fetchError } = await supabaseClient
-                .from('students')
-                .select('classes_left, status, class_id')
-                .eq('id', studentId)
-                .single();
-
-            if (fetchError) throw fetchError;
-
-            let updatedClassesLeft = { ...(studentData.classes_left || {}), [classData.id]: numClasses };
-            let updatedStatus = { ...(studentData.status || {}), [classData.id]: 'Pending' };
-            let updatedClassId = Array.isArray(studentData.class_id)
-                ? [...studentData.class_id, classData.id]
-                : [classData.id];
-
-            const { error: updateError } = await supabaseClient
-                .from('students')
-                .update({
-                    class_id: updatedClassId,
-                    classes_left: updatedClassesLeft,
-                    status: updatedStatus
-                })
-                .eq('id', studentId);
-
-            if (updateError) throw updateError;
-        }
-
-        // Update the class with new students
-        await updateClassStudents(updatedStudents);
-
-        // Update local state
-        setClassData(prevData => ({ ...prevData, students: updatedStudents }));
-        await fetchStudentData(updatedStudents);
-
-        toast({
-            title: 'Success',
-            description: `${newStudents.length} new student(s) added successfully.`,
-        });
-
-        setIsNewStudentOpen(false);
-        setSelectedStudents([]);
-    } catch (error) {
-        console.error('Error adding students:', error);
-        toast({
-            title: 'Error',
-            description: 'Failed to add students. Please try again.',
-            variant: "destructive"
-        });
-    }
-};
     const updateClassStudents = async (students) => {
         const { data, error } = await supabaseClient
             .from('classes')
@@ -315,88 +326,88 @@ const handleAddExistingStudents = async () => {
         );
     };
 
+    const StudentDetailsPopUp = ({ student, classId, onClose, onUpdate }) => {
+        const [classes, setClasses] = useState(0);
+        const { toast } = useToast();
 
- const StudentDetailsPopUp = ({ student, classId, onClose, onUpdate }) => {
-    const [classes, setClasses] = useState(0);
-    const { toast } = useToast();
+        useEffect(() => {
+            if (student && student.classes_left && student.classes_left[classId]) {
+                setClasses(parseInt(student.classes_left[classId]));
+            }
+        }, [student, classId]);
 
-    useEffect(() => {
-        if (student && student.classes_left && student.classes_left[classId]) {
-            setClasses(parseInt(student.classes_left[classId]));
-        }
-    }, [student, classId]);
+        const handleIncrement = () => setClasses(prev => prev + 1);
+        const handleDecrement = () => setClasses(prev => Math.max(0, prev - 1));
 
-    const handleIncrement = () => setClasses(prev => prev + 1);
-    const handleDecrement = () => setClasses(prev => Math.max(0, prev - 1));
+        const handleSave = async () => {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('students')
+                    .update({
+                        classes_left: { ...student.classes_left, [classId]: classes.toString() }
+                    })
+                    .eq('id', student.id);
 
-	const handleSave = async () => {
-        try {
-            const { data, error } = await supabaseClient
-                .from('students')
-                .update({
-                    classes_left: { ...student.classes_left, [classId]: classes.toString() }
-                })
-                .eq('id', student.id);
+                if (error) throw error;
 
-            if (error) throw error;
+                toast({
+                    title: "Classes Updated",
+                    description: "The class count has been updated successfully.",
+                });
+                onUpdate();
+                onClose();
+            } catch (error) {
+                console.error("Error updating classes:", error);
+                toast({
+                    variant: 'destructive',
+                    title: "Failed to update classes",
+                    description: "Please try again.",
+                });
+            }
 
-            toast({
-                title: "Classes Updated",
-                description: "The class count has been updated successfully.",
-            });
-            onUpdate();
-            onClose();
-        } catch (error) {
-            console.error("Error updating classes:", error);
-            toast({
-                variant: 'destructive',
-                title: "Failed to update classes",
-                description: "Please try again.",
-            });
-        }
+        };
 
-    };
-
-    return (
-        <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-                <DialogTitle>Student Details</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-                <div className="grid items-center grid-cols-4 gap-4">
-                    <Label htmlFor="name" className="text-right">
-                        Name
-                    </Label>
-                    <div className="col-span-3">{student.first_name} {student.last_name}</div>
-                </div>
-                <div className="grid items-center grid-cols-4 gap-4">
-                    <Label htmlFor="email" className="text-right">
-                        Email
-                    </Label>
-                    <div className="col-span-3">{student.email}</div>
-                </div>
-                <div className="grid items-center grid-cols-4 gap-4">
-                    <Label htmlFor="classes" className="text-right">
-                        Classes
-                    </Label>
-                    <div className="col-span-3 flex items-center gap-2">
-                        <Button variant="outline" onClick={handleDecrement}>
-                            -
-                        </Button>
-                        <div>{classes}</div>
-                        <Button variant="outline" onClick={handleIncrement}>
-                            +
-                        </Button>
+        return (
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Student Details</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid items-center grid-cols-4 gap-4">
+                        <Label htmlFor="name" className="text-right">
+                            Name
+                        </Label>
+                        <div className="col-span-3">{student.first_name} {student.last_name}</div>
+                    </div>
+                    <div className="grid items-center grid-cols-4 gap-4">
+                        <Label htmlFor="email" className="text-right">
+                            Email
+                        </Label>
+                        <div className="col-span-3">{student.email}</div>
+                    </div>
+                    <div className="grid items-center grid-cols-4 gap-4">
+                        <Label htmlFor="classes" className="text-right">
+                            Classes
+                        </Label>
+                        <div className="col-span-3 flex items-center gap-2">
+                            <Button variant="outline" onClick={handleDecrement}>
+                                -
+                            </Button>
+                            <div>{classes}</div>
+                            <Button variant="outline" onClick={handleIncrement}>
+                                +
+                            </Button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <DialogFooter>
+                <DialogFooter>
 
-                <Button type="button" onClick={handleSave}>Save</Button>
-            </DialogFooter>
-        </DialogContent>
-    );
-};
+                    <Button type="button" onClick={handleSave}>Save</Button>
+                </DialogFooter>
+            </DialogContent>
+        );
+    };
+    
     const _studentTileForStudentList = (student) => {
         const isSelected = selectedStudents.includes(student.id);
 
@@ -492,8 +503,7 @@ const handleAddExistingStudents = async () => {
                     <div>
                         <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
                     </div>
-                    <Button type="button" onClick={handleAddNewStudent}
-                        className={`${isCreatingUser ? "cursor-progress" : ""}`}>Submit</Button>
+                    <Button type="button" onClick={handleAddNewStudent}>Submit</Button>
                 </div>
             </DialogFooter>
                 </form>
@@ -504,6 +514,7 @@ const handleAddExistingStudents = async () => {
 
     return (
         <AuthWrapper>
+            {loading && <LoadingOverlay />}
             <div className="min-h-screen bg-gray-100">
                 <Header />
                 <main className="p-6 space-y-8">
