@@ -44,8 +44,8 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const handleCreateClass = async () => {
         const code = generateRandomString(6)
         // const classLink = await createZoomMeeting();
-        console.log(classLink)
-        if (classLink === "ERROR") {
+        // console.log(classLink)
+        if (zoomLink === "ERROR") {
             console.error("Error creating Zoom meeting");
             toast({
                 variant: 'destructive',
