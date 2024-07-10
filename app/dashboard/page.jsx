@@ -68,7 +68,7 @@ const Dashboard = ({ classInfo }) => {
     };
 	const handleCopyLink = () => {
         const shareLink = `${window.location.origin}/join/${classInfo.class_code}`;
-        navigator.clipboard.writeText(shareLink).then(() => {
+        navigator.clipboard.writeText(classInfo.zoom_link).then(() => {
             toast({
 
                 title: "Link copied!",
