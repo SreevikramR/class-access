@@ -57,17 +57,10 @@ export default function Component({ params: { class_code }}) {
             .single()
 
         if (classError) {
-            console.error("Error fetching class details:", classError)
-            toast({
-                title: 'Error',
-                description: "Failed to fetch class details",
-                variant: "destructive"
-            })
+            console.log("Class does not exist")
             return
         }
-
         setClassDetails(classData)
-
         if (classData.teacher_id) {
             const { data: teacherData, error: teacherError } = await supabaseClient
                 .from('teachers')
@@ -159,10 +152,22 @@ const formatDays = (days) => {
     return (
         <main className="flex flex-col items-center justify-center h-screen">
             {joinedClass && _joinedClass()}
+            {!classDetails && (
+                <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
+                    <div className="flex flex-col items-center space-y-2">
+                        <div className="inline-block rounded-lg px-3 py-1 text-lg sm:text-lg font-medium text-pretty">
+                            Class Does not exist
+                        </div>
+                        <p className="text-muted-foreground text-center sm:text-base text-sm text-pretty">
+                            Please recheck your link or contact your instructor
+                        </p>
+                    </div>
+                </Card>
+            )}
             {!joinedClass && classDetails && (
                 <div className="lg:w-[46vw] sm:w-[60vw] w-[90vw]">
                     {!isLoggedIn && (
-                        <StudentOnboardingPopup isOpen={isOpen} setIsOpen={setIsOpen} onComplete={handleComplete} classCode={class_code} />
+                        <StudentOnboardingPopup isOpen={isOpen} setIsOpen={setIsOpen} />
                     )}
                     <Card className="w-full p-6 space-y-4">
                         <div className="flex flex-col items-center space-y-2">

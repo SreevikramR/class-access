@@ -141,11 +141,11 @@ const ActivationPage = () => {
                                 <CardContent className="space-y-4">
                                     <div className="grid gap-2">
                                         <Label htmlFor="name">Student First Name</Label>
-                                        <Input id="first name" placeholder="Enter your Student's First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)}/>
+                                        <Input id="first name" placeholder="Enter your Student&#39;s First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)}/>
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor="email">Student Last Name</Label>
-                                        <Input id="last name" type="email" placeholder="Enter your Student's Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                                        <Input id="last name" type="email" placeholder="Enter your Student&#39;s Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
                                     </div>
                                     <Button type="submit" className="w-full" onClick={handleStep0}>
                                         Next <ArrowRightCircle className='ml-2 w-4 h-4' />
