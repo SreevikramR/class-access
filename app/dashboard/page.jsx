@@ -75,6 +75,7 @@ const Dashboard = ({ classInfo }) => {
                 description: "The class link has been copied to your clipboard.",
             });
         });
+		setIsShareDialogOpen(false)
     };
 		return(
         <div key={classInfo.id} className="bg-background rounded-lg border p-4 grid gap-2">
