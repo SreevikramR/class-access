@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import fetchTimeout from '@/components/util_function/fetch';
 import { useToast } from '@/components/ui/use-toast';
+import LoadingOverlay from '@/components/page_components/loadingOverlay';
 
 export default function Component({ params: { class_code } }) {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -19,6 +20,7 @@ export default function Component({ params: { class_code } }) {
 	const [password, setPassword] = useState("");
 	const [className, setClassName] = useState("Class Name");
 	const [classLink, setClassLink] = useState("")
+	const [loading, setLoading] = useState(false);
 	const { toast } = useToast()
 
 	useEffect(() => {
@@ -26,6 +28,7 @@ export default function Component({ params: { class_code } }) {
 	}, [])
 
 	const handleLogin = async () => {
+		setLoading(true)
 		try {
 			const { data } = await supabaseClient.auth.signInWithPassword({
 				email: email,
@@ -40,6 +43,7 @@ export default function Component({ params: { class_code } }) {
 				variant: "destructive"
 			})
 		}
+		setLoading(false)
 	}
 	const handleGoogleLogin = async () => {
 		console.log(`${window.location.origin}/oauth/google/callback`)
@@ -105,6 +109,7 @@ export default function Component({ params: { class_code } }) {
 
 	return (
 		<div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
+			{loading && <LoadingOverlay />}
 			<main>
 				{classDoesNotExist && (
 					<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10">
