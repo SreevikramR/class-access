@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import {toast} from "@/components/ui/use-toast";
+
 const convertTo12HourFormat = (time) => {
 	const [hours, minutes] = time.split(':');
 	const period = hours >= 12 ? 'PM' : 'AM';
@@ -27,7 +28,7 @@ const Dashboard = ({ classInfo }) => {
     const [loading, setLoading] = useState(false)
     const router = useRouter()
     const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
-    const [selectedClass, setSelectedClass] = useState(null);
+    const [selectedClassId, setSelectedClassId] = useState(null);
 	useEffect(() => {
 		fetchClasses()
 	}, [])
@@ -51,11 +52,44 @@ const Dashboard = ({ classInfo }) => {
 		console.log(data)
 		setLoading(false)
 	}
-    const handleOpenShareDialog = (classInfo) => {
-        setSelectedClass(classInfo);
+    const handleOpenShareDialog = (classId) => {
+        setSelectedClassId(classId);
         setIsShareDialogOpen(true);
     };
-	const ShareLinkDialog = ({ isOpen, onClose, classInfo }) => {
+
+const ShareLinkDialog = ({ isOpen, onClose, classId }) => {
+    const [classInfo, setClassInfo] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (isOpen && classId) {
+            fetchClassData();
+        }
+    }, [isOpen, classId]);
+
+    const fetchClassData = async () => {
+        setLoading(true);
+        try {
+            const { data, error } = await supabaseClient
+                .from('classes')
+                .select('*')
+                .eq('id', classId)
+                .single();
+
+            if (error) throw error;
+            setClassInfo(data);
+        } catch (error) {
+            console.error('Error fetching class data:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to load class data. Please try again.',
+                variant: "destructive"
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleCopyLink = () => {
         if (classInfo && classInfo.zoom_link) {
             navigator.clipboard.writeText(classInfo.zoom_link).then(() => {
@@ -80,22 +114,26 @@ const Dashboard = ({ classInfo }) => {
                     <DialogTitle>Share Zoom Link for {classInfo ? classInfo.name : ''}</DialogTitle>
                     <DialogDescription>Copy the Zoom link below to share this class</DialogDescription>
                 </DialogHeader>
-                <div className="flex items-center space-x-2">
-                    <Input
-                        readOnly
-                        value={classInfo && classInfo.zoom_link ? classInfo.zoom_link : "No Zoom link available"}
-                    />
-                    <Button onClick={handleCopyLink} size="sm" disabled={!classInfo || !classInfo.zoom_link}>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy
-                    </Button>
-                </div>
+                {loading ? (
+                    <div>Loading...</div>
+                ) : (
+                    <div className="flex items-center space-x-2">
+                        <Input
+                            readOnly
+                            value={classInfo && classInfo.zoom_link ? classInfo.zoom_link : "No Zoom link available"}
+                        />
+                        <Button onClick={handleCopyLink} size="sm" disabled={!classInfo || !classInfo.zoom_link}>
+                            <Copy className="h-4 w-4 mr-2" />
+                            Copy
+                        </Button>
+                    </div>
+                )}
             </DialogContent>
         </Dialog>
     );
 };
-	const _classCard = (classInfo) => {
 
+	const _classCard = (classInfo) => {
 
     const handleStartClass = () => {
         if (classInfo.zoom_link) {
@@ -108,17 +146,17 @@ const Dashboard = ({ classInfo }) => {
             });
         }
     };
+
 	const handleCopyLink = () => {
-        const shareLink = `${window.location.origin}/join/${classInfo.class_code}`;
         navigator.clipboard.writeText(classInfo.zoom_link).then(() => {
             toast({
-
                 title: "Link copied!",
                 description: "The class link has been copied to your clipboard.",
             });
         });
 		setIsShareDialogOpen(false)
     };
+
 		return(
         <div key={classInfo.id} className="bg-background rounded-lg border p-4 grid gap-2">
             <div className="flex items-center justify-between">
@@ -153,29 +191,10 @@ const Dashboard = ({ classInfo }) => {
             </div>
             <div className="flex items-center justify-between">
                 <div className="text-muted-foreground text-sm">{classInfo.students.length} students enrolled</div>
-                <span className="text-sm text-muted-foreground hover:text-blue-500 hover:cursor-pointer flex flex-row justify-center" onClick={() => handleOpenShareDialog(classInfo)}>
+                <span className="text-sm text-muted-foreground hover:text-blue-500 hover:cursor-pointer flex flex-row justify-center" onClick={() => handleOpenShareDialog(classInfo.id)}>
                     Share Link <Share2 className="h-4 w-4 ml-1" />
                 </span>
             </div>
-
-            <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Share Class Link</DialogTitle>
-                        <DialogDescription>Copy the link below to share this class</DialogDescription>
-                    </DialogHeader>
-                    <div className="flex items-center space-x-2">
-                        <Input
-                            readOnly
-                            value={classInfo.zoom_link}
-                        />
-                        <Button onClick={handleCopyLink} size="sm">
-                            <Copy className="h-4 w-4 mr-2" />
-                            Copy
-                        </Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
         </div>
     )
 	}
@@ -190,9 +209,9 @@ const Dashboard = ({ classInfo }) => {
 						<CreateClassPopup isOpen={isOpen} setIsOpen={setIsOpen} />
 						<div className="flex items-center justify-between my-2">
 							<h2 className="text-2xl font-semibold px-2">My Classes</h2>
-							<Button size="sm" className="h-7 gap-1 hover:bg-zinc-700">
+							<Button size="sm" className="h-7 gap-1 hover:bg-zinc-700" onClick={() => setIsOpen(true)}>
 								<PlusCircle className="h-3.5 w-3.5" />
-								<span className="sr-only sm:not-sr-only sm:whitespace-nowrap" onClick={() => setIsOpen(true)}>
+								<span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
 									Add Class
 								</span>
 							</Button>
@@ -215,10 +234,9 @@ const Dashboard = ({ classInfo }) => {
 				<ShareLinkDialog
                     isOpen={isShareDialogOpen}
                     onClose={() => setIsShareDialogOpen(false)}
-                    classInfo={selectedClass}
+                    classId={selectedClassId}
                 />
             </div>
-
 		</AuthWrapper>
 	)
 }
