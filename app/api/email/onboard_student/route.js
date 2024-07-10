@@ -10,6 +10,16 @@ export async function POST(request) {
     const class_name = request.headers.get('class_name');
     const class_code = request.headers.get('class_code');
 
+    const token = request.headers.get('jwt');
+    let user_uuid = '';
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        user_uuid = decoded.sub;
+    } catch (err) {
+        return new Response('Invalid Token', { status: 401 });
+    }
+
     console.log(student_email, teacher_name, class_name, class_code)
 
     const link = `https://classaccess.tech/join_class/${class_code}`;

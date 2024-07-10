@@ -155,32 +155,32 @@ useEffect(() => {
         }
         setLoading(false)
     };
+const handleAddNewStudent = async () => {
+    if (!email) {
+        toast({
+            title: 'Error',
+            description: 'Email is required.',
+            variant: "destructive"
+        });
+        return;
+    }
 
-    const handleAddNewStudent = async () => {
-        if (!email) {
-            toast({
-                title: 'Error',
-                description: 'Email is required.',
-                variant: "destructive"
-            });
-            return;
-        }
-        
-        setLoading(true)
-        try {
-            const controller = new AbortController();
-            const { signal } = controller;
-            const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-            const response = await fetchTimeout(`/api/users/new_student?email=${email}&notes=${notes}`, 5500, {
-                signal,
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'jwt': jwt,
-                    'access_token': jwt
-                },
-            });
+    setLoading(true)
 
+    try {
+        const controller = new AbortController();
+        const { signal } = controller;
+        const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+        const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select("first_name, last_name").eq('id', (await supabaseClient.auth.getUser()).data.user.id).single();
+        const response = await fetchTimeout(`/api/users/new_student?email=${email}&notes=${notes}&teacher_fname=${teacherData.first_name}&teacher_lname=${teacherData.last_name}`, 5500, {
+            signal,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'jwt': jwt,
+                'refresh_token': (await supabaseClient.auth.getSession()).data.session.refresh_token
+            },
+        });
             if (response.status === 409) {
                 toast({
                     variant: 'destructive',

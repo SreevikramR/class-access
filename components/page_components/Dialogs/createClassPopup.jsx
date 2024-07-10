@@ -31,7 +31,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 
     const generateRandomString = (length) => {
         const getRandomCharacter = () => {
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            const characters = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
             return characters[Math.floor(Math.random() * characters.length)];
         }
         let result = '';
@@ -136,9 +136,10 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 						teachers: updatedteacher})
 				    .eq('id',student)
 			    if (updateError) throw updateError;
-
 			}
-            const response = await fetchTimeout(`/api/email/onboard_student`, 5500, { method: 'POST', headers: { "student_email": studentEmails, "class_name": className, "class_code": code, "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`} });
+
+            const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+            const response = await fetchTimeout(`/api/email/onboard_student`, 5500, { method: 'POST', headers: { "student_email": studentEmails, "class_name": className, "class_code": code, "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`, "jwt": jwt} });
             console.log(response)
             console.log("Class created successfully and students updated!");
             toast({
@@ -180,22 +181,25 @@ const _classNameAndDescription = () => {
                     <Label htmlFor="zoomLink">Zoom Link</Label>
                     <Input id="zoomLink" type="url" value={zoomLink} placeholder="https://zoom.us/j/example" onChange={(e) => setZoomLink(e.target.value)} />
                 </div>
-                <DialogFooter>
-                    <div className='flex justify-between flex-wrap w-full'>
-                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-                        <Button type="button" onClick={() => {
-                            if (!className) {
-                                toast({ title: 'Incomplete Fields', description: 'Class name is required.', variant: "destructive", })
-                                return
-                            }
-                            setClassCreationStep(1);
-                        }} className="gap-2">Pick Days<CircleArrowRight className="h-5 w-5" /></Button>
-                    </div>
-                </DialogFooter>
-            </form>
-        </div>
-    )
-}
+                    <DialogFooter>
+                        <div className='flex justify-between flex-wrap w-full'>
+                            <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+                            <Button type="button" onClick={() => {
+                                if (!className) {
+                                    // setError('Class name is required.');
+                                    toast({ title: 'Incomplete Fields', description: 'Class name is required.', variant: "destructive", })
+                                    return
+                                }
+                                setClassCreationStep(1);
+                            }} className="gap-2">Pick Days<CircleArrowRight className="h-5 w-5" /></Button>
+                        </div>
+                    </DialogFooter>
+                </form>
+
+            </div>
+        )
+    }
+
     const _classDays = () => {
         const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         return (
@@ -242,6 +246,7 @@ const _classNameAndDescription = () => {
             </div>
         )
     }
+
     const _classTimings = () => {
         return (
             <div className='flex w-full flex-col'>
@@ -345,50 +350,54 @@ const _classNameAndDescription = () => {
             </div>
         )
     }
-	    const handleAddStudent = async () => {
+
+    const handleAddStudent = async () => {
         if (!newStudentEmail) {
             toast({ title: 'Incomplete Fields', description: 'Student email is required.', variant: "destructive", });
             return;
         }
-    try {
-		const controller = new AbortController()
-	    const { signal } = controller;
-        const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-        const response = await fetchTimeout(`/api/users/new_student?email=${newStudentEmail}&notes=${newStudentNotes}`, 5500,{signal,
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'jwt': jwt,
-	            'access_token': (await supabaseClient.auth.getSession()).data.session.access_token
-            },
-        });
-
-        if (response.status === 409) {
-            toast({
-                variant: 'destructive',
-                title: "Student already exists",
-                description: "The student with this email is already registered.",
-                duration: 3000
+        try {
+            const controller = new AbortController()
+            const { signal } = controller;
+            const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+            const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select("first_name, last_name").eq('id', (await supabaseClient.auth.getUser()).data.user.id).single();
+            const response = await fetchTimeout(`/api/users/new_student?email=${newStudentEmail}&notes=${newStudentNotes}&teacher_fname=${teacherData.first_name}&teacher_lname=${teacherData.last_name}`, 5500, {
+                signal,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'jwt': jwt,
+                    'refresh_token': (await supabaseClient.auth.getSession()).data.session.refresh_token
+                },
             });
-            return;
-        }
 
-        const result = await response.json();
+            if (response.status === 409) {
+                toast({
+                    variant: 'destructive',
+                    title: "Student already exists",
+                    description: "The student with this email is already registered.",
+                    duration: 3000
+                });
+                return;
+            }
 
-        if (response.status === 200) {
-            const newStudent = result[0];
-            setStudents([...students, newStudent]);
-            setSelectedStudents([...selectedStudents, newStudent.id]);
-            setNewStudentEmail('');
-            setNewStudentNotes('');
+            const result = await response.json();
 
-            toast({
-                className: "bg-green-500 border-black border-2",
-                title: "Student Added",
-                description: "The new student has been added and selected",
-                duration: 3000
-            });
-        } }catch (error) {
+            if (response.status === 200) {
+                const newStudent = result[0];
+                setStudents([...students, newStudent]);
+                setSelectedStudents([...selectedStudents, newStudent.id]);
+                setNewStudentEmail('');
+                setNewStudentNotes('');
+
+                toast({
+                    className: "bg-green-500 border-black border-2",
+                    title: "Student Added",
+                    description: "The new student has been added and selected",
+                    duration: 3000
+                });
+            }
+        } catch (error) {
             console.error("Error adding student:", error);
             toast({
                 variant: 'destructive',
@@ -427,6 +436,7 @@ const _classNameAndDescription = () => {
             });
         }
     };
+
     useEffect(() => {
         if (classCreationStep === 3) {
             const fetchStudentsData = async () => {
