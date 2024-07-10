@@ -14,6 +14,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <Analytics />
+      <head>
+        <script defer src="https://umami-analytics-red.vercel.app/script.js" data-website-id="8447d1f8-6a13-4992-aab5-095cdba64eeb"></script>
+      </head>
       <body className={inter.className}>
         <div>
           <Toaster />
