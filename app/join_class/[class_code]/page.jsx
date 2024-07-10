@@ -144,10 +144,45 @@ const formatDays = (days) => {
             </Card>
         )
     }
+const updateStatus = async (studentId, classId) => {
+    const { data, error } = await supabaseClient
+        .from('students')
+        .update({ status: { [classId]: "joined" } })
+        .eq('id', studentId);
 
-   const handleComplete = () => {
-        setJoinedClass(true)
+    if (error) {
+        console.error("Error updating status:", error);
+    } else {
+        console.log("Status updated successfully:", data);
     }
+};
+	const fetchClassId = async (class_code) => {
+    const { data, error } = await supabaseClient
+        .from('classes')
+        .select('id')
+        .eq('class_code', class_code)
+        .single();
+
+    if (error) {
+        console.error("Error fetching class ID:", error);
+        return null;
+    }
+
+    return data.id;
+};
+const handleComplete = async () => {
+    const user = await supabaseClient.auth.getUser();
+    if (user.data.user) {
+        const studentId = user.data.user.id;
+        const classId = await fetchClassId(class_code);
+        if (classId) {
+            await updateStatus(studentId, classId);
+            setJoinedClass(true);
+        } else {
+            console.error("Class ID not found");
+        }
+    }
+};
 
     return (
         <main className="flex flex-col items-center justify-center h-screen">
