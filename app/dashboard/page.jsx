@@ -22,12 +22,12 @@ const convertTo12HourFormat = (time) => {
 };
 
 const Dashboard = ({ classInfo }) => {
-	const [isOpen, setIsOpen] = useState(false)
-	const [classes, setClasses] = useState([])
-	const [loading, setLoading] = useState(false)
+    const [isOpen, setIsOpen] = useState(false)
+    const [classes, setClasses] = useState([])
+    const [loading, setLoading] = useState(false)
     const router = useRouter()
-	const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
-	const [selectedClassCode, setSelectedClassCode] = useState(null)
+    const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+    const [selectedClass, setSelectedClass] = useState(null);
 	useEffect(() => {
 		fetchClasses()
 	}, [])
@@ -51,7 +51,49 @@ const Dashboard = ({ classInfo }) => {
 		console.log(data)
 		setLoading(false)
 	}
+    const handleOpenShareDialog = (classInfo) => {
+        setSelectedClass(classInfo);
+        setIsShareDialogOpen(true);
+    };
+	const ShareLinkDialog = ({ isOpen, onClose, classInfo }) => {
+    const handleCopyLink = () => {
+        if (classInfo && classInfo.zoom_link) {
+            navigator.clipboard.writeText(classInfo.zoom_link).then(() => {
+                toast({
+                    title: "Link copied!",
+                    description: "The Zoom link has been copied to your clipboard.",
+                });
+            });
+        } else {
+            toast({
+                title: "No Zoom link available",
+                description: "The Zoom link for this class is not set.",
+                variant: "destructive",
+            });
+        }
+    };
 
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Share Zoom Link for {classInfo ? classInfo.name : ''}</DialogTitle>
+                    <DialogDescription>Copy the Zoom link below to share this class</DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center space-x-2">
+                    <Input
+                        readOnly
+                        value={classInfo && classInfo.zoom_link ? classInfo.zoom_link : "No Zoom link available"}
+                    />
+                    <Button onClick={handleCopyLink} size="sm" disabled={!classInfo || !classInfo.zoom_link}>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+};
 	const _classCard = (classInfo) => {
 
 
@@ -111,7 +153,7 @@ const Dashboard = ({ classInfo }) => {
             </div>
             <div className="flex items-center justify-between">
                 <div className="text-muted-foreground text-sm">{classInfo.students.length} students enrolled</div>
-                <span className="text-sm text-muted-foreground hover:text-blue-500 hover:cursor-pointer flex flex-row justify-center" onClick={() => setIsShareDialogOpen(true)}>
+                <span className="text-sm text-muted-foreground hover:text-blue-500 hover:cursor-pointer flex flex-row justify-center" onClick={() => handleOpenShareDialog(classInfo)}>
                     Share Link <Share2 className="h-4 w-4 ml-1" />
                 </span>
             </div>
@@ -170,7 +212,13 @@ const Dashboard = ({ classInfo }) => {
 					</section>
 				</main>
 				<Footer />
-			</div>
+				<ShareLinkDialog
+                    isOpen={isShareDialogOpen}
+                    onClose={() => setIsShareDialogOpen(false)}
+                    classInfo={selectedClass}
+                />
+            </div>
+
 		</AuthWrapper>
 	)
 }
