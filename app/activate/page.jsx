@@ -1,25 +1,23 @@
 "use client"
 import React, { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { ArrowRightCircle, CheckCheckIcon, CheckCircleIcon } from 'lucide-react'
+import { ArrowRightCircle, CheckCheckIcon, CheckCircleIcon, CircleCheckIcon } from 'lucide-react'
 import { PhoneInput, getPhoneData } from '@/components/ui/phoneInputComponents'
 import { toast } from "@/components/ui/use-toast"
 
 const ActivationPage = () => {
-    const searchParams = useSearchParams()
-    const [hash, setHash] = useState('')
     const [loading, setLoading] = useState(false)
-    const [step, setStep] = useState(0)
+    const [step, setStep] = useState(3)
     const [phone, setPhone] = useState('+91')
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const [error, setError] = useState(false)
     const phoneData = getPhoneData(phone)
 
     useEffect(() => {
@@ -35,10 +33,10 @@ const ActivationPage = () => {
         
         const { data: user, error } = await supabaseClient.auth.setSession({ access_token: jwt, refresh_token: refresh_token })
         if (error) {
+            setError(true)
             console.error("Error setting session:", error)
             return
         }
-        console.log(user.user.email)
     }
 
     const handleStep0 = () => {
@@ -107,6 +105,7 @@ const ActivationPage = () => {
                 title: "Done",
                 duration: 3000,
             });
+            setStep(3);
 
         } catch (error) {
             console.error("Error saving student data:", error);
@@ -122,50 +121,71 @@ const ActivationPage = () => {
 
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
-            <Card className="w-full max-w-md">
-                {step === 0 && (
+            <Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw]">
+                {error && (
                     <>
-                        <CardHeader className="space-y-2 text-center">
-                            <CardTitle className="text-2xl font-bold">Welcome to Class Access!</CardTitle>
-                            <CardDescription>Please enter your information below to get started.</CardDescription>
+                        <CardHeader className="space-y-2 text-center flex flex-col flex-wrap items-center">
+                            <CardTitle className="sm:text-2xl text-xl font-bold text-pretty">Please Check the Link and Retry</CardTitle>
+                            <CardDescription className="text-pretty">Please make sure you have the correct link. If this problem persists, please request your teacher to send you a new invite</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Student First Name</Label>
-                                <Input id="first name" placeholder="Enter your Student's First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)}/>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Student Last Name</Label>
-                                <Input id="last name" type="email" placeholder="Enter your Student's Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-                            </div>
-                            <Button type="submit" className="w-full" onClick={handleStep0}>
-                                Next <ArrowRightCircle className='ml-2 w-4 h-4' />
-                            </Button>
-                        </CardContent>
                     </>
                 )}
-                {step === 1 && (
+                {!error && (
                     <>
-                        <CardHeader className="space-y-2 text-center">
-                            <CardTitle className="text-2xl font-bold">Almost Done!</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid gap-2">
-                                <Label>Phone Nubmber</Label>
-                                <PhoneInput value={phone} onChange={(e) => setPhone(e.target.value)} />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">New Password</Label>
-                                <Input id="password" type="password" placeholder="Please Enter a new Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Confirm New Password</Label>
-                                <Input id="password" type="password" placeholder="Please Re-Enter your new Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-                            </div>
-                            <Button type="submit" className="w-full" onClick={handleStep1}>
-                                Finish <CheckCircleIcon className='ml-2 w-4 h-4' />
-                            </Button>
-                        </CardContent>
+                        {step === 0 && (
+                            <>
+                                <CardHeader className="space-y-2 text-center">
+                                    <CardTitle className="sm:text-2xl text-xl font-bold">Welcome to Class Access!</CardTitle>
+                                    <CardDescription className="text-pretty">Please enter your information below to get started.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="name">Student First Name</Label>
+                                        <Input id="first name" placeholder="Enter your Student's First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)}/>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="email">Student Last Name</Label>
+                                        <Input id="last name" type="email" placeholder="Enter your Student's Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                                    </div>
+                                    <Button type="submit" className="w-full" onClick={handleStep0}>
+                                        Next <ArrowRightCircle className='ml-2 w-4 h-4' />
+                                    </Button>
+                                </CardContent>
+                            </>
+                        )}
+                        {step === 1 && (
+                            <>
+                                <CardHeader className="space-y-2 text-center">
+                                    <CardTitle className="sm:text-2xl text-xl font-bold">Almost Done!</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid gap-2">
+                                        <Label>Phone Nubmber</Label>
+                                        <PhoneInput value={phone} onChange={(e) => setPhone(e.target.value)} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="name">New Password</Label>
+                                        <Input id="password" type="password" placeholder="Please Enter a new Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="email">Confirm New Password</Label>
+                                        <Input id="password" type="password" placeholder="Please Re-Enter your new Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                                    </div>
+                                    <Button type="submit" className="w-full" onClick={handleStep1}>
+                                        Finish <CheckCircleIcon className='ml-2 w-4 h-4' />
+                                    </Button>
+                                </CardContent>
+                            </>
+                        )}
+                        {step === 3 && (
+                            <>
+                                <CardHeader className="space-y-2 text-center flex flex-col flex-wrap items-center">
+                                    <CircleCheckIcon className="text-green-500 size-12" />
+                                    <CardTitle className="sm:text-2xl text-xl font-bold">Account Activation Complete!</CardTitle>
+                                    <CardDescription className="text-pretty">Your account is setup and ready for use. Please look for another E-Mail from your teacher to join your class</CardDescription>
+                                </CardHeader>
+                            </>
+                        )}
                     </>
                 )}
             </Card>
