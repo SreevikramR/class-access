@@ -8,10 +8,9 @@ import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import { toast } from "@/components/ui/use-toast"
 import { Card } from "@/components/ui/card"
 import fetchTimeout from "@/components/util_function/fetch"
-import Link from "next/link"
 //
 export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
-    const [step, setStep] = useState(2)
+    const [step, setStep] = useState(0)
     const [email, setEmail] = useState("")
     const [loginPassword, setLoginPassword] = useState("")
     const [loading, setLoading] = useState(false)
