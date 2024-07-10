@@ -157,18 +157,19 @@ const updateStatus = async (studentId, classId) => {
     }
 };
 	const fetchClassId = async (class_code) => {
-    const { data, error } = await supabaseClient
+    const { data:classId, error } = await supabaseClient
         .from('classes')
         .select('id')
         .eq('class_code', class_code)
         .single();
+
 
     if (error) {
         console.error("Error fetching class ID:", error);
         return null;
     }
 
-    return data.id;
+    return classId.id;
 };
 const handleComplete = async () => {
     const user = await supabaseClient.auth.getUser();
