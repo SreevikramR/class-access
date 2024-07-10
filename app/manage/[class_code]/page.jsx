@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from "react";
+import { useEffect, useState,useRef } from "react";
 import { supabaseClient } from '@/components/util_function/supabaseCilent';
 import { useToast } from "@/components/ui/use-toast";
 import { Copy, PlusCircle, UserPlusIcon, UserIcon, CircleArrowRight } from "lucide-react";
@@ -31,6 +31,8 @@ export default function ManageClass({ params }) {
 	const [selectedStudent, setSelectedStudent] = useState(null);
     const [loading, setLoading] = useState(false);
     const [teacherData, setTeacherData] = useState(null);
+	const classLinkRef = useRef(null);
+
 
 useEffect(() => {
     fetchTeacherData();
@@ -44,6 +46,26 @@ useEffect(() => {
             fetchClassData();
         }
     }, [classCode, toast]);
+	const copyClassLink = () => {
+    if (classLinkRef.current) {
+        navigator.clipboard.writeText(classLinkRef.current.innerText)
+            .then(() => {
+                toast({
+                    title: 'Copied to clipboard',
+                    description: 'Class link has been copied',
+                    duration: 2000,
+                });
+            })
+            .catch((error) => {
+                console.error('Failed to copy:', error);
+                toast({
+                    title: 'Error',
+                    description: 'Failed to copy class link. Please try again.',
+                    variant: 'destructive',
+                });
+            });
+    }
+};
 
 	const fetchTeacherData = async () => {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -585,20 +607,23 @@ const handleAddExistingStudents = async () => {
                             <h1 className="text-3xl font-bold">{classData ? classData.name : 'Class Name'}</h1>
                             <p className="font-medium pt-4">{classData ? classData.description : 'No description available'}</p>
                         </section>
-                        <section className="space-y-1 bg-background border-2 p-2 rounded-lg justify-center flex flex-col">
-                            <p className="text-gray-600">Please share the class link with your students</p>
-                            <p className="font-medium flex flex-row">
-                                Class Link: <span className="font-normal pl-1">classaccess.vercel.app/join/{classCode}</span>
-                                <Copy className="ml-2 h-5 w-5 align-middle"/>
-                            </p>
-                        </section>
+	                    <section
+		                    className="space-y-1 bg-background border-2 p-2 rounded-lg justify-center flex flex-col">
+		                    <p className="text-gray-600">Please share the class link with your students</p>
+		                    <p className="font-medium flex flex-row">
+			                    Class Link: <span ref={classLinkRef}
+			                                      className="font-normal pl-1">classaccess.vercel.app/join/{classCode}</span>
+			                    <Copy className="ml-2 h-5 w-5 align-middle cursor-pointer" onClick={copyClassLink}/>
+		                    </p>
+	                    </section>
+
                     </div>
-                    <section>
-                        <div className="flex items-center justify-between my-2">
-                            <h2 className="text-2xl font-semibold px-2">My Students</h2>
-                            <Button size="sm" className="h-7 gap-1" onClick={() => setIsNewStudentOpen(true)}>
-                                <PlusCircle className="h-3.5 w-3.5"/>
-                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+	                <section>
+		                <div className="flex items-center justify-between my-2">
+			                <h2 className="text-2xl font-semibold px-2">My Students</h2>
+			                <Button size="sm" className="h-7 gap-1" onClick={() => setIsNewStudentOpen(true)}>
+				                <PlusCircle className="h-3.5 w-3.5"/>
+				                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                                     Add Students
                                 </span>
                             </Button>
