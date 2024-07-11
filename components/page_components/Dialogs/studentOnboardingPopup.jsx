@@ -146,6 +146,14 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                     "email": "sreevikram.r@tamu.edu"
                 },
             });
+            if (response.status !== 200) {
+                toast({
+                    title: 'Password Reset Failed',
+                    description: "Please try again later",
+                    variant: "destructive"
+                });
+                return;
+            }
             setStep(3)
         } catch (error) {
             toast({
