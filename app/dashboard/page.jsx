@@ -27,14 +27,19 @@ const Dashboard = ({ classInfo }) => {
     const router = useRouter()
     const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
     const [copyData, setCopyData] = useState(null)
-
+	const resetStates = () => {
+    setIsOpen(false);
+    fetchClasses();
+};
     useEffect(() => {
         fetchClasses()
     }, [])
 
-    useEffect(() => {
-        fetchClasses()
-    }, [isOpen])
+   useEffect(() => {
+    if (!isOpen) {
+        fetchClasses();
+    }
+}, [isOpen]);
 
     const fetchClasses = async () => {
         setLoading(true)
@@ -155,7 +160,7 @@ const Dashboard = ({ classInfo }) => {
                 </Dialog>
                 <main className="flex-1 bg-gray-100 px-4 py-8 sm:px-6 grid gap-8">
                     <section>
-                        <CreateClassPopup isOpen={isOpen} setIsOpen={setIsOpen} />
+                        <CreateClassPopup isOpen={isOpen} setIsOpen={setIsOpen} onClassCreated={resetStates} />
                         <div className="flex items-center justify-between my-2">
                             <h2 className="text-2xl font-semibold px-2">My Classes</h2>
                             <Button size="sm" className="h-7 gap-1 hover:bg-zinc-700">
