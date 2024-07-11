@@ -152,7 +152,14 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             }
             const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
             const response = await fetchTimeout(`/api/email/onboard_student`, 5500, { method: 'POST', headers: { "student_email": studentEmails, "class_name": className, "class_code": code, "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`, "jwt": jwt } });
-            console.log(response)
+            if (response.status !== 200) {
+                toast({
+                    variant: 'destructive',
+                    title: "Failed to send email",
+                    description: "The student has been added but the email was not sent.",
+                    duration: 3000
+                });
+            }
             console.log("Class created successfully and students updated!");
             toast({
                 className: "bg-green-500 border-black border-2",
