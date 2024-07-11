@@ -1,4 +1,5 @@
 const { MailtrapClient } = require("mailtrap");
+import { NextResponse } from "next/server";
 
 export async function POST(request) {
     const TOKEN = process.env.EMAIL_TOKEN;
@@ -17,7 +18,7 @@ export async function POST(request) {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         user_uuid = decoded.sub;
     } catch (err) {
-        return new Response('Invalid Token', { status: 401 });
+        return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
     }
 
     console.log(student_email, teacher_name, class_name, class_code)
@@ -54,9 +55,9 @@ export async function POST(request) {
             }
         })
 
-        return new Response('Email sent', { status: 200 });
+        return NextResponse.json({ message: 'Email Sent' }, { status: 200 });
     } catch (error) {
-        return new Response(JSON.stringify(error), { status: 500 });
+        return NextResponse.json({ error: error }, { status: 500 });
     }
 
 }
