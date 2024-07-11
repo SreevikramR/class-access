@@ -14,7 +14,7 @@ import { useToast } from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
 // import createZoomMeeting from '@/components/util_function/createZoomMeeting'
 
-const CreateClassPopup = ({ isOpen, setIsOpen,onClassCreated }) => {
+const CreateClassPopup = ({ isOpen, setIsOpen, onClassCreated }) => {
     const [classCreationStep, setClassCreationStep] = useState(0)
     const [className, setClassName] = useState("")
     const [classDescription, setClassDescription] = useState("")
@@ -137,7 +137,6 @@ const CreateClassPopup = ({ isOpen, setIsOpen,onClassCreated }) => {
 				    .eq('id',student)
 			    if (updateError) throw updateError;
 			}
-			onClassCreated()
             const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
             const response = await fetchTimeout(`/api/email/onboard_student`, 5500, { method: 'POST', headers: { "student_email": studentEmails, "class_name": className, "class_code": code, "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`, "jwt": jwt} });
             console.log(response)
@@ -148,6 +147,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen,onClassCreated }) => {
                 description: "The new class has been added and students have been updated",
                 duration: 3000
             });
+            onClassCreated()
             setIsOpen(false);
         } catch (error) {
             setIsOpen(false);
