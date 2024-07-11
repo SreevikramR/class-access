@@ -1,8 +1,8 @@
 // app/api/users/forgot_password/route.js
 
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
 import { MailtrapClient } from 'mailtrap';
+import { NextResponse } from 'next/server';
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
@@ -30,7 +30,6 @@ const sendResetEmail = async ({ email, link }) => {
             }
         })
         return "Email sent"
-
     } catch (error) {
         console.log(error);
         return "Email Failed"
@@ -51,7 +50,7 @@ export async function POST(request) {
     const result = await sendResetEmail({ email, link: data.properties.action_link });
     console.log(result);
     if (error) {
-        return new Response('Email failed', { status: 500 });
+        return NextResponse.json({ error: 'Email Failed' }, { status: 500 });
     }
-    return new Response('Email sent', { status: 200 });
+    return NextResponse.json({ message: 'Email Sent' }, { status: 200 });
 }

@@ -39,6 +39,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
         setNewStudentEmail('')
         setNewStudentNotes('')
         setZoomLink('')
+        setClassCreationStep(0)
     }
 
     const generateRandomString = (length) => {
