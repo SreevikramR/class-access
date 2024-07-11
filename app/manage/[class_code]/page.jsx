@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import Header from "@/components/page_components/header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -28,14 +28,12 @@ export default function ManageClass({ params }) {
     const [students, setStudents] = useState([]);
     const { toast } = useToast();
     const classCode = params.class_code;
-	const [selectedStudent, setSelectedStudent] = useState(null);
+    const [selectedStudent, setSelectedStudent] = useState(null);
     const [loading, setLoading] = useState(false);
     const [teacherData, setTeacherData] = useState(null);
 
-useEffect(() => {
-    fetchTeacherData();
-}, []);
     useEffect(() => {
+        fetchTeacherData();
         fetchStudents();
     }, []);
 
@@ -45,40 +43,59 @@ useEffect(() => {
         }
     }, [classCode, toast]);
 
-	const fetchTeacherData = async () => {
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (user) {
-        const { data, error } = await supabaseClient
-            .from('teachers')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-        if (error) {
-            console.error('Error fetching teacher data:', error);
-        } else {
-            setTeacherData(data);
-        }
-    }
-};
-	const sendEmailToNewStudents = async (newStudents, classData, teacherData) => {
-    for (const student of newStudents) {
-        try {
-            const response = await fetchTimeout(`/api/email/onboard_student`, 5500, {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                    "student_email": student.email,
-                    "class_name": classData.name,
-                    "class_code": classCode,
-                    "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`
-                }
+    const handleCopyLink = () => {
+        const classLink = `classaccess.tech/join/${classCode}`;
+        navigator.clipboard.writeText(classLink).then(() => {
+            toast({
+                title: "Link copied!",
+                description: "The class link has been copied to your clipboard.",
             });
-            console.log(`Email sent to ${student.email}:`, response);
-        } catch (error) {
-            console.error(`Failed to send email to ${student.email}:`, error);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            toast({
+                title: "Copy failed",
+                description: "Failed to copy the link. Please try again.",
+                variant: "destructive"
+            });
+        });
+    };
+
+    const fetchTeacherData = async () => {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) {
+            const { data, error } = await supabaseClient
+                .from('teachers')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+            if (error) {
+                console.error('Error fetching teacher data:', error);
+            } else {
+                setTeacherData(data);
+            }
         }
-    }
-};
+    };
+
+    const sendEmailToNewStudents = async (newStudents, classData, teacherData) => {
+        for (const student of newStudents) {
+            try {
+                const response = await fetchTimeout(`/api/email/onboard_student`, 5500, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "student_email": student.email,
+                        "class_name": classData.name,
+                        "class_code": classCode,
+                        "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`
+                    }
+                });
+                console.log(`Email sent to ${student.email}:`, response);
+            } catch (error) {
+                console.error(`Failed to send email to ${student.email}:`, error);
+            }
+        }
+    };
+
     async function fetchStudentData(studentUUIDs) {
         setLoading(true)
         if (studentUUIDs && studentUUIDs.length > 0) {
@@ -155,32 +172,33 @@ useEffect(() => {
         }
         setLoading(false)
     };
-const handleAddNewStudent = async () => {
-    if (!email) {
-        toast({
-            title: 'Error',
-            description: 'Email is required.',
-            variant: "destructive"
-        });
-        return;
-    }
 
-    setLoading(true)
+    const handleAddNewStudent = async () => {
+        if (!email) {
+            toast({
+                title: 'Error',
+                description: 'Email is required.',
+                variant: "destructive"
+            });
+            return;
+        }
 
-    try {
-        const controller = new AbortController();
-        const { signal } = controller;
-        const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-        const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select("first_name, last_name").eq('id', (await supabaseClient.auth.getUser()).data.user.id).single();
-        const response = await fetchTimeout(`/api/users/new_student?email=${email}&notes=${notes}&teacher_fname=${teacherData.first_name}&teacher_lname=${teacherData.last_name}`, 5500, {
-            signal,
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'jwt': jwt,
-                'refresh_token': (await supabaseClient.auth.getSession()).data.session.refresh_token
-            },
-        });
+        setLoading(true)
+
+        try {
+            const controller = new AbortController();
+            const { signal } = controller;
+            const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+            const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select("first_name, last_name").eq('id', (await supabaseClient.auth.getUser()).data.user.id).single();
+            const response = await fetchTimeout(`/api/users/new_student?email=${email}&notes=${notes}&teacher_fname=${teacherData.first_name}&teacher_lname=${teacherData.last_name}`, 5500, {
+                signal,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'jwt': jwt,
+                    'refresh_token': (await supabaseClient.auth.getSession()).data.session.refresh_token
+                },
+            });
             if (response.status === 409) {
                 toast({
                     variant: 'destructive',
@@ -217,7 +235,7 @@ const handleAddNewStudent = async () => {
                 // Update local state
                 setClassData({ ...classData, students: updatedStudents });
                 await fetchStudentData(updatedStudents);
-				await sendEmailToNewStudents([newStudent], classData, teacherData);
+                await sendEmailToNewStudents([newStudent], classData, teacherData);
                 toast({
                     className: "bg-green-500 border-black border-2",
                     title: "Student Added",
@@ -241,92 +259,92 @@ const handleAddNewStudent = async () => {
         setLoading(false)
     };
 
-const handleAddExistingStudents = async () => {
-    if (selectedStudents.length === 0) {
-        toast({
-            title: 'Alert',
-            description: 'At least one student must be selected.',
-            variant: "destructive"
-        });
-        return;
-    }
-
-    setLoading(true);
-    try {
-        const currentStudents = classData.students || [];
-        const newStudents = selectedStudents.filter(id => !currentStudents.includes(id));
-
-        if (newStudents.length === 0) {
+    const handleAddExistingStudents = async () => {
+        if (selectedStudents.length === 0) {
             toast({
-                title: 'Info',
-                description: 'All selected students are already in the class.',
+                title: 'Alert',
+                description: 'At least one student must be selected.',
+                variant: "destructive"
             });
-            setIsNewStudentOpen(false);
-            setSelectedStudents([]);
-            setLoading(false);
             return;
         }
 
-        const updatedStudents = [...currentStudents, ...newStudents];
+        setLoading(true);
+        try {
+            const currentStudents = classData.students || [];
+            const newStudents = selectedStudents.filter(id => !currentStudents.includes(id));
 
-        // Update each student's record and collect new student data
-        const newStudentData = [];
-        for (const studentId of newStudents) {
-            const { data: studentData, error: fetchError } = await supabaseClient
-                .from('students')
-                .select('*')
-                .eq('id', studentId)
-                .single();
+            if (newStudents.length === 0) {
+                toast({
+                    title: 'Info',
+                    description: 'All selected students are already in the class.',
+                });
+                setIsNewStudentOpen(false);
+                setSelectedStudents([]);
+                setLoading(false);
+                return;
+            }
 
-            if (fetchError) throw fetchError;
+            const updatedStudents = [...currentStudents, ...newStudents];
 
-            let updatedClassesLeft = { ...(studentData.classes_left || {}), [classData.id]: numClasses };
-            let updatedStatus = { ...(studentData.status || {}), [classData.id]: 'Pending' };
-            let updatedClassId = Array.isArray(studentData.class_id)
-                ? [...studentData.class_id, classData.id]
-                : [classData.id];
+            // Update each student's record and collect new student data
+            const newStudentData = [];
+            for (const studentId of newStudents) {
+                const { data: studentData, error: fetchError } = await supabaseClient
+                    .from('students')
+                    .select('*')
+                    .eq('id', studentId)
+                    .single();
 
-            const { error: updateError } = await supabaseClient
-                .from('students')
-                .update({
-                    class_id: updatedClassId,
-                    classes_left: updatedClassesLeft,
-                    status: updatedStatus
-                })
-                .eq('id', studentId);
+                if (fetchError) throw fetchError;
 
-            if (updateError) throw updateError;
+                let updatedClassesLeft = { ...(studentData.classes_left || {}), [classData.id]: numClasses };
+                let updatedStatus = { ...(studentData.status || {}), [classData.id]: 'Pending' };
+                let updatedClassId = Array.isArray(studentData.class_id)
+                    ? [...studentData.class_id, classData.id]
+                    : [classData.id];
 
-            newStudentData.push(studentData);
+                const { error: updateError } = await supabaseClient
+                    .from('students')
+                    .update({
+                        class_id: updatedClassId,
+                        classes_left: updatedClassesLeft,
+                        status: updatedStatus
+                    })
+                    .eq('id', studentId);
+
+                if (updateError) throw updateError;
+
+                newStudentData.push(studentData);
+            }
+
+            // Update the class with new students
+            await updateClassStudents(updatedStudents);
+
+            // Send emails to new students
+            await sendEmailToNewStudents(newStudentData, classData, teacherData);
+
+            // Update local state
+            setClassData(prevData => ({ ...prevData, students: updatedStudents }));
+            await fetchStudentData(updatedStudents);
+
+            toast({
+                title: 'Success',
+                description: `${newStudents.length} new student(s) added successfully and emails sent.`,
+            });
+
+            setIsNewStudentOpen(false);
+            setSelectedStudents([]);
+        } catch (error) {
+            console.error('Error adding students:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to add students or send emails. Please try again.',
+                variant: "destructive"
+            });
         }
-
-        // Update the class with new students
-        await updateClassStudents(updatedStudents);
-
-        // Send emails to new students
-        await sendEmailToNewStudents(newStudentData, classData, teacherData);
-
-        // Update local state
-        setClassData(prevData => ({ ...prevData, students: updatedStudents }));
-        await fetchStudentData(updatedStudents);
-
-        toast({
-            title: 'Success',
-            description: `${newStudents.length} new student(s) added successfully and emails sent.`,
-        });
-
-        setIsNewStudentOpen(false);
-        setSelectedStudents([]);
-    } catch (error) {
-        console.error('Error adding students:', error);
-        toast({
-            title: 'Error',
-            description: 'Failed to add students or send emails. Please try again.',
-            variant: "destructive"
-        });
-    }
-    setLoading(false);
-};
+        setLoading(false);
+    };
 
     const updateClassStudents = async (students) => {
         const { data, error } = await supabaseClient
@@ -449,7 +467,7 @@ const handleAddExistingStudents = async () => {
             </DialogContent>
         );
     };
-    
+
     const _studentTileForStudentList = (student) => {
         const isSelected = selectedStudents.includes(student.id);
 
@@ -494,11 +512,11 @@ const handleAddExistingStudents = async () => {
                 </div>
 
                 <DialogFooter>
-                <div className='flex justify-between flex-wrap w-full'>
-                    <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => {setStep(0)}}>Back</Button>
-                    <Button type="button" onClick={handleAddExistingStudents} className="gap-2">Add Students<CircleArrowRight className="h-5 w-5" /></Button>
-                </div>
-            </DialogFooter>
+                    <div className='flex justify-between flex-wrap w-full'>
+                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => { setStep(0) }}>Back</Button>
+                        <Button type="button" onClick={handleAddExistingStudents} className="gap-2">Add Students<CircleArrowRight className="h-5 w-5" /></Button>
+                    </div>
+                </DialogFooter>
             </>
         )
     }
@@ -540,14 +558,14 @@ const handleAddExistingStudents = async () => {
                         <Label htmlFor="notes">Notes</Label>
                         <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
                     </div>
-            <DialogFooter>
-                <div className="flex flex-row w-full justify-between">
-                    <div>
-                        <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
-                    </div>
-                    <Button type="button" onClick={handleAddNewStudent}>Submit</Button>
-                </div>
-            </DialogFooter>
+                    <DialogFooter>
+                        <div className="flex flex-row w-full justify-between">
+                            <div>
+                                <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
+                            </div>
+                            <Button type="button" onClick={handleAddNewStudent}>Submit</Button>
+                        </div>
+                    </DialogFooter>
                 </form>
             </>
         )
@@ -560,19 +578,19 @@ const handleAddExistingStudents = async () => {
             <div className="min-h-screen bg-gray-100">
                 <Header />
                 <main className="p-6 space-y-8">
-				<Dialog open={isOpenManage} onOpenChange={setIsOpenManage}>
-				    {selectedStudent && (
-				        <StudentDetailsPopUp
-				            student={selectedStudent}
-				            classId={classData.id}
-				            onClose={() => {
-				                setIsOpenManage(false);
-				                setSelectedStudent(null);
-				            }}
-				            onUpdate={() => fetchStudentData(classData.students)} // Refresh student data
-				        />
-				    )}
-				</Dialog>
+                    <Dialog open={isOpenManage} onOpenChange={setIsOpenManage}>
+                        {selectedStudent && (
+                            <StudentDetailsPopUp
+                                student={selectedStudent}
+                                classId={classData.id}
+                                onClose={() => {
+                                    setIsOpenManage(false);
+                                    setSelectedStudent(null);
+                                }}
+                                onUpdate={() => fetchStudentData(classData.students)} // Refresh student data
+                            />
+                        )}
+                    </Dialog>
                     <Dialog open={isNewStudentOpen} onOpenChange={setIsNewStudentOpen}>
                         <DialogContent className="max-w-[40vw]">
                             {step === 0 && _newOrExisting()}
@@ -589,7 +607,7 @@ const handleAddExistingStudents = async () => {
                             <p className="text-gray-600">Please share the class link with your students</p>
                             <p className="font-medium flex flex-row">
                                 Class Link: <span className="font-normal pl-1">classaccess.vercel.app/join/{classCode}</span>
-                                <Copy className="ml-2 h-5 w-5 align-middle"/>
+                                <Copy className="h-5 w-5 hover:cursor-pointer ml-2" onClick={handleCopyLink} />
                             </p>
                         </section>
                     </div>
@@ -597,7 +615,7 @@ const handleAddExistingStudents = async () => {
                         <div className="flex items-center justify-between my-2">
                             <h2 className="text-2xl font-semibold px-2">My Students</h2>
                             <Button size="sm" className="h-7 gap-1" onClick={() => setIsNewStudentOpen(true)}>
-                                <PlusCircle className="h-3.5 w-3.5"/>
+                                <PlusCircle className="h-3.5 w-3.5" />
                                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                                     Add Students
                                 </span>
@@ -615,12 +633,12 @@ const handleAddExistingStudents = async () => {
                                 <TableBody>
                                     {studentData.length > 0 ? studentData.map(student => (
                                         <TableRow
-										    key={student.id}
-										    className="hover:cursor-pointer"
-										    onClick={() => {
-										        setSelectedStudent(student);
-										        setIsOpenManage(true);
-										    }}>
+                                            key={student.id}
+                                            className="hover:cursor-pointer"
+                                            onClick={() => {
+                                                setSelectedStudent(student);
+                                                setIsOpenManage(true);
+                                            }}>
                                             <TableCell>{student.first_name} {student.last_name}</TableCell>
                                             <TableCell>{student.email}</TableCell>
                                             <TableCell>{student.classes_left[classData.id]}</TableCell>
