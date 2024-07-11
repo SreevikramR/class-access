@@ -44,7 +44,22 @@ useEffect(() => {
             fetchClassData();
         }
     }, [classCode, toast]);
-
+const handleCopyLink = () => {
+    const classLink = `classaccess.vercel.app/join/${classCode}`;
+    navigator.clipboard.writeText(classLink).then(() => {
+        toast({
+            title: "Link copied!",
+            description: "The class link has been copied to your clipboard.",
+        });
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        toast({
+            title: "Copy failed",
+            description: "Failed to copy the link. Please try again.",
+            variant: "destructive"
+        });
+    });
+};
 	const fetchTeacherData = async () => {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (user) {
@@ -589,7 +604,14 @@ const handleAddExistingStudents = async () => {
                             <p className="text-gray-600">Please share the class link with your students</p>
                             <p className="font-medium flex flex-row">
                                 Class Link: <span className="font-normal pl-1">classaccess.vercel.app/join/{classCode}</span>
-                                <Copy className="ml-2 h-5 w-5 align-middle"/>
+                                <Button
+					            variant="ghost"
+					            size="sm"
+					            onClick={handleCopyLink}
+					            className="ml-2"
+					        >
+                        <Copy className="h-5 w-5"/>
+        </Button>
                             </p>
                         </section>
                     </div>
