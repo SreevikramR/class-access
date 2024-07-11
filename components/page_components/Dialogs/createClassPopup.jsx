@@ -12,7 +12,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@
 import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import { useToast } from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
-import createZoomMeeting from '@/components/util_function/createZoomMeeting'
+// import createZoomMeeting from '@/components/util_function/createZoomMeeting'
 
 const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [classCreationStep, setClassCreationStep] = useState(0)
@@ -27,10 +27,24 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [students, setStudents] = useState([])
     const [newStudentEmail, setNewStudentEmail] = useState('')
     const [newStudentNotes, setNewStudentNotes] = useState('')
+    const [zoomLink, setZoomLink] = useState("")
+
+    const resetAllStates = () => {
+        setClassName("")
+        setClassDescription("")
+        setSelectedDays([])
+        setStartTime({ hour: "12", minute: "00", ampm: "AM" })
+        setEndTime({ hour: "01", minute: "00", ampm: "AM" })
+        setSelectedStudents([])
+        setNewStudentEmail('')
+        setNewStudentNotes('')
+        setZoomLink('')
+        setClassCreationStep(0)
+    }
 
     const generateRandomString = (length) => {
         const getRandomCharacter = () => {
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            const characters = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
             return characters[Math.floor(Math.random() * characters.length)];
         }
         let result = '';
@@ -42,18 +56,18 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 
     const handleCreateClass = async () => {
         const code = generateRandomString(6)
-        const classLink = await createZoomMeeting();
-        console.log(classLink)
-        if (classLink === "ERROR") {
-            console.error("Error creating Zoom meeting");
-            toast({
-                variant: 'destructive',
-                title: "Failed to create class",
-                description: "Try again.",
-                duration: 3000
-            });
-            return;
-        }
+        // const classLink = await createZoomMeeting();
+        // console.log(classLink)
+        // if (zoomLink === "ERROR") {
+        //     console.error("Error creating Zoom meeting");
+        //     toast({
+        //         variant: 'destructive',
+        //         title: "Failed to create class",
+        //         description: "Try again.",
+        //         duration: 3000
+        //     });
+        //     return;
+        // }
 
         const classData = {
             name: className,
@@ -62,12 +76,11 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             teacher_id: (await supabaseClient.auth.getUser()).data.user.id,
             start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
             end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
-            students: selectedStudents, // This will send student IDs to Supabase in an array
+            students: selectedStudents,
             class_code: code,
-            zoom_link: classLink,
+            zoom_link: zoomLink,
         };
 
-        const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
         const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
         if (authError || !user) {
             console.error('Authentication error:', authError);
@@ -95,50 +108,58 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                 updatedUuidArray = [uuid];
             }
             let studentEmails = [];
-			for (const student of selectedStudents) {
-			    console.log(student)
-			    const { data: studentData, error: fetchError } = await supabaseClient
-                .from('students')
-                .select('class_id, classes_left, status, teachers, email')
-                .eq('id', student)
-                .single();
-                
-			    if (fetchError) throw fetchError;
+            for (const student of selectedStudents) {
+                console.log(student)
+                const { data: studentData, error: fetchError } = await supabaseClient
+                    .from('students')
+                    .select('class_id, classes_left, status, teachers, email')
+                    .eq('id', student)
+                    .single();
+
+                if (fetchError) throw fetchError;
                 studentEmails.push(studentData.email)
 
-			    // Update class_id array
-			    let updatedClassId = Array.isArray(studentData.class_id)
-			        ? [...studentData.class_id, uuid]
-			        : [uuid];
+                // Update class_id array
+                let updatedClassId = Array.isArray(studentData.class_id)
+                    ? [...studentData.class_id, uuid]
+                    : [uuid];
 
-			    // Update classes_left object
-			    let updatedClassesLeft = {
-			        ...(studentData.classes_left || {}),
-			        [uuid]: '0'
-			    };
+                // Update classes_left object
+                let updatedClassesLeft = {
+                    ...(studentData.classes_left || {}),
+                    [uuid]: '0'
+                };
 
-			    // Update status object
-			    let updatedStatus = {
-			        ...(studentData.status || {}),
-			        [uuid]: 'Invited'
-			    };
-			    let updatedteacher = Array.isArray(studentData.teachers)
-			        ? [...studentData.teachers, (await supabaseClient.auth.getUser()).data.user.id]
-			        : [(await supabaseClient.auth.getUser()).data.user.id];
+                // Update status object
+                let updatedStatus = {
+                    ...(studentData.status || {}),
+                    [uuid]: 'Invited'
+                };
+                let updatedteacher = Array.isArray(studentData.teachers)
+                    ? [...studentData.teachers, (await supabaseClient.auth.getUser()).data.user.id]
+                    : [(await supabaseClient.auth.getUser()).data.user.id];
 
-			    const { data: updateData, error: updateError } = await supabaseClient
-			        .from('students')
-			        .update({
-			            class_id: updatedClassId,
-			            classes_left: updatedClassesLeft,
-			            status: updatedStatus,
-						teachers: updatedteacher})
-				    .eq('id',student)
-			    if (updateError) throw updateError;
-
-			}
-            const response = await fetchTimeout(`/api/email/onboard_student`, 5500, { method: 'POST', headers: { "student_email": studentEmails, "class_name": className, "class_code": code, "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`} });
-            console.log(response)
+                const { data: updateData, error: updateError } = await supabaseClient
+                    .from('students')
+                    .update({
+                        class_id: updatedClassId,
+                        classes_left: updatedClassesLeft,
+                        status: updatedStatus,
+                        teachers: updatedteacher
+                    })
+                    .eq('id', student)
+                if (updateError) throw updateError;
+            }
+            const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+            const response = await fetchTimeout(`/api/email/onboard_student`, 5500, { method: 'POST', headers: { "student_email": studentEmails, "class_name": className, "class_code": code, "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`, "jwt": jwt } });
+            if (response.status !== 200) {
+                toast({
+                    variant: 'destructive',
+                    title: "Failed to send email",
+                    description: "The student has been added but the email was not sent.",
+                    duration: 3000
+                });
+            }
             console.log("Class created successfully and students updated!");
             toast({
                 className: "bg-green-500 border-black border-2",
@@ -146,6 +167,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                 description: "The new class has been added and students have been updated",
                 duration: 3000
             });
+            resetAllStates()
             setIsOpen(false);
         } catch (error) {
             setIsOpen(false);
@@ -164,7 +186,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             <div>
                 <DialogHeader>
                     <DialogTitle>Create Class</DialogTitle>
-                    <DialogDescription>Enter a name and description for your class</DialogDescription>
+                    <DialogDescription>Enter a name, description, and Zoom link for your class</DialogDescription>
                 </DialogHeader>
                 <form className="space-y-4 pt-3">
                     <div>
@@ -174,6 +196,10 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                     <div>
                         <Label htmlFor="description">Description</Label>
                         <Textarea id="description" value={classDescription} onChange={(e) => setClassDescription(e.target.value)} />
+                    </div>
+                    <div>
+                        <Label htmlFor="zoomLink">Zoom Link</Label>
+                        <Input id="zoomLink" type="url" value={zoomLink} placeholder="https://zoom.us/j/example" onChange={(e) => setZoomLink(e.target.value)} />
                     </div>
                     <DialogFooter>
                         <div className='flex justify-between flex-wrap w-full'>
@@ -193,6 +219,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             </div>
         )
     }
+
     const _classDays = () => {
         const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         return (
@@ -239,6 +266,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             </div>
         )
     }
+
     const _classTimings = () => {
         return (
             <div className='flex w-full flex-col'>
@@ -342,50 +370,54 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             </div>
         )
     }
-	    const handleAddStudent = async () => {
+
+    const handleAddStudent = async () => {
         if (!newStudentEmail) {
             toast({ title: 'Incomplete Fields', description: 'Student email is required.', variant: "destructive", });
             return;
         }
-    try {
-		const controller = new AbortController()
-	    const { signal } = controller;
-        const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-        const response = await fetchTimeout(`/api/users/new_student?email=${newStudentEmail}&notes=${newStudentNotes}`, 5500,{signal,
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'jwt': jwt,
-	            'access_token': (await supabaseClient.auth.getSession()).data.session.access_token
-            },
-        });
-
-        if (response.status === 409) {
-            toast({
-                variant: 'destructive',
-                title: "Student already exists",
-                description: "The student with this email is already registered.",
-                duration: 3000
+        try {
+            const controller = new AbortController()
+            const { signal } = controller;
+            const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+            const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select("first_name, last_name").eq('id', (await supabaseClient.auth.getUser()).data.user.id).single();
+            const response = await fetchTimeout(`/api/users/new_student?email=${newStudentEmail}&notes=${newStudentNotes}&teacher_fname=${teacherData.first_name}&teacher_lname=${teacherData.last_name}`, 5500, {
+                signal,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'jwt': jwt,
+                    'refresh_token': (await supabaseClient.auth.getSession()).data.session.refresh_token
+                },
             });
-            return;
-        }
 
-        const result = await response.json();
+            if (response.status === 409) {
+                toast({
+                    variant: 'destructive',
+                    title: "Student already exists",
+                    description: "The student with this email is already registered.",
+                    duration: 3000
+                });
+                return;
+            }
 
-        if (response.status === 200) {
-            const newStudent = result[0];
-            setStudents([...students, newStudent]);
-            setSelectedStudents([...selectedStudents, newStudent.id]);
-            setNewStudentEmail('');
-            setNewStudentNotes('');
+            const result = await response.json();
 
-            toast({
-                className: "bg-green-500 border-black border-2",
-                title: "Student Added",
-                description: "The new student has been added and selected",
-                duration: 3000
-            });
-        } }catch (error) {
+            if (response.status === 200) {
+                const newStudent = result[0];
+                setStudents([...students, newStudent]);
+                setSelectedStudents([...selectedStudents, newStudent.id]);
+                setNewStudentEmail('');
+                setNewStudentNotes('');
+
+                toast({
+                    className: "bg-green-500 border-black border-2",
+                    title: "Student Added",
+                    description: "The new student has been added and selected",
+                    duration: 3000
+                });
+            }
+        } catch (error) {
             console.error("Error adding student:", error);
             toast({
                 variant: 'destructive',
@@ -424,6 +456,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             });
         }
     };
+
     useEffect(() => {
         if (classCreationStep === 3) {
             const fetchStudentsData = async () => {
@@ -469,22 +502,22 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                         <div>
                             <Label htmlFor="email" className="font-normal">Email</Label>
                             <Input
-                            id="student-email"
-                            type="email"
-                            value={newStudentEmail}
-                            onChange={(e) => setNewStudentEmail(e.target.value)}
-                            placeholder="Student Email"
-                            required
-                        />
+                                id="student-email"
+                                type="email"
+                                value={newStudentEmail}
+                                onChange={(e) => setNewStudentEmail(e.target.value)}
+                                placeholder="Student Email"
+                                required
+                            />
                         </div>
                         <div className='mt-2'>
                             <Label htmlFor="email" className="font-normal">Notes</Label>
                             <Textarea
-                            id="student-notes"
-                            value={newStudentNotes}
-                            onChange={(e) => setNewStudentNotes(e.target.value)}
-                            placeholder="Additional Notes"
-                        />
+                                id="student-notes"
+                                value={newStudentNotes}
+                                onChange={(e) => setNewStudentNotes(e.target.value)}
+                                placeholder="Additional Notes"
+                            />
                         </div>
                         <div className='mt-4 w-full'>
                             <Button type="button" onClick={handleAddStudent} className="gap-2">Add Student<CircleArrowRight className="h-5 w-5" /></Button>
@@ -503,6 +536,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             </div>
         )
     }
+
     const _reviewDetails = () => {
         const classData = {
             name: className,
@@ -510,7 +544,8 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             days: selectedDays,
             startTime: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
             endTime: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
-            capacity: selectedStudents.length, // Assuming capacity is the number of selected students
+            capacity: selectedStudents.length,
+            zoomLink: zoomLink, // Add this line
         };
 
         return (
@@ -524,7 +559,10 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                         <Label htmlFor="class-name">Class Name</Label>
                         <div>{classData.name}</div>
                     </div>
-
+                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                        <Label htmlFor="zoom-link">Zoom Link</Label>
+                        <div>{classData.zoomLink}</div>
+                    </div>
                     {classDescription &&
                         <div className="grid grid-cols-[120px_1fr] items-center gap-4">
                             <Label htmlFor="class-description">Description</Label>

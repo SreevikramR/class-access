@@ -12,10 +12,13 @@ export default function Component({ params: { class_code }}) {
     const [isOpen, setIsOpen] = useState(false)
     const [joinedClass, setJoinedClass] = useState(false)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
+    const [classDetails, setClassDetails] = useState(null)
+	const [teacherName, setTeacherName] = useState("")
     const { toast } = useToast()
 
     useEffect(() => {
         fetchUser()
+        fetchClassDetails()
     }, [])
 
     const fetchUser = async () => {
@@ -46,6 +49,62 @@ export default function Component({ params: { class_code }}) {
             console.log("not logged in")
         }
     }
+    const fetchClassDetails = async () => {
+        const { data: classData, error: classError } = await supabaseClient
+            .from('classes')
+            .select('*')
+            .eq('class_code', class_code)
+            .single()
+
+        if (classError) {
+            console.log("Class does not exist")
+            return
+        }
+        setClassDetails(classData)
+        if (classData.teacher_id) {
+            const { data: teacherData, error: teacherError } = await supabaseClient
+                .from('teachers')
+                .select('first_name, last_name')
+                .eq('id', classData.teacher_id)
+                .single()
+
+            if (teacherError) {
+                console.error("Error fetching teacher details:", teacherError)
+            } else if (teacherData) {
+                setTeacherName(`${teacherData.first_name} ${teacherData.last_name}`)
+            }
+        }
+    }
+
+	    const formatTime = (start, end) => {
+        const formatTimeString = (timeString) => {
+            const date = new Date(`2000-01-01T${timeString}`)
+            return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+        }
+        return `${formatTimeString(start)} - ${formatTimeString(end)}`
+    }
+
+const formatDays = (days) => {
+    console.log('Days data:', days); // Log the days data for debugging
+    if (Array.isArray(days)) {
+        return days.join(', ');
+    } else if (typeof days === 'string') {
+        // If it's a string, try parsing it as JSON
+        try {
+            const parsedDays = JSON.parse(days);
+            if (Array.isArray(parsedDays)) {
+                return parsedDays.join(', ');
+            }
+        } catch (e) {
+            console.error('Failed to parse days string:', e);
+        }
+        // If parsing fails or result is not an array, return the string as-is
+        return days;
+    } else {
+        console.error('Unexpected format for days:', days);
+        return '';
+    }
+}
 
     function CircleCheckIcon(props) {
         return (
@@ -85,27 +144,79 @@ export default function Component({ params: { class_code }}) {
             </Card>
         )
     }
+const updateStatus = async (studentId, classId) => {
+    const { data, error } = await supabaseClient
+        .from('students')
+        .update({ status: { [classId]: "joined" } })
+        .eq('id', studentId);
 
-    const handleComplete = () => {
-        setJoinedClass(true)
+    if (error) {
+        console.error("Error updating status:", error);
+    } else {
+        console.log("Status updated successfully:", data);
     }
+};
+	const fetchClassId = async (class_code) => {
+    const { data:classId, error } = await supabaseClient
+        .from('classes')
+        .select('id')
+        .eq('class_code', class_code)
+        .single();
+
+
+    if (error) {
+        console.error("Error fetching class ID:", error);
+        return null;
+    }
+
+    return classId.id;
+};
+const handleComplete = async () => {
+    const user = await supabaseClient.auth.getUser();
+    if (user.data.user) {
+        const studentId = user.data.user.id;
+        const classId = await fetchClassId(class_code);
+        if (classId) {
+            await updateStatus(studentId, classId);
+            setJoinedClass(true);
+        } else {
+            console.error("Class ID not found");
+        }
+    }
+};
 
     return (
         <main className="flex flex-col items-center justify-center h-screen">
-            { joinedClass && _joinedClass()}
-            { !joinedClass &&
+            {joinedClass && _joinedClass()}
+            {!classDetails && (
+                <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
+                    <div className="flex flex-col items-center space-y-2">
+                        <div className="inline-block rounded-lg px-3 py-1 text-lg sm:text-lg font-medium text-pretty">
+                            Class Does not exist
+                        </div>
+                        <p className="text-muted-foreground text-center sm:text-base text-sm text-pretty">
+                            Please recheck your link or contact your instructor
+                        </p>
+                    </div>
+                </Card>
+            )}
+            {!joinedClass && classDetails && (
                 <div className="lg:w-[46vw] sm:w-[60vw] w-[90vw]">
                     {!isLoggedIn && (
-                        <StudentOnboardingPopup isOpen={isOpen} setIsOpen={setIsOpen} onComplete={handleComplete} classCode={class_code} />
+                        <StudentOnboardingPopup isOpen={isOpen} setIsOpen={setIsOpen} />
                     )}
                     <Card className="w-full p-6 space-y-4">
                         <div className="flex flex-col items-center space-y-2">
                             <div className="inline-block rounded-lg px-3 py-1 text-xs sm:text-sm font-medium text-pretty">
-                                You&#39;ve been invited to join
+                                You have been invited to join
                             </div>
-                            <h2 className="sm:text-2xl text-lg text-center font-bold text-pretty">Introduction to Web Development</h2>
-                            <p className="text-muted-foreground text-xs sm:text-base">Taught by John Doe</p>
-                            <p className="text-muted-foreground sm:text-base text-xs text-pretty">Tuesdays and Thursdays, 7pm - 9pm</p>
+                            <h2 className="sm:text-2xl text-lg text-center font-bold text-pretty">{classDetails.name}</h2>
+                            <p className="text-muted-foreground text-xs sm:text-base">
+                                Taught by {teacherName}
+                            </p>
+                            <p className="text-muted-foreground sm:text-base text-xs text-pretty">
+                                {formatDays(classDetails.days)}, {formatTime(classDetails.start_time, classDetails.end_time)}
+                            </p>
                         </div>
                         <div className="flex gap-2">
                             <Button variant="outline" className="w-full">
@@ -115,7 +226,7 @@ export default function Component({ params: { class_code }}) {
                         </div>
                     </Card>
                 </div>
-            }
+            )}
         </main>
     )
 }

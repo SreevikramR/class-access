@@ -1,7 +1,8 @@
-// app/api/users/delete-student/route.js
+// app/api/users/delete_user/route.js
 
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
+import { NextResponse } from 'next/server';
 
 export async function GET(request) {
     const token = request.headers.get('jwt');
@@ -20,8 +21,8 @@ export async function GET(request) {
 
     const { data, error } = await supabase.auth.admin.deleteUser(user_uuid);
     if (error) {
-        return new Response(JSON.stringify(error), { status: 500 });
+        return NextResponse.json({ error: error }, { status: 500 });
     } else {
-        return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' }, status: 200 });
+        return NextResponse.json({ data: data }, { status: 200 });
     }
 }

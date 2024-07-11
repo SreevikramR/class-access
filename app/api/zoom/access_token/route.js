@@ -2,6 +2,7 @@
 
 import QueryString from 'qs';
 import axios from 'axios';
+import { NextResponse } from 'next/server';
 
 export async function GET(request) {
     const url = new URL(request.url);
@@ -32,13 +33,8 @@ export async function GET(request) {
 
     try {
         const response = await axios.request(config);
-        return new Response(JSON.stringify(response.data), {
-            headers: { 'Content-Type': 'application/json' },
-        });
+        return NextResponse.json({ data: response.data }, { status: 200 });
     } catch (error) {
-        return new Response(JSON.stringify(error.response.data), {
-            headers: { 'Content-Type': 'application/json' },
-            status: error.response.status,
-        });
+        return NextResponse.json({ error: error.response.data }, { status: error.response.status });
     }
 }

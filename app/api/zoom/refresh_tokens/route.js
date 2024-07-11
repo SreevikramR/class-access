@@ -1,4 +1,4 @@
-// app/api/zoom/access_token/route.js
+// app/api/zoom/refresh_token/route.js
 
 import QueryString from 'qs';
 import axios from 'axios';
