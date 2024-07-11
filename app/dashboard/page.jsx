@@ -60,6 +60,7 @@ const Dashboard = ({ classInfo }) => {
                 description: "The class link has been copied to your clipboard.",
             });
         });
+		setIsShareDialogOpen(false);
     };
 
     const handleShareClick = (classData) => {
