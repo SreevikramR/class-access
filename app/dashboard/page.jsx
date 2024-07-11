@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { PlusCircle, Share2, Copy } from 'lucide-react';
 import CreateClassPopup from '@/components/page_components/Dialogs/createClassPopup'
 import AuthWrapper from '@/components/page_components/authWrapper'
+import LoadingOverlay from '@/components/page_components/loadingOverlay'
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
@@ -22,7 +23,7 @@ const convertTo12HourFormat = (time) => {
 const Dashboard = ({ classInfo }) => {
     const [isOpen, setIsOpen] = useState(false)
     const [classes, setClasses] = useState([])
-
+    const [loading, setLoading] = useState(false)
     const router = useRouter()
     const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
     const [copyData, setCopyData] = useState(null)
@@ -136,7 +137,7 @@ const Dashboard = ({ classInfo }) => {
 
     return (
         <AuthWrapper>
-
+            {loading && <LoadingOverlay />}
             <div className="flex flex-col min-h-screen">
                 <Header />
                 <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen} className="bg-white">
