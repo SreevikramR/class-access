@@ -29,6 +29,10 @@ const CodeComponent = () => {
 		const url = new URL(`${window.location.origin}/api/zoom/access_token?code=${code}&redirect_uri=${redirect_uri}`)
 		try {
 			const response = await fetchTimeout(url, 5500, { signal });
+            if (response.status !== 200) {
+                console.log("request failed")
+                return
+            }
 			const data = await response.json();
 			console.log(data)
             setCode(data)

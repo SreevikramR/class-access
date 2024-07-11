@@ -89,9 +89,14 @@ export default function ManageClass({ params }) {
                         "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`
                     }
                 });
-                console.log(`Email sent to ${student.email}:`, response);
+                if (response.status === 200) {
+                    return true
+                } else {
+                    return false
+                }
             } catch (error) {
                 console.error(`Failed to send email to ${student.email}:`, error);
+                return false
             }
         }
     };
@@ -235,7 +240,15 @@ export default function ManageClass({ params }) {
                 // Update local state
                 setClassData({ ...classData, students: updatedStudents });
                 await fetchStudentData(updatedStudents);
-                await sendEmailToNewStudents([newStudent], classData, teacherData);
+                const emailResult = await sendEmailToNewStudents([newStudent], classData, teacherData);
+                if (!emailResult) {
+                    toast({
+                        variant: 'destructive',
+                        title: "Failed to send email",
+                        description: "The student has been added but the email was not sent.",
+                        duration: 3000
+                    });
+                }
                 toast({
                     className: "bg-green-500 border-black border-2",
                     title: "Student Added",
@@ -322,7 +335,15 @@ export default function ManageClass({ params }) {
             await updateClassStudents(updatedStudents);
 
             // Send emails to new students
-            await sendEmailToNewStudents(newStudentData, classData, teacherData);
+            const emailResult = await sendEmailToNewStudents(newStudentData, classData, teacherData);
+            if (!emailResult) {
+                toast({
+                    variant: 'destructive',
+                    title: "Failed to send emails",
+                    description: "The students have been added but the emails were not sent.",
+                    duration: 3000
+                });
+            }
 
             // Update local state
             setClassData(prevData => ({ ...prevData, students: updatedStudents }));

@@ -2,6 +2,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
+import { NextResponse } from 'next/server';
 import { MailtrapClient } from 'mailtrap';
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -47,12 +48,12 @@ export async function POST(request) {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         teacherUUID = decoded.sub;
     } catch (err) {
-        return new Response('Invalid Token', { status: 401 });
+        return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
     }
 
     const { sessionData, sessionError } = await supabase.auth.setSession({jwt, refresh_token});
     if (sessionError) {
-        return new Response('Invalid Token', { status: 401 });
+        return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
     }
 
     const url = new URL(request.url);
@@ -65,7 +66,7 @@ export async function POST(request) {
     const { error: signoutError } = await supabase.auth.signOut();
     if (signoutError) {
         console.log(signoutError)
-        return new Response(JSON.stringify(signoutError), { status: 500 });
+        return NextResponse.json({ error: signoutError }, { status: 500 });
     }
     if (data.length === 0) {
         const { data: signupData, error: signupError } = await supabase.auth.signUp({
@@ -74,7 +75,7 @@ export async function POST(request) {
         });
         if (signupError) {
             console.log(signupError);
-            return new Response(JSON.stringify(signupError), { status: 500 });
+            return NextResponse.json({ error: signupError }, { status: 500 });
         }
 
         const jwt = signupData.session.access_token;
@@ -83,7 +84,7 @@ export async function POST(request) {
         const emailResponse = await sendWelcomeEmail({ jwt: jwt, refresh_token: refresh_token, teacherName: `${teacher_fname} ${teacher_lname}`, email: email})
         if (emailResponse === "Email Failed") {
             console.log('Failed to send email');
-            return new Response('Failed to create account', { status: 500 });
+            return NextResponse.json({ error: 'Failed to create account' }, { status: 500 });
         }
 
         let notes_jsonb = {};
@@ -98,11 +99,11 @@ export async function POST(request) {
 
         if (insertError) {
             console.log(insertError);
-            return new Response(JSON.stringify(insertError), { status: 500 });
+            return NextResponse.json({ error: insertError }, { status: 500 });
         } else {
-            return new Response(JSON.stringify(insertData), { headers: { 'Content-Type': 'application/json' } });
+            return NextResponse.json({ data: insertData }, { status: 200 });
         }
     } else {
-        return new Response('User already exists', { status: 409 });
+        return NextResponse.json({ error: 'User already exists' }, { status: 409 });
     }
 }

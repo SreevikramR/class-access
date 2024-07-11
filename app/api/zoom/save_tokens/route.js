@@ -3,6 +3,7 @@
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
 import Cryptr from 'cryptr';
+import { NextResponse } from 'next/server';
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
@@ -16,7 +17,7 @@ export async function POST(request) {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         teacherUUID = decoded.sub;
     } catch (err) {
-        return new Response('Invalid Token', { status: 401 });
+        return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
     }
 
     const cryptr = new Cryptr(process.env.ZOOM_ENCRYPTION_SECRET);
@@ -30,7 +31,7 @@ export async function POST(request) {
 
     const {authData, authError } = await supabase.auth.setSession({ access_token: token, refresh_token: supabase_refresh })
     if (authError) {
-        return new Response(authError.message, { status: 500 });
+        return NextResponse.json({ error: authError.message }, { status: 500 });
     }
 
     const { data, error } = await supabase
@@ -40,9 +41,9 @@ export async function POST(request) {
         ]).select();
 
     if (error) {
-        return new Response(error.message, { status: 500 });
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    return new Response({ status: 200 });
+    return NextResponse.json({ status: 200 });
 }
 
 export async function PUT(request) {
@@ -53,7 +54,7 @@ export async function PUT(request) {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         teacherUUID = decoded.sub;
     } catch (err) {
-        return new Response('Invalid Token', { status: 401 });
+        return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
     }
 
     const cryptr = new Cryptr(process.env.ZOOM_ENCRYPTION_SECRET);
@@ -67,7 +68,7 @@ export async function PUT(request) {
 
     const { authData, authError } = await supabase.auth.setSession({ access_token: token, refresh_token: supabase_refresh })
     if (authError) {
-        return new Response(authError.message, { status: 500 });
+        return NextResponse.json({ error: authError.message }, { status: 500 });
     }
 
     const { data, error } = await supabase
@@ -77,7 +78,7 @@ export async function PUT(request) {
         ).eq("user_uuid", teacherUUID);
 
     if (error) {
-        return new Response(error.message, { status: 500 });
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    return new Response({ status: 200 });
+    return NextResponse.json({ status: 200 });
 }
