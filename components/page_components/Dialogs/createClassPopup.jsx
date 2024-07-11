@@ -27,7 +27,19 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const [students, setStudents] = useState([])
     const [newStudentEmail, setNewStudentEmail] = useState('')
     const [newStudentNotes, setNewStudentNotes] = useState('')
-	const [zoomLink, setZoomLink] = useState("")
+    const [zoomLink, setZoomLink] = useState("")
+
+    const resetAllStates = () => {
+        setClassName("")
+        setClassDescription("")
+        setSelectedDays([])
+        setStartTime({ hour: "12", minute: "00", ampm: "AM" })
+        setEndTime({ hour: "01", minute: "00", ampm: "AM" })
+        setSelectedStudents([])
+        setNewStudentEmail('')
+        setNewStudentNotes('')
+        setZoomLink('')
+    }
 
     const generateRandomString = (length) => {
         const getRandomCharacter = () => {
@@ -56,19 +68,18 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
         //     return;
         // }
 
-	    const classData = {
-	        name: className,
-	        description: classDescription,
-	        days: selectedDays,
-	        teacher_id: (await supabaseClient.auth.getUser()).data.user.id,
-	        start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
-	        end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
-	        students: selectedStudents,
-	        class_code: code,
-	        zoom_link: zoomLink,
-	    };
+        const classData = {
+            name: className,
+            description: classDescription,
+            days: selectedDays,
+            teacher_id: (await supabaseClient.auth.getUser()).data.user.id,
+            start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
+            end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
+            students: selectedStudents,
+            class_code: code,
+            zoom_link: zoomLink,
+        };
 
-        const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
         const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
         if (authError || !user) {
             console.error('Authentication error:', authError);
@@ -96,50 +107,50 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                 updatedUuidArray = [uuid];
             }
             let studentEmails = [];
-			for (const student of selectedStudents) {
-			    console.log(student)
-			    const { data: studentData, error: fetchError } = await supabaseClient
-                .from('students')
-                .select('class_id, classes_left, status, teachers, email')
-                .eq('id', student)
-                .single();
-                
-			    if (fetchError) throw fetchError;
+            for (const student of selectedStudents) {
+                console.log(student)
+                const { data: studentData, error: fetchError } = await supabaseClient
+                    .from('students')
+                    .select('class_id, classes_left, status, teachers, email')
+                    .eq('id', student)
+                    .single();
+
+                if (fetchError) throw fetchError;
                 studentEmails.push(studentData.email)
 
-			    // Update class_id array
-			    let updatedClassId = Array.isArray(studentData.class_id)
-			        ? [...studentData.class_id, uuid]
-			        : [uuid];
+                // Update class_id array
+                let updatedClassId = Array.isArray(studentData.class_id)
+                    ? [...studentData.class_id, uuid]
+                    : [uuid];
 
-			    // Update classes_left object
-			    let updatedClassesLeft = {
-			        ...(studentData.classes_left || {}),
-			        [uuid]: '0'
-			    };
+                // Update classes_left object
+                let updatedClassesLeft = {
+                    ...(studentData.classes_left || {}),
+                    [uuid]: '0'
+                };
 
-			    // Update status object
-			    let updatedStatus = {
-			        ...(studentData.status || {}),
-			        [uuid]: 'Invited'
-			    };
-			    let updatedteacher = Array.isArray(studentData.teachers)
-			        ? [...studentData.teachers, (await supabaseClient.auth.getUser()).data.user.id]
-			        : [(await supabaseClient.auth.getUser()).data.user.id];
+                // Update status object
+                let updatedStatus = {
+                    ...(studentData.status || {}),
+                    [uuid]: 'Invited'
+                };
+                let updatedteacher = Array.isArray(studentData.teachers)
+                    ? [...studentData.teachers, (await supabaseClient.auth.getUser()).data.user.id]
+                    : [(await supabaseClient.auth.getUser()).data.user.id];
 
-			    const { data: updateData, error: updateError } = await supabaseClient
-			        .from('students')
-			        .update({
-			            class_id: updatedClassId,
-			            classes_left: updatedClassesLeft,
-			            status: updatedStatus,
-						teachers: updatedteacher})
-				    .eq('id',student)
-			    if (updateError) throw updateError;
-			}
-
+                const { data: updateData, error: updateError } = await supabaseClient
+                    .from('students')
+                    .update({
+                        class_id: updatedClassId,
+                        classes_left: updatedClassesLeft,
+                        status: updatedStatus,
+                        teachers: updatedteacher
+                    })
+                    .eq('id', student)
+                if (updateError) throw updateError;
+            }
             const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-            const response = await fetchTimeout(`/api/email/onboard_student`, 5500, { method: 'POST', headers: { "student_email": studentEmails, "class_name": className, "class_code": code, "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`, "jwt": jwt} });
+            const response = await fetchTimeout(`/api/email/onboard_student`, 5500, { method: 'POST', headers: { "student_email": studentEmails, "class_name": className, "class_code": code, "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`, "jwt": jwt } });
             console.log(response)
             console.log("Class created successfully and students updated!");
             toast({
@@ -148,6 +159,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                 description: "The new class has been added and students have been updated",
                 duration: 3000
             });
+            resetAllStates()
             setIsOpen(false);
         } catch (error) {
             setIsOpen(false);
@@ -161,26 +173,26 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
         }
     };
 
-const _classNameAndDescription = () => {
-    return (
-        <div>
-            <DialogHeader>
-                <DialogTitle>Create Class</DialogTitle>
-                <DialogDescription>Enter a name, description, and Zoom link for your class</DialogDescription>
-            </DialogHeader>
-            <form className="space-y-4 pt-3">
-                <div>
-                    <Label htmlFor="Name">Name</Label>
-                    <Input id="name" type="name" value={className} placeholder="Class Name" onChange={(e) => setClassName(e.target.value)} required />
-                </div>
-                <div>
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea id="description" value={classDescription} onChange={(e) => setClassDescription(e.target.value)} />
-                </div>
-                <div>
-                    <Label htmlFor="zoomLink">Zoom Link</Label>
-                    <Input id="zoomLink" type="url" value={zoomLink} placeholder="https://zoom.us/j/example" onChange={(e) => setZoomLink(e.target.value)} />
-                </div>
+    const _classNameAndDescription = () => {
+        return (
+            <div>
+                <DialogHeader>
+                    <DialogTitle>Create Class</DialogTitle>
+                    <DialogDescription>Enter a name, description, and Zoom link for your class</DialogDescription>
+                </DialogHeader>
+                <form className="space-y-4 pt-3">
+                    <div>
+                        <Label htmlFor="Name">Name</Label>
+                        <Input id="name" type="name" value={className} placeholder="Class Name" onChange={(e) => setClassName(e.target.value)} required />
+                    </div>
+                    <div>
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea id="description" value={classDescription} onChange={(e) => setClassDescription(e.target.value)} />
+                    </div>
+                    <div>
+                        <Label htmlFor="zoomLink">Zoom Link</Label>
+                        <Input id="zoomLink" type="url" value={zoomLink} placeholder="https://zoom.us/j/example" onChange={(e) => setZoomLink(e.target.value)} />
+                    </div>
                     <DialogFooter>
                         <div className='flex justify-between flex-wrap w-full'>
                             <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
@@ -482,22 +494,22 @@ const _classNameAndDescription = () => {
                         <div>
                             <Label htmlFor="email" className="font-normal">Email</Label>
                             <Input
-                            id="student-email"
-                            type="email"
-                            value={newStudentEmail}
-                            onChange={(e) => setNewStudentEmail(e.target.value)}
-                            placeholder="Student Email"
-                            required
-                        />
+                                id="student-email"
+                                type="email"
+                                value={newStudentEmail}
+                                onChange={(e) => setNewStudentEmail(e.target.value)}
+                                placeholder="Student Email"
+                                required
+                            />
                         </div>
                         <div className='mt-2'>
                             <Label htmlFor="email" className="font-normal">Notes</Label>
                             <Textarea
-                            id="student-notes"
-                            value={newStudentNotes}
-                            onChange={(e) => setNewStudentNotes(e.target.value)}
-                            placeholder="Additional Notes"
-                        />
+                                id="student-notes"
+                                value={newStudentNotes}
+                                onChange={(e) => setNewStudentNotes(e.target.value)}
+                                placeholder="Additional Notes"
+                            />
                         </div>
                         <div className='mt-4 w-full'>
                             <Button type="button" onClick={handleAddStudent} className="gap-2">Add Student<CircleArrowRight className="h-5 w-5" /></Button>
@@ -516,16 +528,17 @@ const _classNameAndDescription = () => {
             </div>
         )
     }
+
     const _reviewDetails = () => {
-            const classData = {
-        name: className,
-        description: classDescription,
-        days: selectedDays,
-        startTime: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
-        endTime: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
-        capacity: selectedStudents.length,
-        zoomLink: zoomLink, // Add this line
-    };
+        const classData = {
+            name: className,
+            description: classDescription,
+            days: selectedDays,
+            startTime: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
+            endTime: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
+            capacity: selectedStudents.length,
+            zoomLink: zoomLink, // Add this line
+        };
 
         return (
             <>
@@ -533,38 +546,38 @@ const _classNameAndDescription = () => {
                     <DialogTitle>Confirm Class Details</DialogTitle>
                     <DialogDescription>Review the details of the new class before creating it.</DialogDescription>
                 </DialogHeader>
-	            <div className="grid gap-6 py-6">
-		            <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-			            <Label htmlFor="class-name">Class Name</Label>
-			            <div>{classData.name}</div>
-		            </div>
-		            <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-			            <Label htmlFor="zoom-link">Zoom Link</Label>
-			            <div>{classData.zoomLink}</div>
-		            </div>
-		            {classDescription &&
-			            <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-				            <Label htmlFor="class-description">Description</Label>
-				            <div>{classData.description}</div>
-			            </div>
-		            }
+                <div className="grid gap-6 py-6">
+                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                        <Label htmlFor="class-name">Class Name</Label>
+                        <div>{classData.name}</div>
+                    </div>
+                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                        <Label htmlFor="zoom-link">Zoom Link</Label>
+                        <div>{classData.zoomLink}</div>
+                    </div>
+                    {classDescription &&
+                        <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                            <Label htmlFor="class-description">Description</Label>
+                            <div>{classData.description}</div>
+                        </div>
+                    }
 
-		            <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-			            <Label htmlFor="class-days">Days</Label>
-			            <div>{classData.days.join(", ")}</div>
-		            </div>
-		            <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-			            <Label htmlFor="class-time">Time</Label>
-			            <div>{`${classData.startTime} - ${classData.endTime}`}</div>
-		            </div>
-		            <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-			            <Label htmlFor="students">Students</Label>
-			            <div>{classData.capacity}</div>
-		            </div>
-	            </div>
-	            <DialogFooter>
-		            <div className='flex justify-between flex-wrap w-full'>
-			            <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(3)}>Back</Button>
+                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                        <Label htmlFor="class-days">Days</Label>
+                        <div>{classData.days.join(", ")}</div>
+                    </div>
+                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                        <Label htmlFor="class-time">Time</Label>
+                        <div>{`${classData.startTime} - ${classData.endTime}`}</div>
+                    </div>
+                    <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                        <Label htmlFor="students">Students</Label>
+                        <div>{classData.capacity}</div>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <div className='flex justify-between flex-wrap w-full'>
+                        <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setClassCreationStep(3)}>Back</Button>
                         <Button type="button" onClick={handleCreateClass} className="gap-2">Confirm<CheckCircle className="h-5 w-5" /></Button>
                     </div>
                 </DialogFooter>

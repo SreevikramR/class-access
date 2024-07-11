@@ -33,8 +33,10 @@ const Dashboard = ({ classInfo }) => {
     }, [])
 
     useEffect(() => {
-        fetchClasses()
-    }, [isOpen])
+        if (!isOpen) {
+            fetchClasses();
+        }
+    }, [isOpen]);
 
     const fetchClasses = async () => {
         setLoading(true)
@@ -60,6 +62,7 @@ const Dashboard = ({ classInfo }) => {
                 description: "The class link has been copied to your clipboard.",
             });
         });
+        setIsShareDialogOpen(false);
     };
 
     const handleShareClick = (classData) => {
@@ -99,8 +102,8 @@ const Dashboard = ({ classInfo }) => {
                                     <span
                                         key={day}
                                         className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${classInfo.days.includes(day)
-                                                ? "bg-primary text-primary-foreground"
-                                                : "bg-white border-2 border-muted-forground text-muted-foreground"
+                                            ? "bg-primary text-primary-foreground"
+                                            : "bg-white border-2 border-muted-forground text-muted-foreground"
                                             }`}
                                     >
                                         {day}
