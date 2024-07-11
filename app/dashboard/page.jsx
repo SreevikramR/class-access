@@ -27,19 +27,16 @@ const Dashboard = ({ classInfo }) => {
     const router = useRouter()
     const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
     const [copyData, setCopyData] = useState(null)
-	const resetStates = () => {
-    setIsOpen(false);
-    fetchClasses();
-};
+
     useEffect(() => {
         fetchClasses()
     }, [])
 
-   useEffect(() => {
-    if (!isOpen) {
-        fetchClasses();
-    }
-}, [isOpen]);
+    useEffect(() => {
+        if (!isOpen) {
+            fetchClasses();
+        }
+    }, [isOpen]);
 
     const fetchClasses = async () => {
         setLoading(true)
@@ -65,7 +62,7 @@ const Dashboard = ({ classInfo }) => {
                 description: "The class link has been copied to your clipboard.",
             });
         });
-		setIsShareDialogOpen(false);
+        setIsShareDialogOpen(false);
     };
 
     const handleShareClick = (classData) => {
@@ -105,8 +102,8 @@ const Dashboard = ({ classInfo }) => {
                                     <span
                                         key={day}
                                         className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${classInfo.days.includes(day)
-                                                ? "bg-primary text-primary-foreground"
-                                                : "bg-white border-2 border-muted-forground text-muted-foreground"
+                                            ? "bg-primary text-primary-foreground"
+                                            : "bg-white border-2 border-muted-forground text-muted-foreground"
                                             }`}
                                     >
                                         {day}
@@ -160,7 +157,7 @@ const Dashboard = ({ classInfo }) => {
                 </Dialog>
                 <main className="flex-1 bg-gray-100 px-4 py-8 sm:px-6 grid gap-8">
                     <section>
-                        <CreateClassPopup isOpen={isOpen} setIsOpen={setIsOpen} onClassCreated={resetStates} />
+                        <CreateClassPopup isOpen={isOpen} setIsOpen={setIsOpen} />
                         <div className="flex items-center justify-between my-2">
                             <h2 className="text-2xl font-semibold px-2">My Classes</h2>
                             <Button size="sm" className="h-7 gap-1 hover:bg-zinc-700">
