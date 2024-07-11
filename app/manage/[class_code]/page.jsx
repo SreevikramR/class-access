@@ -45,7 +45,7 @@ useEffect(() => {
         }
     }, [classCode, toast]);
 const handleCopyLink = () => {
-    const classLink = `classaccess.vercel.app/join/${classCode}`;
+    const classLink = `classaccess.tech/join/${classCode}`;
     navigator.clipboard.writeText(classLink).then(() => {
         toast({
             title: "Link copied!",
