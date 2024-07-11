@@ -7,12 +7,13 @@ import { useState, useEffect } from "react"
 import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import { toast } from "@/components/ui/use-toast"
 import { Card } from "@/components/ui/card"
-import Link from "next/link"
+import fetchTimeout from "@/components/util_function/fetch"
 //
 export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
     const [step, setStep] = useState(0)
     const [email, setEmail] = useState("")
     const [loginPassword, setLoginPassword] = useState("")
+    const [loading, setLoading] = useState(false)
 
     const handleLogin = async () => {
         if (!email || !loginPassword) {
@@ -97,12 +98,12 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
                     <div className="grid gap-2">
                         <div className="flex items-center">
                             <Label htmlFor="password">Password</Label>
-                            <Link
-                                href="/forgot-password"
-                                className="ml-auto inline-block text-xs sm:text-sm underline"
+                            <span
+                                onClick={() => setStep(2)}
+                                className="ml-auto cursor-pointer inline-block text-xs sm:text-sm underline"
                             >
                                 Forgot your password?
-                            </Link>
+                            </span>
                         </div>
                         <Input
 					    id="password"
@@ -130,6 +131,75 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
         </Card>
     )
 
+    const handlePasswordReset = async () => {
+        if (loading) return;
+        setLoading(true)
+        const controller = new AbortController()
+        const { signal } = controller;
+
+        try{
+            const response = await fetchTimeout(`/api/users/forgot_password`, 5500, {
+                signal,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "email": "sreevikram.r@tamu.edu"
+                },
+            });
+            setStep(3)
+        } catch (error) {
+            toast({
+                title: 'Password Reset Failed',
+                description: error.message,
+                variant: "destructive"
+            });
+        }
+        setLoading(false)
+    }
+
+    const _forgotPassword = () => {
+        return (
+            <Card className="w-fill border-0">
+                <div className="text-center">
+                    <h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Forgot Password</h1>
+                </div>
+                <div className="rounded-lg bg-white p-3 pt-0">
+                    <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                value={email}
+                                placeholder="email@example.com"
+                                required
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+                        
+                        <Button type="submit" onClick={handlePasswordReset} className={"w-full" + (loading ? " cursor-wait" : "")}>
+                            Send Link
+                        </Button>
+                        <div className='sm:text-md text-sm cursor-pointer text-blue-700 underline w-fit' onClick={() => setStep(1)}>Back to login</div>
+                    </div>
+                </div>
+            </Card>
+        )
+    }
+
+    const _passwordLinkSent = () => {
+        return (
+            <Card className="w-fill border-0">
+                <div className="text-center">
+                    <h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Please check your email for a password reset link</h1>
+                </div>
+                <Button type="submit" onClick={() => setStep(0)} className="w-full mt-4">
+                    Sounds Good!
+                </Button>
+            </Card>
+        )
+    }
+
     const noAccount = () => {
         return (
             <Card className="w-fill border-0">
@@ -146,6 +216,8 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
             <DialogContent className="lg:w-[36vw] sm:w-[60vw] w-[90vw]">
                 {step === 0 && _login()}
                 {step === 1 && noAccount()}
+                {step === 2 && _forgotPassword()}
+                {step === 3 && _passwordLinkSent()}
             </DialogContent>
         </Dialog>
     )
