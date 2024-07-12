@@ -199,19 +199,22 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                     </div>
                     <div>
                         <Label htmlFor="zoomLink">Zoom Link</Label>
-                        <Input id="zoomLink" type="url" value={zoomLink} placeholder="https://zoom.us/j/example" onChange={(e) => setZoomLink(e.target.value)} />
+                        <Input id="zoomLink" type="url" value={zoomLink} placeholder="https://zoom.us/j/example" onChange={(e) => setZoomLink(e.target.value)} required  />
                     </div>
                     <DialogFooter>
                         <div className='flex justify-between flex-wrap w-full'>
                             <Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
                             <Button type="button" onClick={() => {
-                                if (!className) {
-                                    // setError('Class name is required.');
-                                    toast({ title: 'Incomplete Fields', description: 'Class name is required.', variant: "destructive", })
-                                    return
-                                }
-                                setClassCreationStep(1);
-                            }} className="gap-2">Pick Days<CircleArrowRight className="h-5 w-5" /></Button>
+							    if (!className || !zoomLink) {
+							        toast({
+							            title: 'Incomplete Fields',
+							            description: 'Class name and Zoom link are required.',
+							            variant: "destructive",
+							        })
+							        return
+							    }
+							    setClassCreationStep(1);
+							}} className="gap-2">Pick Days<CircleArrowRight className="h-5 w-5" /></Button>
                         </div>
                     </DialogFooter>
                 </form>
