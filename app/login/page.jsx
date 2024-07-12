@@ -55,11 +55,7 @@ export default function LoginPage() {
         }
     }
 
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            handleLogin(e)
-        }
-    }
+
 
     return (
         <div className="w-full h-screen lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
@@ -105,7 +101,7 @@ export default function LoginPage() {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                onKeyDown={handleKeyDown}
+                                
                             />
                         </div>
                         <Button type="submit" className="w-full">
