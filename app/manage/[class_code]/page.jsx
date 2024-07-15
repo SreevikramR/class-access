@@ -105,7 +105,7 @@ export default function ManageClass({ params }) {
         setLoading(true)
         if (studentUUIDs && studentUUIDs.length > 0) {
             const { data, error } = await supabaseClient
-                .from('students')
+                .from('student_proxies')
                 .select('*')
                 .in('id', studentUUIDs);
 
@@ -142,7 +142,7 @@ export default function ManageClass({ params }) {
             });
         } else {
             setClassData(data[0]);
-            fetchStudentData(data[0].students);
+            fetchStudentData(data[0].student_proxy_ids);
         }
         setLoading(false)
     }
@@ -151,9 +151,9 @@ export default function ManageClass({ params }) {
         setLoading(true)
         try {
             const { data, error } = await supabaseClient
-                .from('students')
+                .from('student_proxies')
                 .select('*')
-                .contains('teachers', `{${(await supabaseClient.auth.getUser()).data.user.id}}`);
+                .eq('teacher_id', (await supabaseClient.auth.getUser()).data.user.id);
 
             if (error) throw error;
 
@@ -221,11 +221,11 @@ export default function ManageClass({ params }) {
 
                 // Update the new student's record with class-specific data
                 const { error: updateError } = await supabaseClient
-                    .from('students')
+                    .from('student_proxies')
                     .update({
                         class_id: [classData.id],
                         classes_left: { [classData.id]: numClasses.toString() },
-                        status: { [classData.id]: 'Invited' }
+                        hasJoined: { [classData.id]: 'Invited' }
                     })
                     .eq('id', newStudent.id);
 
@@ -234,7 +234,7 @@ export default function ManageClass({ params }) {
                 setStudents([...students, newStudent]);
 
                 // Update the class with the new student
-                const updatedStudents = [...(classData.students || []), newStudent.id];
+                const updatedStudents = [...(classData.students_proxy_ids || []), newStudent.id];
                 await updateClassStudents(updatedStudents);
 
                 // Update local state
@@ -304,7 +304,7 @@ export default function ManageClass({ params }) {
             const newStudentData = [];
             for (const studentId of newStudents) {
                 const { data: studentData, error: fetchError } = await supabaseClient
-                    .from('students')
+                    .from('student_proxies')
                     .select('*')
                     .eq('id', studentId)
                     .single();
@@ -313,16 +313,14 @@ export default function ManageClass({ params }) {
 
                 let updatedClassesLeft = { ...(studentData.classes_left || {}), [classData.id]: numClasses };
                 let updatedStatus = { ...(studentData.status || {}), [classData.id]: 'Pending' };
-                let updatedClassId = Array.isArray(studentData.class_id)
-                    ? [...studentData.class_id, classData.id]
-                    : [classData.id];
+                
 
                 const { error: updateError } = await supabaseClient
-                    .from('students')
+                    .from('student_proxies')
                     .update({
-                        class_id: updatedClassId,
+                        
                         classes_left: updatedClassesLeft,
-                        status: updatedStatus
+                        hasJoined: updatedStatus
                     })
                     .eq('id', studentId);
 
@@ -408,7 +406,9 @@ export default function ManageClass({ params }) {
             </>
         );
     };
-
+	const handleUpdate = async () => {
+    await fetchClassData();  // This will refresh both class and student data
+};
     const StudentDetailsPopUp = ({ student, classId, onClose, onUpdate }) => {
         const [classes, setClasses] = useState(0);
         const { toast } = useToast();
@@ -421,33 +421,71 @@ export default function ManageClass({ params }) {
 
         const handleIncrement = () => setClasses(prev => prev + 1);
         const handleDecrement = () => setClasses(prev => Math.max(0, prev - 1));
+useEffect(() => {
+    if (student && student.classes_left && typeof student.classes_left === 'object') {
+        setClasses(parseInt(student.classes_left[classId] || 0));
+    } else {
+        setClasses(0);
+    }
+}, [student, classId]);
+const handleSave = async () => {
+    try {
+        console.log("Current student data:", student);
+        console.log("Updating classes for classId:", classId);
+        console.log("New classes value:", classes);
 
-        const handleSave = async () => {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('students')
-                    .update({
-                        classes_left: { ...student.classes_left, [classId]: classes.toString() }
-                    })
-                    .eq('id', student.id);
-                if (error) throw error
-                toast({
-                    title: "Classes Updated",
-                    description: "The class count has been updated successfully.",
-                });
-                onUpdate();
-                onClose();
-            } catch (error) {
-                console.error("Error updating classes:", error);
-                toast({
-                    variant: 'destructive',
-                    title: "Failed to update classes",
-                    description: "Please try again.",
-                });
-            }
-
+        // Ensure classes_left is an object
+        const currentClassesLeft = typeof student.classes_left === 'object' ? student.classes_left : {};
+        
+        const updatedClassesLeft = {
+            ...currentClassesLeft,
+            [classId]: classes.toString()
         };
+        console.log("Updated classes_left object:", updatedClassesLeft);
 
+        const { data, error } = await supabaseClient
+            .from('student_proxies')
+            .update({
+                classes_left: updatedClassesLeft
+            })
+            .eq('id', student.id);
+
+        if (error) {
+            console.error("Supabase update error:", error);
+            throw error;
+        }
+
+        console.log("Update operation result:", data);
+
+        toast({
+            title: "Classes Updated",
+            description: "The class count has been updated successfully.",
+        });
+
+        // Fetch the updated student data to confirm the change
+        const { data: updatedStudent, error: fetchError } = await supabaseClient
+            .from('student_proxies')
+            .select('*')
+            .eq('id', student.id)
+            .single();
+
+        if (fetchError) {
+            console.error("Error fetching updated student data:", fetchError);
+        } else {
+            console.log("Updated student data:", updatedStudent);
+        }
+
+        onUpdate();
+        onClose();
+    } catch (error) {
+        console.error("Error updating classes:", error);
+        toast({
+            variant: 'destructive',
+            title: "Failed to update classes",
+            description: "Please try again.",
+        });
+    }
+};
         return (
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -608,7 +646,7 @@ export default function ManageClass({ params }) {
                                     setIsOpenManage(false);
                                     setSelectedStudent(null);
                                 }}
-                                onUpdate={() => fetchStudentData(classData.students)} // Refresh student data
+                                onUpdate={handleUpdate} // Refresh student data
                             />
                         )}
                     </Dialog>
