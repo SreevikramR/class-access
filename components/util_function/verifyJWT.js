@@ -4,7 +4,7 @@ const verifyJWT = (jwtToken) => {
     let decodedJWT;
     try {
         decodedJWT = jwt.verify(jwtToken, process.env.JWT_SECRET);
-        teacherUUID = decoded.sub;
+        
     } catch {
         return false;
     }
