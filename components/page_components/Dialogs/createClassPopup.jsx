@@ -380,11 +380,32 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             return;
         }
         try {
-            const controller = new AbortController()
-            const { signal } = controller;
-            const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-            const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select("first_name, last_name").eq('id', (await supabaseClient.auth.getUser()).data.user.id).single();
-			const response = await fetchTimeout("app/api/users/students/new_student", 5500, { signal, headers: { 'jwt': jwt } });
+                    const user = await supabaseClient.auth.getUser();
+        if (user.data.user != null) {
+            const { data, error } = await supabaseClient.from('students').select('*').eq('id', user.data.user.id);
+            if (data.length > 0) {
+                setIsLoggedIn(true)
+            } else {
+                const controller = new AbortController()
+                const { signal } = controller;
+                const url = new URL(`${window.location.origin}/api/students/new_student`)
+                const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
+                const response = await fetchTimeout(url, 5500, { signal, headers: { 'jwt': jwt } });
+                console.log(response)
+                if (response.status === 200) {
+                    toast({
+                        title: 'Account not found with Email',
+                        description: "Please Sign Up First",
+                        variant: "destructive"
+                    })
+                    setTimeout(() => {
+                        window.location.reload()
+                    }, 5000)
+                }
+            }
+        } else {
+            console.log("not logged in")
+        }
 
 
             if (response.status === 409) {
