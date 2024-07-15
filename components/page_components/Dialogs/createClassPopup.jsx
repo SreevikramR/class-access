@@ -111,8 +111,8 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             for (const student of selectedStudents) {
                 console.log(student)
                 const { data: studentData, error: fetchError } = await supabaseClient
-                    .from('students')
-                    .select('class_id, classes_left, status, teachers, email')
+                    .from('student_proxy')
+                    .select('class_id, classes_left, hasJoined, teachers, email')
                     .eq('id', student)
                     .single();
 
@@ -140,12 +140,12 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                     : [(await supabaseClient.auth.getUser()).data.user.id];
 
                 const { data: updateData, error: updateError } = await supabaseClient
-                    .from('students')
+                    .from('student_proxy')
                     .update({
                         class_id: updatedClassId,
                         classes_left: updatedClassesLeft,
-                        status: updatedStatus,
-                        teachers: updatedteacher
+                        hasJoined: updatedStatus,
+                        teacher_id: await supabaseClient.auth.getUser().id,
                     })
                     .eq('id', student)
                 if (updateError) throw updateError;
