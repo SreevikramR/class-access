@@ -104,6 +104,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 				.select('first_name, last_name')
 				.eq('id', classData.teacher_id)
 				.single()
+			let addedAllStudents = true
 			for (const student of tempNewStudents) {				
 				const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
 				const response = await fetchTimeout(`/api/students/new_student`, 10000, {
@@ -119,29 +120,30 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 						"class_code": code,
 						"class_name": className
 					},
-					
 				});
 				
 				if (response.status !== 200) {
+					addedAllStudents = false;
 					toast({
 						variant: 'destructive',
-						title: "Failed to add new student",
+						title: "Failed to add new student to class",
 						description: `Error adding ${student.email}`,
 						duration: 3000
 					});
-					return;
 				}
 			}
 			
 			console.log("Class created successfully and students updated!");
-			toast({
-				className: "bg-green-500 border-black border-2",
-				title: "Class Successfully Added",
-				description: "The new class has been added and students have been updated",
-				duration: 3000
-			});
-			resetAllStates();
-			setIsOpen(false);
+			if (!addedAllStudents) {
+				toast({
+					className: "bg-green-500 border-black border-2",
+					title: "Class Successfully Added",
+					description: "The new class has been added and students have been updated",
+					duration: 3000
+				});
+				resetAllStates();
+				setIsOpen(false);
+			}
 			
 		} catch (error) {
 			console.error("Error creating class or updating students", error);
