@@ -110,13 +110,12 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 				const response = await fetchTimeout(`/api/users/new_student`, 10000, {
 					method: 'POST',
 					headers: {
-						"Content-Type": "application/json",
 						"jwt": jwt,
 						"refresh_token": (await supabaseClient.auth.getSession()).data.session.refresh_token,
 						"teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
 						"email": student.email,
 						"notes": newStudentNotes,
-						"classes_left": "0",
+						"classes_left": 0,
 						"class_id": classInsertData[0].id,
 						"class_code": code,
 						"class_name": className
