@@ -107,7 +107,7 @@ const handleCreateClass = async () => {
         for (const student of tempNewStudents) {
 			
             const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-            const response = await fetchTimeout(`/api/users/new_student`, 5500, {
+            const response = await fetchTimeout(`/api/users/new_student`, 10000, {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
