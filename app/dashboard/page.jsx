@@ -1,3 +1,4 @@
+"use client"
 import React, { useState, useEffect } from "react";
 import { supabaseClient } from "@/components/util_function/supabaseCilent";
 import Header from "@/components/page_components/header";
