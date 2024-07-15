@@ -76,9 +76,9 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             teacher_id: (await supabaseClient.auth.getUser()).data.user.id,
             start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
             end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
-            students: selectedStudents,
+            student_proxy_id: selectedStudents,
             class_code: code,
-            zoom_link: zoomLink,
+            meeting_link: zoomLink,
         };
 
         const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
