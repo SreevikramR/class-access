@@ -389,9 +389,15 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                 const controller = new AbortController()
                 const { signal } = controller;
                 const url = new URL(`${window.location.origin}/api/students/new_student`)
-                const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
-                const response = await fetchTimeout(url, 5500, { signal, headers: { 'jwt': jwt } });
-                console.log(response)
+                // const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
+	            const { data, error } = await supabaseClient.auth.refreshSession();
+				const jwt = data.session?.access_token;
+				const response = await fetchTimeout(url, 5500, {
+				  method: 'POST',
+				  signal,
+				  headers: { 'jwt': jwt }
+				});
+				console.log(response)
                 if (response.status === 200) {
                     toast({
                         title: 'Account not found with Email',
