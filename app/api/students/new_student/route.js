@@ -10,6 +10,7 @@ const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // POST Endpoint
+// Endpoint can create student account, create proxies and send welcoming and onboarding emails
 // Headers needed for this endpoint:
 //// jwt: JWT Token
 //// refresh_token: Refresh Token
