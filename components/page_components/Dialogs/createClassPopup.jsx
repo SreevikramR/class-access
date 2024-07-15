@@ -76,7 +76,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             teacher_id: (await supabaseClient.auth.getUser()).data.user.id,
             start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
             end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
-            student_proxy_id: selectedStudents,
+            student_proxy_ids: selectedStudents,
             class_code: code,
             meeting_link: zoomLink,
         };
@@ -95,18 +95,18 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                 .insert([classData])
                 .select('id');
 
-            const uuid = classInsertData[0].id
+            
 
             if (classError) throw classError;
             const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select("first_name, last_name").eq('id', (await supabaseClient.auth.getUser()).data.user.id).single();
-            console.log(uuid);
+            // console.log(uuid);
             if (error) throw error
             let updatedUuidArray;
-            if (classInsertData.class_id && Array.isArray(classInsertData.class_id)) {
-                updatedUuidArray = [...classInsertData.class_id, uuid];
-            } else {
-                updatedUuidArray = [uuid];
-            }
+            // if (classInsertData.class_id && Array.isArray(classInsertData.class_id)) {
+            //     updatedUuidArray = [...classInsertData.class_id, uuid];
+            // } else {
+            //     updatedUuidArray = [uuid];
+            // }
             let studentEmails = [];
             for (const student of selectedStudents) {
                 console.log(student)
