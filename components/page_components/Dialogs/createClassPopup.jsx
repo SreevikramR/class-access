@@ -384,15 +384,8 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             const { signal } = controller;
             const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
             const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select("first_name, last_name").eq('id', (await supabaseClient.auth.getUser()).data.user.id).single();
-            const response = await fetchTimeout(`/api/users/new_student?email=${newStudentEmail}&notes=${newStudentNotes}&teacher_fname=${teacherData.first_name}&teacher_lname=${teacherData.last_name}`, 5500, {
-                signal,
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'jwt': jwt,
-                    'refresh_token': (await supabaseClient.auth.getSession()).data.session.refresh_token
-                },
-            });
+			const response = await fetchTimeout("app/api/users/students/new_student", 5500, { signal, headers: { 'jwt': jwt } });
+
 
             if (response.status === 409) {
                 toast({
