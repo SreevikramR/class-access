@@ -12,7 +12,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/c
 import {supabaseClient} from '@/components/util_function/supabaseCilent'
 import {useToast} from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
-import {v4} from 'uuid';
+
 
 
 // import createZoomMeeting from '@/components/util_function/createZoomMeeting'
@@ -366,7 +366,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		
 		// Add the new student to the temporary array
 		const newTempStudent = {
-			id: v4(), // Temporary ID
+			id: null, // Temporary ID
 			name: newStudentEmail.split('@')[0], // Use email prefix as temporary name
 			email: newStudentEmail,
 		};
