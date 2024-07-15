@@ -6,7 +6,7 @@ import { MailtrapClient } from 'mailtrap';
 import verifyJWT from '@/components/util_function/verifyJWT';
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // POST Endpoint
