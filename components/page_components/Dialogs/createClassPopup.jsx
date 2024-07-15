@@ -12,7 +12,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/c
 import {supabaseClient} from '@/components/util_function/supabaseCilent'
 import {useToast} from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
-import { v4 } from 'uuid';
+import {v4} from 'uuid';
 
 
 // import createZoomMeeting from '@/components/util_function/createZoomMeeting'
@@ -44,7 +44,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		setZoomLink('')
 		setClassCreationStep(0)
 		setTempNewStudents([]);
-
+		
 	}
 	
 	const generateRandomString = (length) => {
@@ -59,101 +59,101 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		return result;
 	}
 	
-const handleCreateClass = async () => {
-    try {
-        const code = generateRandomString(6);
-
-        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-        if (authError || !user) {
-            console.error('Authentication error:', authError);
-            toast({
-                variant: 'destructive',
-                title: "Failed to create class",
-                description: "Authentication error. Please log in again.",
-                duration: 3000
-            });
-            return;
-        }
-
-        const classData = {
-            name: className,
-            description: classDescription,
-            days: selectedDays,
-            teacher_id: user.id,
-            start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
-            end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
-            student_proxy_ids: selectedStudents,
-            class_code: code,
-            meeting_link: zoomLink,
-        };
-
-        // Log the classData object to verify its structure and values
-        console.log('Class Data:', classData);
-
-        // Insert class data
-        const { data: classInsertData, error: classError } = await supabaseClient
-            .from('classes')
-            .insert([classData])
-            .select('id');
-
-        if (classError) throw classError;
-
-        // Handle new students
-	    const { data: teacherData, error: teacherError } = await supabaseClient
-                .from('teachers')
-                .select('first_name, last_name')
-                .eq('id', classData.teacher_id)
-                .single()
-        for (const student of tempNewStudents) {
+	const handleCreateClass = async () => {
+		try {
+			const code = generateRandomString(6);
 			
-            const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-            const response = await fetchTimeout(`/api/users/new_student`, 10000, {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                    "jwt": jwt,
-                    "refresh_token": (await supabaseClient.auth.getSession()).data.session.refresh_token,
-                    "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
-                    "email": student.email,
-                    "notes": newStudentNotes,
-                    "classes_left": "0",
-                    "class_id": classInsertData[0].id,
-                    "class_code": code,
-                    "class_name": className
-                },
-                
-            });
-
-            if (response.status !== 200) {
-                toast({
-                    variant: 'destructive',
-                    title: "Failed to add new student",
-                    description: `Error adding ${student.email}`,
-                    duration: 3000
-                });
-            }
-        }
-
-        console.log("Class created successfully and students updated!");
-        toast({
-            className: "bg-green-500 border-black border-2",
-            title: "Class Successfully Added",
-            description: "The new class has been added and students have been updated",
-            duration: 3000
-        });
-        resetAllStates();
-        setIsOpen(false);
-
-    } catch (error) {
-        console.error("Error creating class or updating students", error);
-        toast({
-            variant: 'destructive',
-            title: "Failed to create class or update students",
-            description: "Please try again.",
-            duration: 3000
-        });
-    }
-};
+			const {data: {user}, error: authError} = await supabaseClient.auth.getUser();
+			if (authError || !user) {
+				console.error('Authentication error:', authError);
+				toast({
+					variant: 'destructive',
+					title: "Failed to create class",
+					description: "Authentication error. Please log in again.",
+					duration: 3000
+				});
+				return;
+			}
+			
+			const classData = {
+				name: className,
+				description: classDescription,
+				days: selectedDays,
+				teacher_id: user.id,
+				start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
+				end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
+				student_proxy_ids: selectedStudents,
+				class_code: code,
+				meeting_link: zoomLink,
+			};
+			
+			// Log the classData object to verify its structure and values
+			console.log('Class Data:', classData);
+			
+			// Insert class data
+			const {data: classInsertData, error: classError} = await supabaseClient
+				.from('classes')
+				.insert([classData])
+				.select('id');
+			
+			if (classError) throw classError;
+			
+			// Handle new students
+			const {data: teacherData, error: teacherError} = await supabaseClient
+				.from('teachers')
+				.select('first_name, last_name')
+				.eq('id', classData.teacher_id)
+				.single()
+			for (const student of tempNewStudents) {
+				
+				const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+				const response = await fetchTimeout(`/api/users/new_student`, 10000, {
+					method: 'POST',
+					headers: {
+						"Content-Type": "application/json",
+						"jwt": jwt,
+						"refresh_token": (await supabaseClient.auth.getSession()).data.session.refresh_token,
+						"teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
+						"email": student.email,
+						"notes": newStudentNotes,
+						"classes_left": "0",
+						"class_id": classInsertData[0].id,
+						"class_code": code,
+						"class_name": className
+					},
+					
+				});
+				
+				if (response.status !== 200) {
+					toast({
+						variant: 'destructive',
+						title: "Failed to add new student",
+						description: `Error adding ${student.email}`,
+						duration: 3000
+					});
+				}
+			}
+			
+			console.log("Class created successfully and students updated!");
+			toast({
+				className: "bg-green-500 border-black border-2",
+				title: "Class Successfully Added",
+				description: "The new class has been added and students have been updated",
+				duration: 3000
+			});
+			resetAllStates();
+			setIsOpen(false);
+			
+		} catch (error) {
+			console.error("Error creating class or updating students", error);
+			toast({
+				variant: 'destructive',
+				title: "Failed to create class or update students",
+				description: "Please try again.",
+				duration: 3000
+			});
+		}
+	};
 	
 	
 	const _classNameAndDescription = () => {
@@ -249,7 +249,6 @@ const handleCreateClass = async () => {
 						}} className="gap-2">Choose Timings<CircleArrowRight className="h-5 w-5"/></Button>
 					</div>
 				</DialogFooter>
-			
 			</div>
 		)
 	}
