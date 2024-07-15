@@ -76,9 +76,9 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
             teacher_id: (await supabaseClient.auth.getUser()).data.user.id,
             start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
             end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
-            students: selectedStudents,
+            student_proxy_ids: selectedStudents,
             class_code: code,
-            zoom_link: zoomLink,
+            meeting_link: zoomLink,
         };
 
         const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
@@ -95,24 +95,24 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                 .insert([classData])
                 .select('id');
 
-            const uuid = classInsertData[0].id
+            
 
             if (classError) throw classError;
             const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select("first_name, last_name").eq('id', (await supabaseClient.auth.getUser()).data.user.id).single();
-            console.log(uuid);
+            // console.log(uuid);
             if (error) throw error
             let updatedUuidArray;
-            if (classInsertData.class_id && Array.isArray(classInsertData.class_id)) {
-                updatedUuidArray = [...classInsertData.class_id, uuid];
-            } else {
-                updatedUuidArray = [uuid];
-            }
+            // if (classInsertData.class_id && Array.isArray(classInsertData.class_id)) {
+            //     updatedUuidArray = [...classInsertData.class_id, uuid];
+            // } else {
+            //     updatedUuidArray = [uuid];
+            // }
             let studentEmails = [];
             for (const student of selectedStudents) {
                 console.log(student)
                 const { data: studentData, error: fetchError } = await supabaseClient
-                    .from('students')
-                    .select('class_id, classes_left, status, teachers, email')
+                    .from('student_proxies')
+                    .select('class_id, classes_left, hasJoined, teachers, email')
                     .eq('id', student)
                     .single();
 
@@ -135,17 +135,17 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
                     ...(studentData.status || {}),
                     [uuid]: 'Invited'
                 };
-                let updatedteacher = Array.isArray(studentData.teachers)
-                    ? [...studentData.teachers, (await supabaseClient.auth.getUser()).data.user.id]
-                    : [(await supabaseClient.auth.getUser()).data.user.id];
+                // let updatedteacher = Array.isArray(studentData.teachers)
+                //     ? [...studentData.teachers, (await supabaseClient.auth.getUser()).data.user.id]
+                //     : [(await supabaseClient.auth.getUser()).data.user.id];
 
                 const { data: updateData, error: updateError } = await supabaseClient
-                    .from('students')
+                    .from('student_proxies')
                     .update({
                         class_id: updatedClassId,
                         classes_left: updatedClassesLeft,
-                        status: updatedStatus,
-                        teachers: updatedteacher
+                        hasJoined: updatedStatus,
+                        teacher_id: await supabaseClient.auth.getUser().id,
                     })
                     .eq('id', student)
                 if (updateError) throw updateError;
@@ -434,9 +434,9 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
     const fetchStudents = async () => {
         try {
             const { data, error } = await supabaseClient
-                .from('students')
+                .from('student_proxies')
                 .select('*')
-                .contains('teachers', `{${(await supabaseClient.auth.getUser()).data.user.id}}`);
+                .eq('teacher_id', `{${(await supabaseClient.auth.getUser()).data.user.id}}`);
 
             if (error) throw error;
 
