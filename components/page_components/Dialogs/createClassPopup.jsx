@@ -104,8 +104,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 				.select('first_name, last_name')
 				.eq('id', classData.teacher_id)
 				.single()
-			for (const student of tempNewStudents) {
-				
+			for (const student of tempNewStudents) {				
 				const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
 				const response = await fetchTimeout(`/api/students/new_student`, 10000, {
 					method: 'POST',
@@ -130,6 +129,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 						description: `Error adding ${student.email}`,
 						duration: 3000
 					});
+					return;
 				}
 			}
 			

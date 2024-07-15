@@ -9,6 +9,10 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+const TOKEN = process.env.EMAIL_TOKEN;
+const ENDPOINT = process.env.EMAIL_ENDPOINT;
+const client = new MailtrapClient({ endpoint: ENDPOINT, token: TOKEN });
+
 // POST Endpoint
 // Endpoint can create student account, create proxies and send welcoming and onboarding emails
 // Headers needed for this endpoint:
@@ -41,6 +45,9 @@ export async function POST(request) {
 	const class_name = request.headers.get('class_name');
 	
 	const createStudentData = await createNewStudent(email);
+	if (createStudentData?.error === true) {
+		return NextResponse.json({message: "Error Adding Student"}, {status: 500});
+	}
 	if (createStudentData === "User Exists") {
 		// User Already Exists, Need to Create a proxy
 		const {
@@ -92,8 +99,8 @@ export async function POST(request) {
 	}
 	
 	// Add Student to Student Table
-	const studentTableData = await addToStudentTable(email);
-	const studentUUID = studentTableData[0]?.id;
+	const studentTableData = await addToStudentTable(email, createStudentData);
+	const studentUUID = createStudentData;
 	if (studentTableData === "Error") {
 		return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 	}
@@ -121,20 +128,27 @@ export async function POST(request) {
 
 // Creates a new student Account
 const createNewStudent = async (studentEmail) => {
-	const {data, error} = await supabase.auth.signUp({
+	const {data, error} = await supabase.auth.admin.createUser({
 		email: studentEmail,
 		password: process.env.DEFAULT_PASSWORD,
+		email_confirm: true,
 	})
-	
+
 	// Check if User already exists
-	if (error?.code === 'user_already_exists') {
+	if (error?.code === 'email_exists') {
 		return "User Exists"
 	}
+	if (error) {
+		console.log("Error Creating Student Account");
+		console.log(error);
+		return { "error": true, "message": error }
+	}
+	return data.user.id
 }
 
 // Adds the student to the student table
-const addToStudentTable = async (studentEmail) => {
-	const {data, error} = await supabase.from('students').insert([{email: studentEmail}]).select()
+const addToStudentTable = async (studentEmail, studentID) => {
+	const {data, error} = await supabase.from('students').insert([{id: studentID, email: studentEmail}]).select()
 	
 	if (error) {
 		console.log("Error Inserting Student Data: 'students' Table");
@@ -156,6 +170,7 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 		console.log(studentProxyError);
 		return "Error"
 	}
+	console.log(studentProxyData);
 	if (studentProxyData.length > 0) {
 		// Student Proxy Already Exists, need to update the classes_left
 		const classes_left_jb = studentProxyData[0].classes_left;
@@ -179,9 +194,29 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 		teacher_id: teacherUUID,
 		classes_left: classes_left_jb,
 		email: studentEmail,
-		notes: notes
+		notes: notes,
+		// hasJoined: false
 	}]).select()
-	
+
+	// Add student proxy ID to student table proxy_ids array
+	const studentProxyID = data[0].id;
+	const { data: studentData, error: studentError } = await supabase.from('students').select("proxy_ids")
+	if (studentError) {
+		console.log("Error Fetching Student Data: 'students' Table");
+		console.log(studentError);
+		return "Error"
+	}
+	let proxy_ids = studentData[0].proxy_ids;
+	if (!proxy_ids) {
+		proxy_ids = [];
+	}
+	proxy_ids.push(studentProxyID);
+	const { data: studentUpdateData, error: studentUpdateError } = await supabase.from('students').update({proxy_ids: proxy_ids}).eq('id', studentUUID).select()
+	if (studentUpdateError) {
+		console.log("Error Updating Student Data: 'students' Table");
+		console.log(studentUpdateError);
+		return "Error"
+	}
 	if (error) {
 		console.log("Error Inserting Student Data: 'student_proxies' Table");
 		console.log(error);
@@ -192,10 +227,6 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 
 // Sends a welcome email to the student
 const sendWelcomeEmail = async (jwt, teacherName, refresh_token, email) => {
-	const TOKEN = process.env.EMAIL_TOKEN;
-	const ENDPOINT = process.env.EMAIL_ENDPOINT;
-	const client = new MailtrapClient({endpoint: ENDPOINT, token: TOKEN});
-	
 	const link = `https://classaccess.tech/activate#jwt=${jwt}&refresh_token=${refresh_token}`;
 	const sender = {
 		email: "no-reply@classaccess.tech",
