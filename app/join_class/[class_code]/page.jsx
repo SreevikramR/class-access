@@ -20,7 +20,6 @@ export default function Component({ params: { class_code } }) {
     const [step, setStep] = useState(0)
     const [loading, setLoading] = useState(false)
     const [unactivated, setUnactivated] = useState(false)
-    const [isInvited, setIsInvited] = useState(false)
     const { toast } = useToast()
 
     useEffect(() => {
@@ -164,9 +163,6 @@ export default function Component({ params: { class_code } }) {
         const { data, error } = await supabaseClient.from('student_proxies').select('*').eq('student_id', studentId).eq('teacher_id', classData.teacher_id)
         if (!data[0].hasJoined) {
             setUnactivated(true)
-        }
-        if (data[0].status[classData.id] === 'Invited') {
-            setIsInvited(true)
         }
         setClassDetails(classData)
         if (classData.teacher_id) {
@@ -379,16 +375,6 @@ export default function Component({ params: { class_code } }) {
         )
     }
 
-    const _notJoined = () => {
-        return (
-            <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
-                <div className="text-center">
-                    <h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Please check you email for a class invite link. Return to this page once you have accepted the invite</h1>
-                </div>
-            </Card>
-        )
-    }
-
     const noAccount = () => {
         return (
             <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
@@ -412,9 +398,8 @@ export default function Component({ params: { class_code } }) {
             }
             {isLoggedIn && <>
                 {unactivated && _unactivated()}
-                {isInvited && !unactivated && _notJoined()}
-                {joinedClass && !unactivated && !isInvited && _joinedClass()}
-                {!classDetails && !unactivated && !isInvited && (
+                {joinedClass && !unactivated && _joinedClass()}
+                {!classDetails && !unactivated && (
                     <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
                         <div className="flex flex-col items-center space-y-2">
                             <div className="inline-block rounded-lg px-3 py-1 text-lg sm:text-lg font-medium text-pretty">
@@ -426,7 +411,7 @@ export default function Component({ params: { class_code } }) {
                         </div>
                     </Card>
                 )}
-                {!joinedClass && classDetails && !unactivated && !isInvited && (
+                {!joinedClass && classDetails && !unactivated && (
                     <div className="lg:w-[46vw] sm:w-[60vw] w-[90vw]">
                         <Card className="w-full p-6 space-y-4">
                             <div className="flex flex-col items-center space-y-2">
