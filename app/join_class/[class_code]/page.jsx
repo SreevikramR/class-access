@@ -2,7 +2,7 @@
 import { useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import StudentOnboardingPopup from "@/components/page_components/Dialogs/studentOnboardingPopup"
+import StudentClassOnboardingPopup from "@/components/page_components/Dialogs/studentClassOnboardingPopup"
 import { useState } from "react"
 import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import fetchTimeout from "@/components/util_function/fetch"
@@ -46,7 +46,7 @@ export default function Component({ params: { class_code } }) {
                 }
             }
         } else {
-            console.log("not logged in")
+            setIsOpen(true)
         }
     }
     
@@ -207,7 +207,7 @@ export default function Component({ params: { class_code } }) {
             {!joinedClass && classDetails && (
                 <div className="lg:w-[46vw] sm:w-[60vw] w-[90vw]">
                     {!isLoggedIn && (
-                        <StudentOnboardingPopup isOpen={isOpen} setIsOpen={setIsOpen} />
+                        <StudentClassOnboardingPopup isOpen={isOpen} setIsOpen={setIsOpen} />
                     )}
                     <Card className="w-full p-6 space-y-4">
                         <div className="flex flex-col items-center space-y-2">
