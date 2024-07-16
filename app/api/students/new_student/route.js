@@ -195,12 +195,14 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 	}
 	if (studentProxyData.length > 0) {
 		// Student Proxy Already Exists, need to update the classes_left
-		const classes_left_jb = studentProxyData[0].classes_left;
+		let classes_left_jb = studentProxyData[0].classes_left;
 		classes_left_jb[class_id] = classes_left;
+		let status_jb = studentProxyData[0].status;
+		status_jb[class_id] = "Invited";
 		const {
 			data,
 			error
-		} = await supabase.from('student_proxies').update({classes_left: classes_left_jb}).eq('student_id', studentUUID).eq('teacher_id', teacherUUID).select()
+		} = await supabase.from('student_proxies').update({classes_left: classes_left_jb, status: status_jb}).eq('student_id', studentUUID).eq('teacher_id', teacherUUID).select()
 		if (error) {
 			console.log("Error Updating Student Data: 'student_proxies' Table");
 			console.log(error);
@@ -211,13 +213,16 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 	
 	let classes_left_jb = {}
 	classes_left_jb[class_id] = classes_left;
+	let status_jb = {}
+	status_jb[class_id] = "Invited";
 	const {data: data, error: error} = await supabase.from('student_proxies').insert([{
 		student_id: studentUUID,
 		teacher_id: teacherUUID,
 		classes_left: classes_left_jb,
 		email: studentEmail,
 		notes: notes,
-		hasJoined: false
+		hasJoined: false,
+		status: status_jb
 	}]).select()
 
 	if (error) {
