@@ -59,6 +59,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 	}
 
 	const handleCreateClass = async () => {
+		if (loading) return;
 		setLoading(true)
 		try {
 			const code = generateRandomString(6);
