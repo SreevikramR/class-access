@@ -221,7 +221,6 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 		status: status_jb
 	}]).select()
 
-
 	if (error) {
 		console.log("Error Inserting Student Data: 'student_proxies' Table");
 		console.log(error);
