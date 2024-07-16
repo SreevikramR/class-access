@@ -24,6 +24,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 	const [startTime, setStartTime] = useState({ hour: "12", minute: "00", ampm: "AM" })
 	const [endTime, setEndTime] = useState({ hour: "01", minute: "00", ampm: "AM" })
 	const [selectedStudents, setSelectedStudents] = useState([])
+	const [loading, setLoading] = useState(false)
 	const { toast } = useToast()
 	const [students, setStudents] = useState([])
 	const [newStudentEmail, setNewStudentEmail] = useState('')
@@ -58,6 +59,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 	}
 
 	const handleCreateClass = async () => {
+		setLoading(true)
 		try {
 			const code = generateRandomString(6);
 
@@ -70,6 +72,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 					description: "Authentication error. Please log in again.",
 					duration: 3000
 				});
+				setLoading(false)
 				return;
 			}
 
@@ -150,7 +153,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 				resetAllStates();
 				setIsOpen(false);
 			}
-
+			setLoading(false)
 		} catch (error) {
 			console.error("Error creating class or updating students");
 			toast({
@@ -159,7 +162,9 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 				description: "Please try again.",
 				duration: 3000
 			});
+			setLoading(false)
 		}
+		setLoading(false)
 	};
 
 	const _classNameAndDescription = () => {
@@ -387,14 +392,8 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 		setSelectedStudents([...selectedStudents, newTempStudent]);
 		setNewStudentEmail('');
 		setNewStudentNotes('');
-
-		toast({
-			className: "bg-green-500 border-black border-2",
-			title: "Student Added",
-			description: "The new student has been added and selected",
-			duration: 3000
-		});
 	};
+
 	const fetchStudents = async () => {
 		try {
 			const { data, error } = await supabaseClient
@@ -560,7 +559,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 					<div className='flex justify-between flex-wrap w-full'>
 						<Button className="border-slate-400 hover:border-black" variant="outline"
 							onClick={() => setClassCreationStep(3)}>Back</Button>
-						<Button type="button" onClick={handleCreateClass} className="gap-2">Confirm<CheckCircle
+						<Button type="button" onClick={handleCreateClass} className={"gap-2" + (loading ? " cursor-progress" : "")}>Confirm<CheckCircle
 							className="h-5 w-5" /></Button>
 					</div>
 				</DialogFooter>
@@ -569,16 +568,18 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 	}
 
 	return (
-		<Dialog open={isOpen} onOpenChange={setIsOpen} defaultOpen>
-			<DialogContent
-				className={"sm:max-w-[425px] " + (classCreationStep === 3 ? "lg:max-w-[55vw]" : "lg:max-w-[32vw]")}>
-				{classCreationStep === 0 && _classNameAndDescription()}
-				{classCreationStep === 1 && _classDays()}
-				{classCreationStep === 2 && _classTimings()}
-				{classCreationStep === 3 && _studentList()}
-				{classCreationStep === 4 && _reviewDetails()}
-			</DialogContent>
-		</Dialog>
+		<>
+			<Dialog open={isOpen} onOpenChange={setIsOpen} defaultOpen>
+				<DialogContent
+					className={"sm:max-w-[425px] " + (classCreationStep === 3 ? "lg:max-w-[55vw]" : "lg:max-w-[32vw]")}>
+					{classCreationStep === 0 && _classNameAndDescription()}
+					{classCreationStep === 1 && _classDays()}
+					{classCreationStep === 2 && _classTimings()}
+					{classCreationStep === 3 && _studentList()}
+					{classCreationStep === 4 && _reviewDetails()}
+				</DialogContent>
+			</Dialog>
+		</>
 	)
 }
 
