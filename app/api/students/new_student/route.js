@@ -73,6 +73,14 @@ export async function POST(request) {
 				console.log(error);
 				return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 			}
+
+			// Add student proxy to class using the funciton
+			const studentProxyID = studentProxyData[0].id;
+			console.log("1");
+			const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id);
+			if (addStudentProxyToClassStatus === "Error") {
+				return NextResponse.json({message: "Error Adding Student"}, {status: 500});
+			}
 			
 			// Send Onboarding Email
 			const onboardingEmailStatus = await sendOnboardingEmail(email, class_code, teacher_name, class_name);
@@ -87,6 +95,13 @@ export async function POST(request) {
 		const studentInsertProxyData = await addStudentProxy(createStudentData.id, teacherUUID, class_id, classes_left, email, notes);
 		if (studentInsertProxyData === "Error") {
 			return NextResponse.json({message: "Error Adding Student"}, {status: 500});
+		}
+
+		const studentProxyID = studentInsertProxyData[0].id;
+		console.log("2");
+		const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id);
+		if (addStudentProxyToClassStatus === "Error") {
+			return NextResponse.json({ message: "Error Adding Student" }, { status: 500 });
 		}
 		
 		// Send Onboarding Email
@@ -115,6 +130,13 @@ export async function POST(request) {
 	const welcomeEmailStatus = await sendWelcomeEmail(token, teacher_name, refresh_token, email);
 	if (welcomeEmailStatus === "Email Failed") {
 		return NextResponse.json({message: "Error Sending Email"}, {status: 500});
+	}
+
+	const studentProxyID = studentProxyData[0].id;
+	console.log("3");
+	const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id);
+	if (addStudentProxyToClassStatus === "Error") {
+		return NextResponse.json({ message: "Error Adding Student" }, { status: 500 });
 	}
 	
 	// Send Onboarding Email
@@ -224,6 +246,27 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 		return "Error"
 	}
 	return data;
+}
+
+// Add student proxy id to the class
+const addStudentProxyToClass = async (studentProxyID, classID) => {
+	const { data: classData, error: classError } = await supabase.from('classes').select('student_proxy_ids').eq('id', classID).single()
+	if (classError) {
+		console.log("Error Fetching Class Data: 'classes' Table");
+		console.log(classError);
+		return "Error"	
+	}
+	let studentProxyIDArray = classData.student_proxy_ids;
+	if (studentProxyIDArray.includes(studentProxyID)) {
+		return true;
+	}
+	studentProxyIDArray.push(studentProxyID);
+	const { data: classUpdateData, error: classUpdateError } = await supabase.from('classes').update({ student_proxy_ids: studentProxyIDArray }).eq('id', classID).select()
+	if (classUpdateError) {
+		console.log("Error Updating Class Data: 'classes' Table");
+		console.log(classUpdateError);
+	}
+	return true;
 }
 
 // Sends a welcome email to the student
