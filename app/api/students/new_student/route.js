@@ -127,8 +127,8 @@ try {
 	
 	return NextResponse.json({message: "Student Added"}, {status: 200});
 }catch (e) {
-	 console.error('Error in POST /api/users/new_student:', error);
-	 return NextResponse.json({message: "Internal Server Error", error: error.message}, {status: 500});
+	 console.error('Error in POST /api/users/new_student:', e);
+	 return NextResponse.json({message: "Internal Server Error", error: e.message}, {status: 500});
 }
 }
 
