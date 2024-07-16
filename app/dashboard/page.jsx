@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { PlusCircle, Share2, Copy } from 'lucide-react';
 import CreateClassPopup from '@/components/page_components/Dialogs/createClassPopup'
 import AuthWrapper from '@/components/page_components/authWrapper'
-import LoadingOverlay from '@/components/page_components/loadingOverlay'
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
@@ -80,8 +79,8 @@ const Dashboard = ({ classInfo }) => {
         classData.classLink = classLink
 
         const handleStartClass = () => {
-            if (classInfo.zoom_link) {
-                window.open(classInfo.zoom_link, '_blank');
+            if (classInfo.meeting_link) {
+                window.open(classInfo.meeting_link, '_blank');
             } else {
                 toast({
                     title: "No Zoom link available",
@@ -123,7 +122,7 @@ const Dashboard = ({ classInfo }) => {
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
-                    <div className="text-muted-foreground text-sm">{classInfo.students.length} students enrolled</div>
+                    <div className="text-muted-foreground text-sm">{classInfo.student_proxy_ids.length} students enrolled</div>
                     <span className="text-sm text-muted-foreground hover:text-blue-500 hover:cursor-pointer flex flex-row justify-center" onClick={() => handleShareClick(classData)}>
                         Share Link <Share2 className="h-4 w-4 ml-1" />
                     </span>
@@ -134,7 +133,6 @@ const Dashboard = ({ classInfo }) => {
 
     return (
         <AuthWrapper>
-            {loading && <LoadingOverlay />}
             <div className="flex flex-col min-h-screen">
                 <Header />
                 <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen} className="bg-white">
