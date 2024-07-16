@@ -584,7 +584,7 @@ export default function ManageClass({params}) {
 							<p className="text-gray-600">Please share the class link with your students</p>
 							<p className="font-medium flex flex-row">
 								Class Link: <span
-								className="font-normal pl-1">classaccess.vercel.app/join/{classCode}</span>
+								className="font-normal pl-1">classaccess.tech/join/{classCode}</span>
 								<Copy className="h-5 w-5 hover:cursor-pointer ml-2" onClick={handleCopyLink}/>
 							</p>
 						</section>
