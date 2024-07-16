@@ -128,22 +128,23 @@ export default function Component({ params: { class_code } }) {
                     setTimeout(() => {
                         window.location.href = '/login'
                     }, 5000)
-                }
-                const controller = new AbortController()
-                const { signal } = controller;
-                const url = new URL(`${window.location.origin}/api/users/delete_user`)
-                const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
-                const response = await fetchTimeout(url, 5500, { signal, headers: { 'jwt': jwt } });
-                console.log(response)
-                if (response.status === 200) {
-                    toast({
-                        title: 'Account not found with Email',
-                        description: "Please Sign Up First",
-                        variant: "destructive"
-                    })
-                    setTimeout(() => {
-                        window.location.reload()
-                    }, 5000)
+                } else {
+                    const controller = new AbortController()
+                    const { signal } = controller;
+                    const url = new URL(`${window.location.origin}/api/users/delete_user`)
+                    const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
+                    const response = await fetchTimeout(url, 5500, { signal, headers: { 'jwt': jwt } });
+                    console.log(response)
+                    if (response.status === 200) {
+                        toast({
+                            title: 'Account not found with Email',
+                            description: "Please Sign Up First",
+                            variant: "destructive"
+                        })
+                        setTimeout(() => {
+                            window.location.reload()
+                        }, 5000)
+                    }
                 }
             }
             fetchClassDetails()
