@@ -1,5 +1,6 @@
 import verifyJWT from "@/components/util_function/verifyJWT";
 import { createClient } from "@supabase/supabase-js";
+import {NextResponse} from "next/server";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
