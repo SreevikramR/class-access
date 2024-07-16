@@ -4,7 +4,6 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-
 import { useState } from "react"
 import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import fetchTimeout from "@/components/util_function/fetch"
@@ -14,20 +13,18 @@ export default function Component({ params: { class_code } }) {
     const [joinedClass, setJoinedClass] = useState(false)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [classDetails, setClassDetails] = useState(null)
+    const [studentData, setStudentData] = useState(null)
     const [teacherName, setTeacherName] = useState("")
     const [email, setEmail] = useState("")
     const [loginPassword, setLoginPassword] = useState("")
     const [step, setStep] = useState(0)
     const [loading, setLoading] = useState(false)
-
     const { toast } = useToast()
 
     useEffect(() => {
         fetchUser()
         // fetchClassDetails()
     }, [])
-
-
 
     const handlePasswordLogin = async () => {
         if (!email || !loginPassword) {
@@ -50,6 +47,7 @@ export default function Component({ params: { class_code } }) {
                 variant: "destructive"
             });
         }
+        fetchUser()
         setIsLoggedIn(true)
         toast({
             title: 'Success',
@@ -109,13 +107,12 @@ export default function Component({ params: { class_code } }) {
         setLoading(false)
     }
 
-
-
     const fetchUser = async () => {
         const user = await supabaseClient.auth.getUser();
         if (user.data.user != null) {
             const { data, error } = await supabaseClient.from('students').select('*').eq('id', user.data.user.id);
             if (data.length > 0) {
+                setStudentData(data[0])
                 setIsLoggedIn(true)
             } else {
                 const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('*').eq('id', user.data.user.id);
@@ -228,6 +225,40 @@ export default function Component({ params: { class_code } }) {
     }
 
     const handleComplete = async () => {
+        const { data, error } = await supabaseClient.from('student_proxies').select('*').eq('student_id', studentData.id).eq('teacher_id', classDetails.teacher_id)
+        if (data.length === 0) {
+            toast({
+                title: 'Unable to Join Class',
+                description: "Error Joining Class, Please try again later",
+                variant: "destructive"
+            })
+        }
+        const controller = new AbortController()
+        const { signal } = controller;
+        const url = new URL(`${window.location.origin}/api/students/update_proxy`)
+        const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
+        const response = await fetchTimeout(url, 5500, {
+            signal,
+            method: 'PUT',
+            headers: {
+                'jwt': jwt,
+                'student_proxy_id': data[0].id,
+                'first_name': studentData.first_name,
+                'last_name': studentData.last_name,
+                'phone': studentData.phone,
+                'class_id': classDetails.id,
+                'class_status': 'Joined'
+            },
+        });
+        if (response.status === 200) {
+            setJoinedClass(true)
+        } else {
+            toast({
+                title: 'Failed to join class',
+                description: "Please try again later",
+                variant: "destructive"
+            });
+        }
     };
 
     const _login = () => {
