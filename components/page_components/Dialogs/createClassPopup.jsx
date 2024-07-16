@@ -105,7 +105,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 				.eq('id', classData.teacher_id)
 				.single()
 			let addedAllStudents = true
-			for (const student of tempNewStudents) {				
+			for (const student of selectedStudents) {
 				const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
 				const response = await fetchTimeout(`/api/students/new_student`, 10000, {
 					method: 'POST',
