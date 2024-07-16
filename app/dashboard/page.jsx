@@ -122,7 +122,7 @@ const Dashboard = ({ classInfo }) => {
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
-                    <div className="text-muted-foreground text-sm">{classInfo.student_proxy_ids.length} students enrolled</div>
+                    <div className="text-muted-foreground text-sm">{classInfo.student_proxy_ids.length||0} students enrolled</div>
                     <span className="text-sm text-muted-foreground hover:text-blue-500 hover:cursor-pointer flex flex-row justify-center" onClick={() => handleShareClick(classData)}>
                         Share Link <Share2 className="h-4 w-4 ml-1" />
                     </span>

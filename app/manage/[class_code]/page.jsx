@@ -76,31 +76,7 @@ export default function ManageClass({ params }) {
         }
     };
 
-    const sendEmailToNewStudents = async (newStudents, classData, teacherData) => {
-        for (const student of newStudents) {
-            try {
-                const response = await fetchTimeout(`/api/email/onboard_student`, 5500, {
-                    method: 'POST',
-                    headers: {
-                        "Content-Type": "application/json",
-                        "student_email": student.email,
-                        "class_name": classData.name,
-                        "class_code": classCode,
-                        "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`
-                    }
-                });
-                if (response.status === 200) {
-                    return true
-                } else {
-                    return false
-                }
-            } catch (error) {
-                console.error(`Failed to send email to ${student.email}:`, error);
-                return false
-            }
-        }
-    };
-
+ 
     async function fetchStudentData(studentUUIDs) {
         setLoading(true)
         if (studentUUIDs && studentUUIDs.length > 0) {
@@ -190,87 +166,72 @@ export default function ManageClass({ params }) {
 
         setLoading(true)
 
-        try {
-            const controller = new AbortController();
-            const { signal } = controller;
-            const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-            const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select("first_name, last_name").eq('id', (await supabaseClient.auth.getUser()).data.user.id).single();
-            const response = await fetchTimeout(`/api/users/new_student?email=${email}&notes=${notes}&teacher_fname=${teacherData.first_name}&teacher_lname=${teacherData.last_name}`, 5500, {
-                signal,
+        
+        
+        // Handle students
+        const { data: teacherData, error: teacherError } = await supabaseClient
+            .from('teachers')
+            .select('first_name, last_name')
+            .eq('id', classData.teacher_id)
+            .single()
+
+        if (teacherError) throw teacherError;
+
+        const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+        const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token;
+		try{
+            const headers = {
+                "jwt": jwt,
+                "refresh_token": refreshToken,
+                "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
+                "email": email,
+                "notes": notes || '',
+                "classes_left": numClasses,
+                "class_id": classData.id,
+                "class_code": classCode,
+                "class_name": classData.name
+            };
+
+            console.log('Sending request with headers:', headers);
+
+            const response = await fetchTimeout(`/api/students/new_student`, 10000, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'jwt': jwt,
-                    'refresh_token': (await supabaseClient.auth.getSession()).data.session.refresh_token
-                },
+                headers: headers,
             });
-            if (response.status === 409) {
+            
+            if (response.status !== 200) {
+                
+                const errorText = await response.text();
+                console.error('Error response:', response.status, errorText);
                 toast({
                     variant: 'destructive',
-                    title: "Student already exists",
-                    description: "The student with this email is already registered.",
+                    title: "Failed to add student to class",
+                    description: `Error adding ${email}: ${errorText}`,
                     duration: 3000
                 });
-                setLoading(false)
-                return;
             }
+        
 
-            if (response.status === 200) {
-                const result = await response.json();
-                const newStudent = result[0];
-
-                // Update the new student's record with class-specific data
-                const { error: updateError } = await supabaseClient
-                    .from('student_proxies')
-                    .update({
-                        class_id: [classData.id],
-                        classes_left: { [classData.id]: numClasses.toString() },
-                        hasJoined: { [classData.id]: 'Invited' }
-                    })
-                    .eq('id', newStudent.id);
-
-                if (updateError) throw updateError;
-
-                setStudents([...students, newStudent]);
-
-                // Update the class with the new student
-                const updatedStudents = [...(classData.students_proxy_ids || []), newStudent.id];
-                await updateClassStudents(updatedStudents);
-
-                // Update local state
-                setClassData({ ...classData, students: updatedStudents });
-                await fetchStudentData(updatedStudents);
-                const emailResult = await sendEmailToNewStudents([newStudent], classData, teacherData);
-                if (!emailResult) {
-                    toast({
-                        variant: 'destructive',
-                        title: "Failed to send email",
-                        description: "The student has been added but the email was not sent.",
-                        duration: 3000
-                    });
-                }
-                toast({
-                    className: "bg-green-500 border-black border-2",
-                    title: "Student Added",
-                    description: "The new student has been added to the class",
-                    duration: 3000
-                });
-
-                setEmail('');
-                setNumClasses(0);
-                setNotes('');
-            }
-        } catch (error) {
-            console.error("Error adding student:", error);
-            toast({
-                variant: 'destructive',
-                title: "Failed to add student",
-                description: "Try again.",
+        console.log("Class created successfully and students updated!");
+			toast({
+                className: "bg-green-500 border-black border-2",
+                title: "Student Successfully Added",
+                description: "The new class has been added and students have been updated",
                 duration: 3000
             });
-        }
-        setLoading(false)
-    };
+            
+        
+        
+    } catch (error) {
+        console.error("Error updating students",error);
+        toast({
+            variant: 'destructive',
+            title: "Failed update students",
+            description: "Please try again.",
+            duration: 3000
+        });
+    }
+};
 
     const handleAddExistingStudents = async () => {
         if (selectedStudents.length === 0) {
