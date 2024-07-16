@@ -19,11 +19,12 @@ export default function Component({ params: { class_code } }) {
     const [loginPassword, setLoginPassword] = useState("")
     const [step, setStep] = useState(0)
     const [loading, setLoading] = useState(false)
+    const [unactivated, setUnactivated] = useState(false)
+    const [isInvited, setIsInvited] = useState(false)
     const { toast } = useToast()
 
     useEffect(() => {
         fetchUser()
-        // fetchClassDetails()
     }, [])
 
     const handlePasswordLogin = async () => {
@@ -159,11 +160,19 @@ export default function Component({ params: { class_code } }) {
             console.log("Class does not exist")
             return
         }
+        const studentId = (await supabaseClient.auth.getUser()).data.user.id
+        const { data, error } = await supabaseClient.from('student_proxies').select('*').eq('student_id', studentId).eq('teacher_id', classData.teacher_id)
+        if (!data[0].hasJoined) {
+            setUnactivated(true)
+        }
+        if (data[0].status[classData.id] === 'Invited') {
+            setIsInvited(true)
+        }
         setClassDetails(classData)
         if (classData.teacher_id) {
             const { data: teacherData, error: teacherError } = await supabaseClient
                 .from('teachers')
-                .select('first_name, last_name')
+                .select('first_name, last_name, id')
                 .eq('id', classData.teacher_id)
                 .single()
 
@@ -360,6 +369,26 @@ export default function Component({ params: { class_code } }) {
         )
     }
 
+    const _unactivated = () => {
+        return (
+            <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
+                <div className="text-center">
+                    <h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Please check your email for an account activation link. Come back to this page once you have activated your account</h1>
+                </div>
+            </Card>
+        )
+    }
+
+    const _notJoined = () => {
+        return (
+            <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
+                <div className="text-center">
+                    <h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Please check you email for a class invite link. Return to this page once you have accepted the invite</h1>
+                </div>
+            </Card>
+        )
+    }
+
     const noAccount = () => {
         return (
             <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
@@ -382,8 +411,10 @@ export default function Component({ params: { class_code } }) {
                 </>
             }
             {isLoggedIn && <>
-                {joinedClass && _joinedClass()}
-                {!classDetails && (
+                {unactivated && _unactivated()}
+                {isInvited && !unactivated && _notJoined()}
+                {joinedClass && !unactivated && !isInvited && _joinedClass()}
+                {!classDetails && !unactivated && !isInvited && (
                     <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
                         <div className="flex flex-col items-center space-y-2">
                             <div className="inline-block rounded-lg px-3 py-1 text-lg sm:text-lg font-medium text-pretty">
@@ -395,7 +426,7 @@ export default function Component({ params: { class_code } }) {
                         </div>
                     </Card>
                 )}
-                {!joinedClass && classDetails && (
+                {!joinedClass && classDetails && !unactivated && !isInvited && (
                     <div className="lg:w-[46vw] sm:w-[60vw] w-[90vw]">
                         <Card className="w-full p-6 space-y-4">
                             <div className="flex flex-col items-center space-y-2">
