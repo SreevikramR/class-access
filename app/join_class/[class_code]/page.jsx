@@ -8,12 +8,12 @@ import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import fetchTimeout from "@/components/util_function/fetch"
 import { useToast } from "@/components/ui/use-toast"
 
-export default function Component({ params: { class_code }}) {
+export default function Component({ params: { class_code } }) {
     const [isOpen, setIsOpen] = useState(false)
     const [joinedClass, setJoinedClass] = useState(false)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [classDetails, setClassDetails] = useState(null)
-	const [teacherName, setTeacherName] = useState("")
+    const [teacherName, setTeacherName] = useState("")
     const { toast } = useToast()
 
     useEffect(() => {
@@ -49,6 +49,7 @@ export default function Component({ params: { class_code }}) {
             console.log("not logged in")
         }
     }
+    
     const fetchClassDetails = async () => {
         const { data: classData, error: classError } = await supabaseClient
             .from('classes')
@@ -76,7 +77,7 @@ export default function Component({ params: { class_code }}) {
         }
     }
 
-	    const formatTime = (start, end) => {
+    const formatTime = (start, end) => {
         const formatTimeString = (timeString) => {
             const date = new Date(`2000-01-01T${timeString}`)
             return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
@@ -84,27 +85,27 @@ export default function Component({ params: { class_code }}) {
         return `${formatTimeString(start)} - ${formatTimeString(end)}`
     }
 
-const formatDays = (days) => {
-    console.log('Days data:', days); // Log the days data for debugging
-    if (Array.isArray(days)) {
-        return days.join(', ');
-    } else if (typeof days === 'string') {
-        // If it's a string, try parsing it as JSON
-        try {
-            const parsedDays = JSON.parse(days);
-            if (Array.isArray(parsedDays)) {
-                return parsedDays.join(', ');
+    const formatDays = (days) => {
+        console.log('Days data:', days); // Log the days data for debugging
+        if (Array.isArray(days)) {
+            return days.join(', ');
+        } else if (typeof days === 'string') {
+            // If it's a string, try parsing it as JSON
+            try {
+                const parsedDays = JSON.parse(days);
+                if (Array.isArray(parsedDays)) {
+                    return parsedDays.join(', ');
+                }
+            } catch (e) {
+                console.error('Failed to parse days string:', e);
             }
-        } catch (e) {
-            console.error('Failed to parse days string:', e);
+            // If parsing fails or result is not an array, return the string as-is
+            return days;
+        } else {
+            console.error('Unexpected format for days:', days);
+            return '';
         }
-        // If parsing fails or result is not an array, return the string as-is
-        return days;
-    } else {
-        console.error('Unexpected format for days:', days);
-        return '';
     }
-}
 
     function CircleCheckIcon(props) {
         return (
@@ -144,46 +145,49 @@ const formatDays = (days) => {
             </Card>
         )
     }
-const updateStatus = async (studentId, classId) => {
-    const { data, error } = await supabaseClient
-        .from('students')
-        .update({ status: { [classId]: "joined" } })
-        .eq('id', studentId);
 
-    if (error) {
-        console.error("Error updating status:", error);
-    } else {
-        console.log("Status updated successfully:", data);
-    }
-};
-	const fetchClassId = async (class_code) => {
-    const { data:classId, error } = await supabaseClient
-        .from('classes')
-        .select('id')
-        .eq('class_code', class_code)
-        .single();
+    const updateStatus = async (studentId, classId) => {
+        const { data, error } = await supabaseClient
+            .from('students')
+            .update({ status: { [classId]: "joined" } })
+            .eq('id', studentId);
 
-
-    if (error) {
-        console.error("Error fetching class ID:", error);
-        return null;
-    }
-
-    return classId.id;
-};
-const handleComplete = async () => {
-    const user = await supabaseClient.auth.getUser();
-    if (user.data.user) {
-        const studentId = user.data.user.id;
-        const classId = await fetchClassId(class_code);
-        if (classId) {
-            await updateStatus(studentId, classId);
-            setJoinedClass(true);
+        if (error) {
+            console.error("Error updating status:", error);
         } else {
-            console.error("Class ID not found");
+            console.log("Status updated successfully:", data);
         }
-    }
-};
+    };
+
+    const fetchClassId = async (class_code) => {
+        const { data: classId, error } = await supabaseClient
+            .from('classes')
+            .select('id')
+            .eq('class_code', class_code)
+            .single();
+
+
+        if (error) {
+            console.error("Error fetching class ID:", error);
+            return null;
+        }
+
+        return classId.id;
+    };
+
+    const handleComplete = async () => {
+        const user = await supabaseClient.auth.getUser();
+        if (user.data.user) {
+            const studentId = user.data.user.id;
+            const classId = await fetchClassId(class_code);
+            if (classId) {
+                await updateStatus(studentId, classId);
+                setJoinedClass(true);
+            } else {
+                console.error("Class ID not found");
+            }
+        }
+    };
 
     return (
         <main className="flex flex-col items-center justify-center h-screen">
