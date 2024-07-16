@@ -1,32 +1,31 @@
 "use client"
-import React, {useEffect, useState} from 'react'
-import {Label} from '@/components/ui/label'
-import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog"
-import {Checkbox} from '@/components/ui/checkbox'
-import {Input} from '@/components/ui/input'
-import {Button} from '@/components/ui/button'
-import {Textarea} from '@/components/ui/textarea'
-import {CheckCircle, CircleArrowRight} from 'lucide-react'
-import {Avatar, AvatarFallback} from '@/components/ui/avatar'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
-import {supabaseClient} from '@/components/util_function/supabaseCilent'
-import {useToast} from "@/components/ui/use-toast";
+import React, { useEffect, useState } from 'react'
+import { Label } from '@/components/ui/label'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { CheckCircle, CircleArrowRight } from 'lucide-react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { supabaseClient } from '@/components/util_function/supabaseCilent'
+import { useToast } from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
-
-
+import LoadingOverlay from '../loadingOverlay'
 
 // import createZoomMeeting from '@/components/util_function/createZoomMeeting'
 
-const CreateClassPopup = ({isOpen, setIsOpen}) => {
+const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 	const [classCreationStep, setClassCreationStep] = useState(0)
 	const [className, setClassName] = useState("")
 	const [classDescription, setClassDescription] = useState("")
 	const [selectedDays, setSelectedDays] = useState([])
-	const [startTime, setStartTime] = useState({hour: "12", minute: "00", ampm: "AM"})
-	const [endTime, setEndTime] = useState({hour: "01", minute: "00", ampm: "AM"})
+	const [startTime, setStartTime] = useState({ hour: "12", minute: "00", ampm: "AM" })
+	const [endTime, setEndTime] = useState({ hour: "01", minute: "00", ampm: "AM" })
 	const [selectedStudents, setSelectedStudents] = useState([])
-	const [error, setError] = useState('')
-	const {toast} = useToast()
+	const [loading, setLoading] = useState(false)
+	const { toast } = useToast()
 	const [students, setStudents] = useState([])
 	const [newStudentEmail, setNewStudentEmail] = useState('')
 	const [newStudentNotes, setNewStudentNotes] = useState('')
@@ -36,17 +35,17 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		setClassName("")
 		setClassDescription("")
 		setSelectedDays([])
-		setStartTime({hour: "12", minute: "00", ampm: "AM"})
-		setEndTime({hour: "01", minute: "00", ampm: "AM"})
+		setStartTime({ hour: "12", minute: "00", ampm: "AM" })
+		setEndTime({ hour: "01", minute: "00", ampm: "AM" })
 		setSelectedStudents([])
 		setNewStudentEmail('')
 		setNewStudentNotes('')
 		setZoomLink('')
 		setClassCreationStep(0)
 		setTempNewStudents([]);
-		
+
 	}
-	
+
 	const generateRandomString = (length) => {
 		const getRandomCharacter = () => {
 			const characters = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
@@ -58,112 +57,117 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		}
 		return result;
 	}
-	
-const handleCreateClass = async () => {
-    try {
-        const code = generateRandomString(6);
-        
-        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-        if (authError || !user) {
-            console.error('Authentication error:', authError);
-            toast({
-                variant: 'destructive',
-                title: "Failed to create class",
-                description: "Authentication error. Please log in again.",
-                duration: 3000
-            });
-            return;
-        }
-        
-        const classData = {
-            name: className,
-            description: classDescription,
-            days: selectedDays,
-            teacher_id: user.id,
-            start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
-            end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
-            student_proxy_ids: selectedStudents.filter(s => !s.isNew).map(s => s.id),
-            class_code: code,
-            meeting_link: zoomLink,
-        };
-        
-        // Insert class data
-        const { data: classInsertData, error: classError } = await supabaseClient
-            .from('classes')
-            .insert([classData])
-            .select('id');
-        
-        if (classError) throw classError;
-        
-        // Handle students
-        const { data: teacherData, error: teacherError } = await supabaseClient
-            .from('teachers')
-            .select('first_name, last_name')
-            .eq('id', classData.teacher_id)
-            .single()
 
-        if (teacherError) throw teacherError;
+	const handleCreateClass = async () => {
+		if (loading) return;
+		setLoading(true)
+		try {
+			const code = generateRandomString(6);
 
-        const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-        const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token;
+			const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+			if (authError || !user) {
+				console.error('Authentication error:', authError);
+				toast({
+					variant: 'destructive',
+					title: "Failed to create class",
+					description: "Authentication error. Please log in again.",
+					duration: 3000
+				});
+				setLoading(false)
+				return;
+			}
 
-        let addedAllStudents = true;
-		for (const student of selectedStudents) {
-            const headers = {
-                "jwt": jwt,
-                "refresh_token": refreshToken,
-                "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
-                "email": student.email,
-                "notes": student.notes || '',
-                "classes_left": "0",
-                "class_id": classInsertData[0].id,
-                "class_code": code,
-                "class_name": className
-            };
+			const classData = {
+				name: className,
+				description: classDescription,
+				days: selectedDays,
+				teacher_id: user.id,
+				start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
+				end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
+				student_proxy_ids: selectedStudents.filter(s => !s.isNew).map(s => s.id),
+				class_code: code,
+				meeting_link: zoomLink,
+			};
 
-            console.log('Sending request with headers:', headers);
+			// Insert class data
+			const { data: classInsertData, error: classError } = await supabaseClient
+				.from('classes')
+				.insert([classData])
+				.select('id');
 
-            const response = await fetchTimeout(`/api/students/new_student`, 10000, {
-                method: 'POST',
-                headers: headers,
-            });
-            
-            if (response.status !== 200) {
-                addedAllStudents = false;
-                const errorText = await response.text();
-                console.error('Error response:', response.status, errorText);
-                toast({
-                    variant: 'destructive',
-                    title: "Failed to add student to class",
-                    description: `Error adding ${student.email}: ${errorText}`,
-                    duration: 3000
-                });
-            }
-        }
+			if (classError) throw classError;
 
-        console.log("Class created successfully and students updated!");
-        if (addedAllStudents) {
-            toast({
-                className: "bg-green-500 border-black border-2",
-                title: "Class Successfully Added",
-                description: "The new class has been added and students have been updated",
-                duration: 3000
-            });
-            resetAllStates();
-            setIsOpen(false);
-        }
-        
-    } catch (error) {
-        console.error("Error creating class or updating students");
-        toast({
-            variant: 'destructive',
-            title: "Failed to create class or update students",
-            description: "Please try again.",
-            duration: 3000
-        });
-    }
-};
-	
+			// Handle students
+			const { data: teacherData, error: teacherError } = await supabaseClient
+				.from('teachers')
+				.select('first_name, last_name')
+				.eq('id', classData.teacher_id)
+				.single()
+
+			if (teacherError) throw teacherError;
+
+			const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+			const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token;
+
+			let addedAllStudents = true;
+			for (const student of selectedStudents) {
+				const headers = {
+					"jwt": jwt,
+					"refresh_token": refreshToken,
+					"teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
+					"email": student.email,
+					"notes": student.notes || '',
+					"classes_left": "0",
+					"class_id": classInsertData[0].id,
+					"class_code": code,
+					"class_name": className
+				};
+
+				console.log('Sending request with headers:', headers);
+
+				const response = await fetchTimeout(`/api/students/new_student`, 10000, {
+					method: 'POST',
+					headers: headers,
+				});
+
+				if (response.status !== 200) {
+					addedAllStudents = false;
+					const errorText = await response.text();
+					console.error('Error response:', response.status, errorText);
+					toast({
+						variant: 'destructive',
+						title: "Failed to add student to class",
+						description: `Error adding ${student.email}: ${errorText}`,
+						duration: 3000
+					});
+				}
+			}
+
+			console.log("Class created successfully and students updated!");
+			if (addedAllStudents) {
+				toast({
+					className: "bg-green-500 border-black border-2",
+					title: "Class Successfully Added",
+					description: "The new class has been added and students have been updated",
+					duration: 3000
+				});
+				resetAllStates();
+				setIsOpen(false);
+			}
+			setLoading(false)
+		} catch (error) {
+			console.error("Error creating class or updating students");
+			toast({
+				variant: 'destructive',
+				title: "Failed to create class or update students",
+				description: "Please try again.",
+				duration: 3000
+			});
+			setLoading(false)
+		}
+		setLoading(false)
+	};
+
 	const _classNameAndDescription = () => {
 		return (
 			<div>
@@ -175,22 +179,22 @@ const handleCreateClass = async () => {
 					<div>
 						<Label htmlFor="Name">Name</Label>
 						<Input id="name" type="name" value={className} placeholder="Class Name"
-						       onChange={(e) => setClassName(e.target.value)} required/>
+							onChange={(e) => setClassName(e.target.value)} required />
 					</div>
 					<div>
 						<Label htmlFor="description">Description</Label>
 						<Textarea id="description" value={classDescription}
-						          onChange={(e) => setClassDescription(e.target.value)}/>
+							onChange={(e) => setClassDescription(e.target.value)} />
 					</div>
 					<div>
 						<Label htmlFor="zoomLink">Zoom Link</Label>
 						<Input id="zoomLink" type="url" value={zoomLink} placeholder="https://zoom.us/j/example"
-						       onChange={(e) => setZoomLink(e.target.value)} required/>
+							onChange={(e) => setZoomLink(e.target.value)} required />
 					</div>
 					<DialogFooter>
 						<div className='flex justify-between flex-wrap w-full'>
 							<Button className="border-slate-400 hover:border-black" variant="outline"
-							        onClick={() => setIsOpen(false)}>Cancel</Button>
+								onClick={() => setIsOpen(false)}>Cancel</Button>
 							<Button type="button" onClick={() => {
 								if (!className || !zoomLink) {
 									toast({
@@ -201,15 +205,15 @@ const handleCreateClass = async () => {
 									return
 								}
 								setClassCreationStep(1);
-							}} className="gap-2">Pick Days<CircleArrowRight className="h-5 w-5"/></Button>
+							}} className="gap-2">Pick Days<CircleArrowRight className="h-5 w-5" /></Button>
 						</div>
 					</DialogFooter>
 				</form>
-			
+
 			</div>
 		)
 	}
-	
+
 	const _classDays = () => {
 		const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 		return (
@@ -241,10 +245,10 @@ const handleCreateClass = async () => {
 				<DialogFooter>
 					<div className='flex pt-6 justify-between flex-wrap w-full'>
 						<Button className="border-slate-400 hover:border-black" variant="outline"
-						        onClick={() => setClassCreationStep(0)}>Back</Button>
+							onClick={() => setClassCreationStep(0)}>Back</Button>
 						<Button type="button" onClick={() => {
 							if (selectedDays.length === 0) {
-								
+
 								toast({
 									title: 'Incomplete Fields',
 									description: 'Please select at least one day',
@@ -252,15 +256,15 @@ const handleCreateClass = async () => {
 								})
 								return
 							}
-							
+
 							setClassCreationStep(2);
-						}} className="gap-2">Choose Timings<CircleArrowRight className="h-5 w-5"/></Button>
+						}} className="gap-2">Choose Timings<CircleArrowRight className="h-5 w-5" /></Button>
 					</div>
 				</DialogFooter>
 			</div>
 		)
 	}
-	
+
 	const _classTimings = () => {
 		return (
 			<div className='flex w-full flex-col'>
@@ -268,7 +272,7 @@ const handleCreateClass = async () => {
 					<DialogTitle>Create Class</DialogTitle>
 					<DialogDescription>Pick the timing for your class</DialogDescription>
 				</DialogHeader>
-				
+
 				<div className="flex w-full flex-row items-center justify-between">
 					<div className='flex flex-col'>
 						<Label htmlFor="startTime" className="pt-4 pb-2">Start Time</Label>
@@ -276,20 +280,20 @@ const handleCreateClass = async () => {
 							<Input
 								className="w-12 text-center"
 								value={startTime.hour}
-								onChange={(e) => setStartTime({...startTime, hour: e.target.value})}
+								onChange={(e) => setStartTime({ ...startTime, hour: e.target.value })}
 							/>
 							<span>:</span>
 							<Input
 								className="w-12 text-center"
 								value={startTime.minute}
-								onChange={(e) => setStartTime({...startTime, minute: e.target.value})}
+								onChange={(e) => setStartTime({ ...startTime, minute: e.target.value })}
 							/>
 							<Select
 								value={startTime.ampm}
-								onValueChange={(value) => setStartTime({...startTime, ampm: value})}
+								onValueChange={(value) => setStartTime({ ...startTime, ampm: value })}
 							>
 								<SelectTrigger className="w-full">
-									<SelectValue placeholder="AM"/>
+									<SelectValue placeholder="AM" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="AM">AM</SelectItem>
@@ -304,20 +308,20 @@ const handleCreateClass = async () => {
 							<Input
 								className="w-12 text-center"
 								value={endTime.hour}
-								onChange={(e) => setEndTime({...endTime, hour: e.target.value})}
+								onChange={(e) => setEndTime({ ...endTime, hour: e.target.value })}
 							/>
 							<span>:</span>
 							<Input
 								className="w-12 text-center"
 								value={endTime.minute}
-								onChange={(e) => setEndTime({...endTime, minute: e.target.value})}
+								onChange={(e) => setEndTime({ ...endTime, minute: e.target.value })}
 							/>
 							<Select
 								value={endTime.ampm}
-								onValueChange={(value) => setEndTime({...endTime, ampm: value})}
+								onValueChange={(value) => setEndTime({ ...endTime, ampm: value })}
 							>
 								<SelectTrigger className="w-full">
-									<SelectValue placeholder="AM"/>
+									<SelectValue placeholder="AM" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="AM">AM</SelectItem>
@@ -330,90 +334,84 @@ const handleCreateClass = async () => {
 				<DialogFooter>
 					<div className='flex justify-between flex-wrap w-full pt-6'>
 						<Button className="border-slate-400 hover:border-black" variant="outline"
-						        onClick={() => setClassCreationStep(1)}>Back</Button>
+							onClick={() => setClassCreationStep(1)}>Back</Button>
 						<Button type="button" onClick={() => setClassCreationStep(3)} className="gap-2">Add
-							Students<CircleArrowRight className="h-5 w-5"/></Button>
+							Students<CircleArrowRight className="h-5 w-5" /></Button>
 					</div>
 				</DialogFooter>
 			</div>
 		)
 	}
-	
-const _studentTileForStudentList = (student) => {
-    const isSelected = selectedStudents.some(s => s.id === student.id);
-    
-    return (
-        <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-                <Avatar>
-                    <AvatarFallback className="bg-white">{student.initials}</AvatarFallback>
-                </Avatar>
-                <div>
-                    <p className="font-medium">{student.name}</p>
-                    <p className="text-muted-foreground text-sm">{student.email}</p>
-                </div>
-            </div>
-            <Checkbox
-                checked={isSelected}
-                onCheckedChange={(checked) => {
-                    if (checked) {
-                        setSelectedStudents([...selectedStudents, {
-                            id: student.id,
-                            email: student.email,
-                            name: student.name
-                        }]);
-                    } else {
-                        setSelectedStudents(selectedStudents.filter(s => s.id !== student.id));
-                    }
-                }}
-            />
-        </div>
-    )
-}
-	
-const handleAddStudent = async () => {
-    if (!newStudentEmail) {
-        toast({title: 'Incomplete Fields', description: 'Student email is required.', variant: "destructive",});
-        return;
-    }
-    
-    const newTempStudent = {
-        id: null,
-        name: newStudentEmail.split('@')[0],
-        email: newStudentEmail,
-        isNew: true,
-        notes: newStudentNotes // Add this line
-    };
-    
-    setTempNewStudents([...tempNewStudents, newTempStudent]);
-    setSelectedStudents([...selectedStudents, newTempStudent]);
-    setNewStudentEmail('');
-    setNewStudentNotes('');
-    
-    toast({
-        className: "bg-green-500 border-black border-2",
-        title: "Student Added",
-        description: "The new student has been added and selected",
-        duration: 3000
-    });
-};
+
+	const _studentTileForStudentList = (student) => {
+		const isSelected = selectedStudents.some(s => s.id === student.id);
+
+		return (
+			<div className="flex items-center justify-between">
+				<div className="flex items-center gap-2">
+					<Avatar>
+						<AvatarFallback className="bg-white">{student.initials}</AvatarFallback>
+					</Avatar>
+					<div>
+						<p className="font-medium">{student.name}</p>
+						<p className="text-muted-foreground text-sm">{student.email}</p>
+					</div>
+				</div>
+				<Checkbox
+					checked={isSelected}
+					onCheckedChange={(checked) => {
+						if (checked) {
+							setSelectedStudents([...selectedStudents, {
+								id: student.id,
+								email: student.email,
+								name: student.name
+							}]);
+						} else {
+							setSelectedStudents(selectedStudents.filter(s => s.id !== student.id));
+						}
+					}}
+				/>
+			</div>
+		)
+	}
+
+	const handleAddStudent = async () => {
+		if (!newStudentEmail) {
+			toast({ title: 'Incomplete Fields', description: 'Student email is required.', variant: "destructive", });
+			return;
+		}
+
+		const newTempStudent = {
+			id: null,
+			name: newStudentEmail.split('@')[0],
+			email: newStudentEmail,
+			isNew: true,
+			notes: newStudentNotes // Add this line
+		};
+
+		setTempNewStudents([...tempNewStudents, newTempStudent]);
+		setSelectedStudents([...selectedStudents, newTempStudent]);
+		setNewStudentEmail('');
+		setNewStudentNotes('');
+	};
+
 	const fetchStudents = async () => {
 		try {
-			const {data, error} = await supabaseClient
+			const { data, error } = await supabaseClient
 				.from('student_proxies')
 				.select('*')
 				.eq('teacher_id', `{${(await supabaseClient.auth.getUser()).data.user.id}}`);
-			
+
 			if (error) throw error;
-			
+
 			// Transform the data to match the expected format
 			const formattedStudents = data.map(student => ({
 				id: student.id,
 				name: student.first_name + ' ' + student.last_name,
 				email: student.email,
-				
+
 			}));
-			
+
 			setStudents(formattedStudents);
 		} catch (error) {
 			console.error('Error fetching students:', error);
@@ -425,11 +423,11 @@ const handleAddStudent = async () => {
 			});
 		}
 	};
-	
+
 	useEffect(() => {
 		if (classCreationStep === 3) {
 			const fetchStudentsData = async () => {
-				const {data: {user}} = await supabaseClient.auth.getUser();
+				const { data: { user } } = await supabaseClient.auth.getUser();
 				if (user) {
 					await fetchStudents(user.id);
 				} else {
@@ -445,23 +443,23 @@ const handleAddStudent = async () => {
 			fetchStudentsData();
 		}
 	}, [classCreationStep]);
-	
+
 	const _studentList = () => {
 		return (
 			<div>
 				<DialogHeader>
 					<DialogTitle className="text-center">Create Class</DialogTitle>
 					<DialogDescription className="text-center">Select the students you would like to add to your
-						class<br/>You will be able to add more students later.</DialogDescription>
+						class<br />You will be able to add more students later.</DialogDescription>
 				</DialogHeader>
 				<div className='flex w-full flex-row mt-6'>
 					<div className='flex flex-col w-1/2 pr-4 border-r-2'>
 						<div className='text-center font-semibold mb-2'>Existing Student</div>
 						<div>
 							<Label htmlFor="searchStudents" className="font-normal">Search Students</Label>
-							<Input id="searchStudents" placeholder="Enter student name or email"/>
+							<Input id="searchStudents" placeholder="Enter student name or email" />
 						</div>
-						
+
 						<div
 							className="bg-muted border-2 rounded-md p-4 my-4 h-[40vh] max-h-[40vh] overflow-y-auto grid gap-2">
 							{students.length === 0 && tempNewStudents.length === 0 &&
@@ -494,24 +492,24 @@ const handleAddStudent = async () => {
 						</div>
 						<div className='mt-4 w-full'>
 							<Button type="button" onClick={handleAddStudent} className="gap-2">Add
-								Student<CircleArrowRight className="h-5 w-5"/></Button>
+								Student<CircleArrowRight className="h-5 w-5" /></Button>
 						</div>
 					</div>
 				</div>
-				
+
 				<DialogFooter>
 					<div className='flex justify-between flex-wrap w-full'>
 						<Button className="border-slate-400 hover:border-black" variant="outline"
-						        onClick={() => setClassCreationStep(2)}>Back</Button>
+							onClick={() => setClassCreationStep(2)}>Back</Button>
 						<Button type="button" onClick={() => {
 							setClassCreationStep(4);
-						}} className="gap-2">Verify<CircleArrowRight className="h-5 w-5"/></Button>
+						}} className="gap-2">Verify<CircleArrowRight className="h-5 w-5" /></Button>
 					</div>
 				</DialogFooter>
 			</div>
 		)
 	}
-	
+
 	const _reviewDetails = () => {
 		const classData = {
 			name: className,
@@ -522,7 +520,7 @@ const handleAddStudent = async () => {
 			capacity: selectedStudents.length,
 			zoomLink: zoomLink, // Add this line
 		};
-		
+
 		return (
 			<>
 				<DialogHeader>
@@ -544,7 +542,7 @@ const handleAddStudent = async () => {
 							<div>{classData.description}</div>
 						</div>
 					}
-					
+
 					<div className="grid grid-cols-[120px_1fr] items-center gap-4">
 						<Label htmlFor="class-days">Days</Label>
 						<div>{classData.days.join(", ")}</div>
@@ -561,26 +559,28 @@ const handleAddStudent = async () => {
 				<DialogFooter>
 					<div className='flex justify-between flex-wrap w-full'>
 						<Button className="border-slate-400 hover:border-black" variant="outline"
-						        onClick={() => setClassCreationStep(3)}>Back</Button>
-						<Button type="button" onClick={handleCreateClass} className="gap-2">Confirm<CheckCircle
-							className="h-5 w-5"/></Button>
+							onClick={() => setClassCreationStep(3)}>Back</Button>
+						<Button type="button" onClick={handleCreateClass} className={"gap-2" + (loading ? " cursor-progress" : "")}>Confirm<CheckCircle
+							className="h-5 w-5" /></Button>
 					</div>
 				</DialogFooter>
 			</>
 		)
 	}
-	
+
 	return (
-		<Dialog open={isOpen} onOpenChange={setIsOpen} defaultOpen>
-			<DialogContent
-				className={"sm:max-w-[425px] " + (classCreationStep === 3 ? "lg:max-w-[55vw]" : "lg:max-w-[32vw]")}>
-				{classCreationStep === 0 && _classNameAndDescription()}
-				{classCreationStep === 1 && _classDays()}
-				{classCreationStep === 2 && _classTimings()}
-				{classCreationStep === 3 && _studentList()}
-				{classCreationStep === 4 && _reviewDetails()}
-			</DialogContent>
-		</Dialog>
+		<>
+			<Dialog open={isOpen} onOpenChange={setIsOpen} defaultOpen>
+				<DialogContent
+					className={"sm:max-w-[425px] " + (classCreationStep === 3 ? "lg:max-w-[55vw]" : "lg:max-w-[32vw]")}>
+					{classCreationStep === 0 && _classNameAndDescription()}
+					{classCreationStep === 1 && _classDays()}
+					{classCreationStep === 2 && _classTimings()}
+					{classCreationStep === 3 && _studentList()}
+					{classCreationStep === 4 && _reviewDetails()}
+				</DialogContent>
+			</Dialog>
+		</>
 	)
 }
 
