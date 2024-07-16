@@ -233,115 +233,102 @@ export default function ManageClass({ params }) {
     }
 };
 
-    const handleAddExistingStudents = async () => {
-        if (selectedStudents.length === 0) {
+const handleAddExistingStudents = async () => {
+    if (selectedStudents.length === 0) {
+        toast({
+            title: 'Alert',
+            description: 'At least one student must be selected.',
+            variant: "destructive"
+        });
+        return;
+    }
+
+    setLoading(true);
+    try {
+        const currentStudents = classData.students || [];
+        const newStudents = selectedStudents.filter(student => !currentStudents.includes(student.id));
+
+        if (newStudents.length === 0) {
             toast({
-                title: 'Alert',
-                description: 'At least one student must be selected.',
-                variant: "destructive"
+                title: 'Info',
+                description: 'All selected students are already in the class.',
             });
+            setIsNewStudentOpen(false);
+            setSelectedStudents([]);
+            setLoading(false);
             return;
         }
 
-        setLoading(true);
-        try {
-            const currentStudents = classData.students || [];
-            const newStudents = selectedStudents.filter(id => !currentStudents.includes(id));
+        const updatedStudents = [...currentStudents, ...newStudents.map(student => student.id)];
 
-            if (newStudents.length === 0) {
-                toast({
-                    title: 'Info',
-                    description: 'All selected students are already in the class.',
-                });
-                setIsNewStudentOpen(false);
-                setSelectedStudents([]);
-                setLoading(false);
-                return;
-            }
+        const { data: teacherData, error: teacherError } = await supabaseClient
+            .from('teachers')
+            .select('first_name, last_name')
+            .eq('id', classData.teacher_id)
+            .single();
 
-            const updatedStudents = [...currentStudents, ...newStudents];
+        if (teacherError) throw teacherError;
 
-            // Update each student's record and collect new student data
-            const newStudentData = [];
-            for (const studentId of newStudents) {
-                const { data: studentData, error: fetchError } = await supabaseClient
-                    .from('student_proxies')
-                    .select('*')
-                    .eq('id', studentId)
-                    .single();
+        const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+        const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token;
 
-                if (fetchError) throw fetchError;
+        let addedAllStudents = true;
+        for (const student of newStudents) {
+            const headers = {
+                "jwt": jwt,
+                "refresh_token": refreshToken,
+                "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
+                "email": student.email,
+                "notes": student.notes || '',
+                "classes_left": "0",
+                "class_id": classData.id,
+                "class_code": classCode,
+                "class_name": classData.name
+            };
 
-                let updatedClassesLeft = { ...(studentData.classes_left || {}), [classData.id]: numClasses };
-                let updatedStatus = { ...(studentData.status || {}), [classData.id]: 'Pending' };
-                
+            console.log('Sending request with headers:', headers);
 
-                const { error: updateError } = await supabaseClient
-                    .from('student_proxies')
-                    .update({
-                        
-                        classes_left: updatedClassesLeft,
-                        hasJoined: updatedStatus
-                    })
-                    .eq('id', studentId);
-
-                if (updateError) throw updateError;
-
-                newStudentData.push(studentData);
-            }
-
-            // Update the class with new students
-            await updateClassStudents(updatedStudents);
-
-            // Send emails to new students
-            const emailResult = await sendEmailToNewStudents(newStudentData, classData, teacherData);
-            if (!emailResult) {
+            const response = await fetchTimeout(`/api/students/new_student`, 10000, {
+                method: 'POST',
+                headers: headers,
+            });
+            
+            if (response.status !== 200) {
+                addedAllStudents = false;
+                const errorText = await response.text();
+                console.error('Error response:', response.status, errorText);
                 toast({
                     variant: 'destructive',
-                    title: "Failed to send emails",
-                    description: "The students have been added but the emails were not sent.",
+                    title: "Failed to add student to class",
+                    description: `Error adding ${student.email}: ${errorText}`,
                     duration: 3000
                 });
             }
-
-            // Update local state
-            setClassData(prevData => ({ ...prevData, students: updatedStudents }));
-            await fetchStudentData(updatedStudents);
-
-            toast({
-                title: 'Success',
-                description: `${newStudents.length} new student(s) added successfully and emails sent.`,
-            });
-
-            setIsNewStudentOpen(false);
-            setSelectedStudents([]);
-        } catch (error) {
-            console.error('Error adding students:', error);
-            toast({
-                title: 'Error',
-                description: 'Failed to add students or send emails. Please try again.',
-                variant: "destructive"
-            });
         }
-        setLoading(false);
-    };
 
-    const updateClassStudents = async (students) => {
-        const { data, error } = await supabaseClient
-            .from('classes')
-            .update({ students })
-            .eq('class_code', classCode);
+        // Update local state
+        setClassData(prevData => ({ ...prevData, students: updatedStudents }));
+        await fetchStudentData(updatedStudents);
 
-        if (error) {
-            console.error('Error updating class students:', error);
-            toast({
-                variant: 'destructive',
-                title: "Failed to update class students",
-                description: "Please try again.",
-                duration: 3000
-            });
-        }
-    };
+        toast({
+            title: 'Success',
+            description: `${newStudents.length} new student(s) added successfully and emails sent.`,
+        });
+
+        setIsNewStudentOpen(false);
+        setSelectedStudents([]);
+    } catch (error) {
+        console.error('Error adding students:', error);
+        toast({
+            title: 'Error',
+            description: 'Failed to add students or send emails. Please try again.',
+            variant: "destructive"
+        });
+    }
+    setLoading(false);
+};
+
+
 
     const _newOrExisting = () => {
         return (
@@ -489,7 +476,7 @@ const handleSave = async () => {
     };
 
     const _studentTileForStudentList = (student) => {
-        const isSelected = selectedStudents.includes(student.id);
+    const isSelected = selectedStudents.some(s => s.id === student.id);
 
         return (
             <div className="flex items-center justify-between">
@@ -502,9 +489,12 @@ const handleSave = async () => {
                 <Checkbox
                     checked={isSelected}
                     onCheckedChange={(checked) => {
-                        if (checked) {
-                            setSelectedStudents([...selectedStudents, student.id]);
-                        } else {
+                        if (checked)  setSelectedStudents([...selectedStudents, {
+                            id: student.id,
+                            email: student.email,
+                            name: student.name
+                        }]);
+						else {
                             setSelectedStudents(selectedStudents.filter(id => id !== student.id));
                         }
                     }}

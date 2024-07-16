@@ -115,7 +115,7 @@ const handleCreateClass = async () => {
                 "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
                 "email": student.email,
                 "notes": student.notes || '',
-                "classes_left": "0",
+                "classes_left": 0,
                 "class_id": classInsertData[0].id,
                 "class_code": code,
                 "class_name": className
