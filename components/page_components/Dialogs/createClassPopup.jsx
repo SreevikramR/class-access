@@ -123,7 +123,7 @@ const handleCreateClass = async () => {
 
             console.log('Sending request with headers:', headers);
 
-            const response = await fetchTimeout(`/api/users/new_student`, 10000, {
+            const response = await fetchTimeout(`/api/students/new_student`, 10000, {
                 method: 'POST',
                 headers: headers,
             });
