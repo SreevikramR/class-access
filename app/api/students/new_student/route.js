@@ -27,6 +27,8 @@ const client = new MailtrapClient({ endpoint: ENDPOINT, token: TOKEN });
 //// class_name: Class Name
 
 export async function POST(request) {
+	console.log('Received request headers:', request.headers);
+try {
 	const token = request.headers.get('jwt');
 	const refresh_token = request.headers.get('refresh_token');
 	
@@ -124,6 +126,10 @@ export async function POST(request) {
 	}
 	
 	return NextResponse.json({message: "Student Added"}, {status: 200});
+}catch (e) {
+	 console.error('Error in POST /api/users/new_student:', error);
+	 return NextResponse.json({message: "Internal Server Error", error: error.message}, {status: 500});
+}
 }
 
 // Creates a new student Account
