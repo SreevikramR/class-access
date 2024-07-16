@@ -27,8 +27,6 @@ const client = new MailtrapClient({ endpoint: ENDPOINT, token: TOKEN });
 //// class_name: Class Name
 
 export async function POST(request) {
-	console.log('Received request headers:', request.headers);
-try {
 	const token = request.headers.get('jwt');
 	const refresh_token = request.headers.get('refresh_token');
 	
@@ -50,7 +48,7 @@ try {
 	if (createStudentData?.error === true) {
 		return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 	}
-	if (createStudentData === "User Exists") {
+	if (createStudentData.error === "User Exists") {
 		// User Already Exists, Need to Create a proxy
 		const {
 			data: studentProxyData,
@@ -86,7 +84,7 @@ try {
 		}
 		
 		// Student Proxy Does Not Exist, Need to Create a new proxy
-		const studentInsertProxyData = await addStudentProxy(studentProxyData[0].student_id, teacherUUID, class_id, classes_left, email, notes);
+		const studentInsertProxyData = await addStudentProxy(createStudentData.id, teacherUUID, class_id, classes_left, email, notes);
 		if (studentInsertProxyData === "Error") {
 			return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 		}
@@ -101,8 +99,8 @@ try {
 	}
 	
 	// Add Student to Student Table
-	const studentTableData = await addToStudentTable(email, createStudentData);
-	const studentUUID = createStudentData;
+	const studentUUID = createStudentData.id;
+	const studentTableData = await addToStudentTable(email, studentUUID);
 	if (studentTableData === "Error") {
 		return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 	}
@@ -126,10 +124,6 @@ try {
 	}
 	
 	return NextResponse.json({message: "Student Added"}, {status: 200});
-}catch (e) {
-	 console.error('Error in POST /api/users/new_student:', e);
-	 return NextResponse.json({message: "Internal Server Error", error: e.message}, {status: 500});
-}
 }
 
 // Creates a new student Account
@@ -142,14 +136,15 @@ const createNewStudent = async (studentEmail) => {
 
 	// Check if User already exists
 	if (error?.code === 'email_exists') {
-		return "User Exists"
+		const {data: userData, error: userError} = await supabase.from('students').select('id').eq('email', studentEmail);
+		return {"error": "User Exists", "id": userData[0].id}
 	}
 	if (error) {
 		console.log("Error Creating Student Account");
 		console.log(error);
 		return { "error": true, "message": error }
 	}
-	return data.user.id
+	return {"error": false, id: data.user.id}
 }
 
 // Adds the student to the student table
@@ -176,7 +171,6 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 		console.log(studentProxyError);
 		return "Error"
 	}
-	console.log(studentProxyData);
 	if (studentProxyData.length > 0) {
 		// Student Proxy Already Exists, need to update the classes_left
 		const classes_left_jb = studentProxyData[0].classes_left;
@@ -195,15 +189,20 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 	
 	let classes_left_jb = {}
 	classes_left_jb[class_id] = classes_left;
-	const {data, error} = await supabase.from('student_proxies').insert([{
+	const {data: data, error: error} = await supabase.from('student_proxies').insert([{
 		student_id: studentUUID,
 		teacher_id: teacherUUID,
 		classes_left: classes_left_jb,
 		email: studentEmail,
 		notes: notes,
-		// hasJoined: false
+		hasJoined: false
 	}]).select()
 
+	if (error) {
+		console.log("Error Inserting Student Data: 'student_proxies' Table");
+		console.log(error);
+		return "Error"
+	}
 	// Add student proxy ID to student table proxy_ids array
 	const studentProxyID = data[0].id;
 	const { data: studentData, error: studentError } = await supabase.from('students').select("proxy_ids")
@@ -217,15 +216,11 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 		proxy_ids = [];
 	}
 	proxy_ids.push(studentProxyID);
+
 	const { data: studentUpdateData, error: studentUpdateError } = await supabase.from('students').update({proxy_ids: proxy_ids}).eq('id', studentUUID).select()
 	if (studentUpdateError) {
 		console.log("Error Updating Student Data: 'students' Table");
 		console.log(studentUpdateError);
-		return "Error"
-	}
-	if (error) {
-		console.log("Error Inserting Student Data: 'student_proxies' Table");
-		console.log(error);
 		return "Error"
 	}
 	return data;
