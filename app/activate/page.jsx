@@ -75,7 +75,6 @@ const ActivationPage = () => {
             const studentData = {
                 first_name: firstName,
                 last_name: lastName,
-                details_added: true,
                 phone: phoneData.phoneNumber
             };
             console.log("Data to be updated:", studentData);
