@@ -2,24 +2,114 @@
 import { useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import StudentClassOnboardingPopup from "@/components/page_components/Dialogs/studentClassOnboardingPopup"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+
 import { useState } from "react"
 import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import fetchTimeout from "@/components/util_function/fetch"
 import { useToast } from "@/components/ui/use-toast"
 
 export default function Component({ params: { class_code } }) {
-    const [isOpen, setIsOpen] = useState(false)
     const [joinedClass, setJoinedClass] = useState(false)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [classDetails, setClassDetails] = useState(null)
     const [teacherName, setTeacherName] = useState("")
+    const [email, setEmail] = useState("")
+    const [loginPassword, setLoginPassword] = useState("")
+    const [step, setStep] = useState(0)
+    const [loading, setLoading] = useState(false)
+
     const { toast } = useToast()
 
     useEffect(() => {
         fetchUser()
-        fetchClassDetails()
+        // fetchClassDetails()
     }, [])
+
+
+
+    const handlePasswordLogin = async () => {
+        if (!email || !loginPassword) {
+            toast({
+                title: 'Error',
+                description: "Please enter both email and password",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: loginPassword,
+        });
+        if (error) {
+            toast({
+                title: 'Login Failed',
+                description: error.message,
+                variant: "destructive"
+            });
+        }
+        setIsLoggedIn(true)
+        toast({
+            title: 'Success',
+            description: "Logged in successfully",
+            variant: "default"
+        });
+    };
+
+    const handleGoogleLogin = async () => {
+        try {
+            await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.href}`,
+                },
+            })
+        } catch (error) {
+            toast({
+                title: 'Unable to Login',
+                description: error.message,
+                variant: "destructive"
+            })
+        }
+    }
+
+    const handlePasswordReset = async () => {
+        if (loading) return;
+        setLoading(true)
+        const controller = new AbortController()
+        const { signal } = controller;
+
+        try {
+            const response = await fetchTimeout(`/api/users/forgot_password`, 5500, {
+                signal,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "email": email
+                },
+            });
+            if (response.status !== 200) {
+                toast({
+                    title: 'Password Reset Failed',
+                    description: "Please try again later",
+                    variant: "destructive"
+                });
+                return;
+            }
+            setStep(3)
+        } catch (error) {
+            toast({
+                title: 'Password Reset Failed',
+                description: error.message,
+                variant: "destructive"
+            });
+        }
+        setLoading(false)
+    }
+
+
 
     const fetchUser = async () => {
         const user = await supabaseClient.auth.getUser();
@@ -45,8 +135,7 @@ export default function Component({ params: { class_code } }) {
                     }, 5000)
                 }
             }
-        } else {
-            setIsOpen(true)
+            fetchClassDetails()
         }
     }
     
@@ -107,26 +196,6 @@ export default function Component({ params: { class_code } }) {
         }
     }
 
-    function CircleCheckIcon(props) {
-        return (
-            <svg
-                {...props}
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            >
-                <circle cx="12" cy="12" r="10" />
-                <path d="m9 12 2 2 4-4" />
-            </svg>
-        )
-    }
-
     const _joinedClass = () => {
         return (
             <Card className="flex flex-col items-center justify-center bg-background">
@@ -146,91 +215,189 @@ export default function Component({ params: { class_code } }) {
         )
     }
 
-    const updateStatus = async (studentId, classId) => {
-        const { data, error } = await supabaseClient
-            .from('students')
-            .update({ status: { [classId]: "joined" } })
-            .eq('id', studentId);
-
-        if (error) {
-            console.error("Error updating status:", error);
-        } else {
-            console.log("Status updated successfully:", data);
-        }
-    };
-
-    const fetchClassId = async (class_code) => {
-        const { data: classId, error } = await supabaseClient
-            .from('classes')
-            .select('id')
-            .eq('class_code', class_code)
-            .single();
-
-
-        if (error) {
-            console.error("Error fetching class ID:", error);
-            return null;
-        }
-
-        return classId.id;
-    };
-
     const handleComplete = async () => {
-        const user = await supabaseClient.auth.getUser();
-        if (user.data.user) {
-            const studentId = user.data.user.id;
-            const classId = await fetchClassId(class_code);
-            if (classId) {
-                await updateStatus(studentId, classId);
-                setJoinedClass(true);
-            } else {
-                console.error("Class ID not found");
-            }
-        }
     };
+
+    const _login = () => {
+        return (
+            <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
+                <div className="text-center">
+                    <h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Please Login to Join your class</h1>
+                </div>
+                <div className="rounded-lg bg-white p-3 pt-0">
+                    <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                value={email}
+                                placeholder="email@example.com"
+                                required
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <div className="flex items-center">
+                                <Label htmlFor="password">Password</Label>
+                                <span
+                                    onClick={() => setStep(2)}
+                                    className="ml-auto cursor-pointer inline-block text-xs sm:text-sm underline"
+                                >
+                                    Forgot your password?
+                                </span>
+                            </div>
+                            <Input
+                                id="password"
+                                placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"
+                                type="password"
+                                required
+                                value={loginPassword}
+                                onChange={(e) => setLoginPassword(e.target.value)}
+                            />
+                        </div>
+                        <Button type="submit" onClick={handlePasswordLogin} className="w-full">
+                            Login
+                        </Button>
+                        <div className="flex items-center my-2">
+                            <hr className="flex-grow border-t border-gray-300" />
+                            <span className="mx-2 text-gray-500 text-xs">OR CONTINUE WITH</span>
+                            <hr className="flex-grow border-t border-gray-300" />
+                        </div>
+                        <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
+                            Google
+                        </Button>
+                        <div className='sm:text-md text-sm cursor-pointer text-blue-700 underline w-fit' onClick={() => setStep(1)}>Don&apos;t have an Account?</div>
+                    </div>
+                </div>
+            </Card>
+        )
+    }
+
+    const _forgotPassword = () => {
+        return (
+            <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
+                <div className="text-center">
+                    <h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Forgot Password</h1>
+                </div>
+                <div className="rounded-lg bg-white p-3 pt-0">
+                    <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                value={email}
+                                placeholder="email@example.com"
+                                required
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+
+                        <Button type="submit" onClick={handlePasswordReset} className={"w-full" + (loading ? " cursor-wait" : "")}>
+                            Send Link
+                        </Button>
+                        <div className='sm:text-md text-sm cursor-pointer text-blue-700 underline w-fit' onClick={() => setStep(0)}>Back to login</div>
+                    </div>
+                </div>
+            </Card>
+        )
+    }
+
+    const _passwordLinkSent = () => {
+        return (
+            <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
+                <div className="text-center">
+                    <h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Please check your email for a password reset link</h1>
+                </div>
+                <Button type="submit" onClick={() => setStep(0)} className="w-full mt-4">
+                    Sounds Good!
+                </Button>
+            </Card>
+        )
+    }
+
+    const noAccount = () => {
+        return (
+            <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
+                <h1 className="text-pretty">Please Look for an account activation E-Mail, if you don&#39;t have one, please request your teacher to resend an invite</h1>
+                <Button type="submit" onClick={() => setStep(0)} className="w-full mt-6">
+                    Back
+                </Button>
+            </Card>
+        )
+    }
 
     return (
         <main className="flex flex-col items-center justify-center h-screen">
-            {joinedClass && _joinedClass()}
-            {!classDetails && (
-                <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
-                    <div className="flex flex-col items-center space-y-2">
-                        <div className="inline-block rounded-lg px-3 py-1 text-lg sm:text-lg font-medium text-pretty">
-                            Class Does not exist
-                        </div>
-                        <p className="text-muted-foreground text-center sm:text-base text-sm text-pretty">
-                            Please recheck your link or contact your instructor
-                        </p>
-                    </div>
-                </Card>
-            )}
-            {!joinedClass && classDetails && (
-                <div className="lg:w-[46vw] sm:w-[60vw] w-[90vw]">
-                    {!isLoggedIn && (
-                        <StudentClassOnboardingPopup isOpen={isOpen} setIsOpen={setIsOpen} />
-                    )}
-                    <Card className="w-full p-6 space-y-4">
+            {!isLoggedIn && 
+                <>
+                    {step === 0 && _login()}
+                    {step === 1 && noAccount()}
+                    {step === 2 && _forgotPassword()}
+                    {step === 3 && _passwordLinkSent()}
+                </>
+            }
+            {isLoggedIn && <>
+                {joinedClass && _joinedClass()}
+                {!classDetails && (
+                    <Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
                         <div className="flex flex-col items-center space-y-2">
-                            <div className="inline-block rounded-lg px-3 py-1 text-xs sm:text-sm font-medium text-pretty">
-                                You have been invited to join
+                            <div className="inline-block rounded-lg px-3 py-1 text-lg sm:text-lg font-medium text-pretty">
+                                Class Does not exist
                             </div>
-                            <h2 className="sm:text-2xl text-lg text-center font-bold text-pretty">{classDetails.name}</h2>
-                            <p className="text-muted-foreground text-xs sm:text-base">
-                                Taught by {teacherName}
+                            <p className="text-muted-foreground text-center sm:text-base text-sm text-pretty">
+                                Please recheck your link or contact your instructor
                             </p>
-                            <p className="text-muted-foreground sm:text-base text-xs text-pretty">
-                                {formatDays(classDetails.days)}, {formatTime(classDetails.start_time, classDetails.end_time)}
-                            </p>
-                        </div>
-                        <div className="flex gap-2">
-                            <Button variant="outline" className="w-full">
-                                Decline
-                            </Button>
-                            <Button className="w-full" onClick={() => setIsOpen(true)}>Join Class</Button>
                         </div>
                     </Card>
-                </div>
-            )}
+                )}
+                {!joinedClass && classDetails && (
+                    <div className="lg:w-[46vw] sm:w-[60vw] w-[90vw]">
+                        <Card className="w-full p-6 space-y-4">
+                            <div className="flex flex-col items-center space-y-2">
+                                <div className="inline-block rounded-lg px-3 py-1 text-xs sm:text-sm font-medium text-pretty">
+                                    You have been invited to join
+                                </div>
+                                <h2 className="sm:text-2xl text-lg text-center font-bold text-pretty">{classDetails.name}</h2>
+                                <p className="text-muted-foreground text-xs sm:text-base">
+                                    Taught by {teacherName}
+                                </p>
+                                <p className="text-muted-foreground sm:text-base text-xs text-pretty">
+                                    {formatDays(classDetails.days)}, {formatTime(classDetails.start_time, classDetails.end_time)}
+                                </p>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button variant="outline" className="w-full">
+                                    Decline
+                                </Button>
+                                <Button className="w-full" onClick={handleComplete}>Join Class</Button>
+                            </div>
+                        </Card>
+                    </div>
+                )}
+            </>}
         </main>
+    )
+}
+
+
+function CircleCheckIcon(props) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <circle cx="12" cy="12" r="10" />
+            <path d="m9 12 2 2 4-4" />
+        </svg>
     )
 }
