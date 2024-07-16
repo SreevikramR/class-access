@@ -118,6 +118,17 @@ export default function Component({ params: { class_code } }) {
             if (data.length > 0) {
                 setIsLoggedIn(true)
             } else {
+                const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('*').eq('id', user.data.user.id);
+                if (teacherData.length > 0) {
+                    toast({
+                        title: 'Teacher Account Found',
+                        description: "Please login through the teacher portal",
+                        variant: "destructive"
+                    })
+                    setTimeout(() => {
+                        window.location.href = '/login'
+                    }, 5000)
+                }
                 const controller = new AbortController()
                 const { signal } = controller;
                 const url = new URL(`${window.location.origin}/api/users/delete_user`)
@@ -380,7 +391,6 @@ export default function Component({ params: { class_code } }) {
         </main>
     )
 }
-
 
 function CircleCheckIcon(props) {
     return (
