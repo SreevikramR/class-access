@@ -1,39 +1,46 @@
 // app/api/users/forgot_password/route.js
 
 import { createClient } from '@supabase/supabase-js';
-import { MailtrapClient } from 'mailtrap';
 import { NextResponse } from 'next/server';
+import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const sendResetEmail = async ({ email, link }) => {
-    const TOKEN = process.env.EMAIL_TOKEN;
-    const ENDPOINT = process.env.EMAIL_ENDPOINT;
-    const client = new MailtrapClient({ endpoint: ENDPOINT, token: TOKEN });
-
-    const sender = {
-        email: "no-reply@classaccess.tech",
-        name: "Class Access",
-    };
-    const recipients = [{ email: email }];
+    const mailerSend = new MailerSend({
+        apiKey: process.env.EMAIL_TOKEN,
+    });
+    const sentFrom = new Sender("no-reply@classaccess.tech", "Class Access");
+    const recipients = [
+        new Recipient(email, email)
+    ];
+    const personalization = [
+        {
+            email: email,
+            data: {
+                url: link,
+                user_email: email
+            },
+        }
+    ];
+    const emailParams = new EmailParams()
+        .setFrom(sentFrom)
+        .setTo(recipients)
+        .setReplyTo(sentFrom)
+        .setSubject(`Password Recovery Link`)
+        .setPersonalization(personalization)
+        .setTemplateId('zr6ke4nmw2egon12');
 
     try {
-        client.send({
-            from: sender,
-            to: recipients,
-            template_uuid: "ea535c40-6e18-4fa8-8d5a-a696fdc60c49",
-            template_variables: {
-                "user_email": email,
-                "pass_reset_link": link
-            }
-        })
-        return "Email sent"
+        await mailerSend.email.send(emailParams);
     } catch (error) {
+        console.log("Error Sending Forgot Password Email");
         console.log(error);
         return "Email Failed"
     }
+    return "Email Sent"
 }
 
 export async function POST(request) {
