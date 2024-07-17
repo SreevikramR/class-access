@@ -323,8 +323,14 @@ const sendOnboardingEmail = async (email, classCode, teacherName, className) => 
 				"class_name": className,
 				"next_step_link": link
 			}
-		}).then(console.log, console.error)
-		console.log("Email Sent");
+		}).then((response) => {
+			console.log("Email Sent");
+			console.log(response);
+		}).catch((error) => {
+			console.log("Error Sending Email");
+			console.log(error);
+		})
+		console.log("Email Sent Outside message");
 	return "Email sent"
 	} catch (error) {
 		console.log("Error Sending Email Welcome Email");
