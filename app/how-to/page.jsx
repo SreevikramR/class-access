@@ -39,9 +39,9 @@ export default function HowToPage() {
 					<div className="flex flex-col items-center gap-4 p-6 w-full sm:w-1/2 sm:self-center rounded-md hover:bg-slate-100 cursor-pointer">
 						<CheckIcon className="size-8 text-primary" />
 						<div>
-							<h3 className="text-lg font-semibold">3. You're All Set!</h3>
+							<h3 className="text-lg font-semibold">3. You&apos;re All Set!</h3>
 							<p className="text-muted-foreground">
-								You've successfully created an account and enrolled in a class. Enjoy your learning experience!
+								You&apos;ve successfully created an account and enrolled in a class. Enjoy your learning experience!
 							</p>
 						</div>
 					</div>
@@ -62,14 +62,14 @@ export default function HowToPage() {
 				<div id="accept">
 					<h2 className="text-xl font-semibold">2. Accept Invite</h2>
 					<ul className="mt-2 list-disc space-y-2 pl-6">
-						<li>Once you've created your account, look for a second email that contians an invite to the class</li>
+						<li>Once you&apos;ve created your account, look for a second email that contians an invite to the class</li>
 						<li>
 							Confirm the details of the class you are trying to join and then accept the invite
 						</li>
 					</ul>
 				</div>
 				<div>
-					<h2 className="text-xl font-semibold">3. You're All Set!</h2>
+					<h2 className="text-xl font-semibold">3. You&apos;re All Set!</h2>
 					<ol className="mt-2 list-decimal space-y-2 pl-6">
 						<li>Once you have accepted your invite to the class, look for a link from your teacher to join the meeting</li>
 						<li>You may reuse this same link for every class. You may have to login before joining your class</li>
@@ -92,26 +92,6 @@ export default function HowToPage() {
 		</div>
 	)
 }
-
-function BookIcon(props) {
-	return (
-		<svg
-			{...props}
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		>
-			<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-		</svg>
-	)
-}
-
 
 function CheckIcon(props) {
 	return (
@@ -154,26 +134,6 @@ function MailIcon(props) {
 }
 
 
-function MountainIcon(props) {
-	return (
-		<svg
-			{...props}
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		>
-			<path d="m8 3 4 8 5-5 5 15H2L8 3z" />
-		</svg>
-	)
-}
-
-
 function UserIcon(props) {
 	return (
 		<svg
@@ -190,27 +150,6 @@ function UserIcon(props) {
 		>
 			<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
 			<circle cx="12" cy="7" r="4" />
-		</svg>
-	)
-}
-
-
-function XIcon(props) {
-	return (
-		<svg
-			{...props}
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		>
-			<path d="M18 6 6 18" />
-			<path d="m6 6 12 12" />
 		</svg>
 	)
 }
