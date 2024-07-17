@@ -17,25 +17,36 @@ const ActivationPage = () => {
     const [lastName, setLastName] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
-    const [error, setError] = useState(false)
+    const [isLoggedIn, setIsLoggedIn] = useState(false)
+    const [loginPassword, setLoginPassword] = useState('')
+    const [email, setEmail] = useState('')
     const phoneData = getPhoneData(phone)
 
-    useEffect(() => {
-        setSession()
-    }, [])
 
-    const setSession = async () => {
-        setLoading(true)
-        const hash = (window.location.hash).split('#')[1];
-        const params = new URLSearchParams(hash)
-        const jwt = params.get('jwt');
-        const refresh_token = params.get('refresh_token');
-        
-        const { data: user, error } = await supabaseClient.auth.setSession({ access_token: jwt, refresh_token: refresh_token })
-        if (error) {
-            setError(true)
-            console.error("Error setting session:", error)
-            return
+
+    const handleLogin = async () => {
+        try {
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: loginPassword })
+            if (error) {
+                toast({
+                    variant: 'destructive',
+                    title: "Error Logging in",
+                    description: error.message,
+                    duration: 3000,
+                });
+                throw error
+            }
+            console.log("Data:", data);
+            setIsLoggedIn(true)
+        }
+        catch (error) {
+            toast({
+                variant: 'destructive',
+                title: "Error Logging in",
+                description: error.message,
+                duration: 3000,
+            });
+            console.error("Error logging in:", error)
         }
     }
 
@@ -79,13 +90,23 @@ const ActivationPage = () => {
             };
             console.log("Data to be updated:", studentData);
 
+            console.log("user:", user);
+
             console.log("Existing row found. Attempting to update.");
+            const { data: fetchData, error: fetchError } = await supabaseClient
+                .from('students')
+                .select()
+                .eq('id', user.data.user.id);
+            console.log("fetch", fetchData);
+            console.log("error", fetchError);
             const { data: updateData, error: updateError } = await supabaseClient
                 .from('students')
                 .update(studentData)
                 .eq('id', user.data.user.id)
                 .select();
 
+            console.log("Update data:", updateData);
+            console.log("Update error:", updateError);
             if (updateError) {
                 console.error("Error updating data:", updateError);
                 throw updateError;
@@ -96,6 +117,7 @@ const ActivationPage = () => {
             const { data1, error2 } = await supabaseClient.auth.updateUser({
                 password: password
             })
+            console.log(data1);
 
             if (error2) throw error2;
 
@@ -121,15 +143,28 @@ const ActivationPage = () => {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
             <Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw]">
-                {error && (
+                {!isLoggedIn && (
                     <>
-                        <CardHeader className="space-y-2 text-center flex flex-col flex-wrap items-center">
-                            <CardTitle className="sm:text-2xl text-xl font-bold text-pretty">Please Check the Link and Retry</CardTitle>
-                            <CardDescription className="text-pretty">Please make sure you have the correct link. If this problem persists, please request your teacher to send you a new invite</CardDescription>
+                        <CardHeader className="space-y-2 text-center">
+                            <CardTitle className="sm:text-2xl text-xl font-bold">Please Login to Activate your Account</CardTitle>
+                            <CardDescription className="text-pretty">Your login details can be found in your email</CardDescription>
                         </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="name">Email</Label>
+                                <Input id="email" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="email">Confirm New Password</Label>
+                                <Input id="password" type="password" placeholder="Password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
+                            </div>
+                            <Button type="submit" className="w-full" onClick={handleLogin}>
+                                Finish <CheckCircleIcon className='ml-2 w-4 h-4' />
+                            </Button>
+                        </CardContent>
                     </>
                 )}
-                {!error && (
+                {isLoggedIn && (
                     <>
                         {step === 0 && (
                             <>

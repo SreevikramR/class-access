@@ -9,9 +9,6 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const TOKEN = process.env.EMAIL_TOKEN;
-const ENDPOINT = process.env.EMAIL_ENDPOINT;
-
 // POST Endpoint
 // Endpoint can create student account, create proxies and send welcoming and onboarding emails
 // Headers needed for this endpoint:
@@ -270,8 +267,8 @@ const addStudentProxyToClass = async (studentProxyID, classID) => {
 }
 
 // Sends a welcome email to the student
-const sendWelcomeEmail = async (jwt, teacherName, refresh_token, email) => {
-	const link = `https://classaccess.tech/activate#jwt=${jwt}&refresh_token=${refresh_token}`;
+const sendWelcomeEmail = async (teacherName, email) => {
+	const link = `https://classaccess.tech/activate`;
 	const mailerSend = new MailerSend({
 		apiKey: process.env.EMAIL_TOKEN,
 	});
@@ -292,7 +289,7 @@ const sendWelcomeEmail = async (jwt, teacherName, refresh_token, email) => {
 		.setFrom(sentFrom)
 		.setTo(recipients)
 		.setReplyTo(sentFrom)
-		.setSubject(`New Class Invite from ${teacherName}`)
+		.setSubject(`Welcome to Class Access!`)
 		.setPersonalization(personalization)
 		.setTemplateId('k68zxl2mpd34j905');
 
