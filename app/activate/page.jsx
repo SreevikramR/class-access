@@ -11,7 +11,7 @@ import { toast } from "@/components/ui/use-toast"
 
 const ActivationPage = () => {
     const [loading, setLoading] = useState(false)
-    const [step, setStep] = useState(3)
+    const [step, setStep] = useState(0)
     const [phone, setPhone] = useState('+91')
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
