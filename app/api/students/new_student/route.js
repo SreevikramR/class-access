@@ -4,6 +4,7 @@ import {createClient} from '@supabase/supabase-js';
 import {NextResponse} from 'next/server';
 import verifyJWT from '@/components/util_function/verifyJWT';
 import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
+import {supabaseClient} from "@/components/util_function/supabaseCilent";
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
@@ -258,9 +259,25 @@ const addStudentProxyToClass = async (studentProxyID, classID) => {
 		return true;
 	}
 	studentProxyIDArray.push(studentProxyID);
-	const { data: classUpdateData, error: classUpdateError } = await supabase.from('classes').update({ student_proxy_ids: studentProxyIDArray }).eq('id', classID).select()
+	const { data: classUpdateData, error: classUpdateError } = await supabase.from('classes').update({ student_proxy_ids: studentProxyIDArray }).eq('id', (await supabaseClient.auth.getUser()).data.user.id).select()
 	if (classUpdateError) {
 		console.log("Error Updating Class Data: 'classes' Table");
+		console.log(classUpdateError);
+	}
+		const { data: teacher, error:teacherror } = await supabase.from('teachers').select('student_proxy_ids').eq('id', (await supabaseClient.auth.getUser()).data.user.id).single()
+	if (teacherror) {
+		console.log("Error Fetching Class Data: 'teacher' Table");
+		console.log(classError);
+		return "Error"
+	}
+	let studentProxyIDArrayt = teacher.student_proxy_ids;
+	if (studentProxyIDArrayt.includes(studentProxyID)) {
+		return true;
+	}
+	studentProxyIDArrayt.push(studentProxyID);
+	const { data: teacherup, error: teachererror } = await supabase.from('teachers').update({ student_proxy_ids: studentProxyIDArrayt }).eq('id', classID).select()
+	if (teachererror) {
+		console.log("Error Updating Class Data: 'teachers' Table");
 		console.log(classUpdateError);
 	}
 	return true;
