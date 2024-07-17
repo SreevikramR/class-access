@@ -10,10 +10,11 @@ import {
 } from '../ui/dropdown-menu'
 import {Button} from '../ui/button'
 import {supabaseClient} from '@/components/util_function/supabaseCilent'
+import { useRouter } from 'next/navigation'
 
 const Header = () => {
 	const [teacherName, setTeacherName] = useState('')
-	
+	const router = useRouter()
 	useEffect(() => {
 		fetchTeacherName()
 	}, [])
@@ -43,7 +44,7 @@ const Header = () => {
 		try {
 			const {error} = await supabaseClient.auth.signOut()
 			if (error) throw error
-			router.push('/login') // Redirect to login page after logout
+			await router.push('/login') // Redirect to login page after logout
 		} catch (error) {
 			console.error('Error logging out:', error)
 		}
