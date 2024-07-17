@@ -9,7 +9,7 @@ import { toast } from "@/components/ui/use-toast"
 import { Card } from "@/components/ui/card"
 import fetchTimeout from "@/components/util_function/fetch"
 //
-export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
+export default function StudentClassOnboardingPopup({ isOpen, setIsOpen }) {
     const [step, setStep] = useState(0)
     const [email, setEmail] = useState("")
     const [loginPassword, setLoginPassword] = useState("")
@@ -220,7 +220,7 @@ export default function StudentOnboardingPopup({ isOpen, setIsOpen }) {
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen}>
             <DialogContent className="lg:w-[36vw] sm:w-[60vw] w-[90vw]">
                 {step === 0 && _login()}
                 {step === 1 && noAccount()}

@@ -16,17 +16,20 @@ const Page = () => {
         const controller = new AbortController()
         const { signal } = controller;
         const { data, error } = await supabaseClient.from('teachers').select('*').eq('email', email)
-        const url = new URL(`${window.location.origin}/api/users/delete_user`)
-        console.log(data, error)
-        console.log(data.length === 0)
         if (data.length === 0) {
-            const response = await fetchTimeout(url, 5500, { signal, headers: { 'jwt': jwt } });
-            console.log(response)
-            if (response.status === 200) {
-                setStatus('Please Sign Up First. Redirecting to Sign Up Page in 5 seconds...')
-                setTimeout(() => {
-                    window.location.href = '/signup'
-                }, 5000)
+            const { data: studentData, error: studentError } = await supabaseClient.from('students').select('*').eq('email', email)
+            if (studentData.length > 0) {
+                setStatus('This is a teacher login portal, please login with a teacher account')
+            } else {
+                const url = new URL(`${window.location.origin}/api/users/delete_user`)
+                const response = await fetchTimeout(url, 5500, { signal, headers: { 'jwt': jwt } });
+                console.log(response)
+                if (response.status === 200) {
+                    setStatus('Please Sign Up First. Redirecting to Sign Up Page in 5 seconds...')
+                    setTimeout(() => {
+                        window.location.href = '/signup'
+                    }, 5000)
+                }
             }
         } else {
             window.location.href = '/dashboard'

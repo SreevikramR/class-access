@@ -76,7 +76,6 @@ export async function POST(request) {
 
 			// Add student proxy to class using the funciton
 			const studentProxyID = studentProxyData[0].id;
-			console.log("1");
 			const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id);
 			if (addStudentProxyToClassStatus === "Error") {
 				return NextResponse.json({message: "Error Adding Student"}, {status: 500});
@@ -98,7 +97,6 @@ export async function POST(request) {
 		}
 
 		const studentProxyID = studentInsertProxyData[0].id;
-		console.log("2");
 		const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id);
 		if (addStudentProxyToClassStatus === "Error") {
 			return NextResponse.json({ message: "Error Adding Student" }, { status: 500 });
@@ -133,7 +131,6 @@ export async function POST(request) {
 	}
 
 	const studentProxyID = studentProxyData[0].id;
-	console.log("3");
 	const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id);
 	if (addStudentProxyToClassStatus === "Error") {
 		return NextResponse.json({ message: "Error Adding Student" }, { status: 500 });
@@ -171,8 +168,7 @@ const createNewStudent = async (studentEmail) => {
 
 // Adds the student to the student table
 const addToStudentTable = async (studentEmail, studentID) => {
-	const {data, error} = await supabase.from('students').insert([{id: studentID, email: studentEmail}]).select()
-	
+	const {data, error} = await supabase.from('students').insert([{id: studentID, email: studentEmail}]).select()	
 	if (error) {
 		console.log("Error Inserting Student Data: 'students' Table");
 		console.log(error);
@@ -195,12 +191,14 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 	}
 	if (studentProxyData.length > 0) {
 		// Student Proxy Already Exists, need to update the classes_left
-		const classes_left_jb = studentProxyData[0].classes_left;
+		let classes_left_jb = studentProxyData[0].classes_left;
 		classes_left_jb[class_id] = classes_left;
+		let status_jb = studentProxyData[0].status;
+		status_jb[class_id] = "Invited";
 		const {
 			data,
 			error
-		} = await supabase.from('student_proxies').update({classes_left: classes_left_jb}).eq('student_id', studentUUID).eq('teacher_id', teacherUUID).select()
+		} = await supabase.from('student_proxies').update({classes_left: classes_left_jb, status: status_jb}).eq('student_id', studentUUID).eq('teacher_id', teacherUUID).select()
 		if (error) {
 			console.log("Error Updating Student Data: 'student_proxies' Table");
 			console.log(error);
@@ -211,13 +209,16 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 	
 	let classes_left_jb = {}
 	classes_left_jb[class_id] = classes_left;
+	let status_jb = {}
+	status_jb[class_id] = "Invited";
 	const {data: data, error: error} = await supabase.from('student_proxies').insert([{
 		student_id: studentUUID,
 		teacher_id: teacherUUID,
 		classes_left: classes_left_jb,
 		email: studentEmail,
 		notes: notes,
-		hasJoined: false
+		hasJoined: false,
+		status: status_jb
 	}]).select()
 
 	if (error) {
@@ -227,7 +228,7 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 	}
 	// Add student proxy ID to student table proxy_ids array
 	const studentProxyID = data[0].id;
-	const { data: studentData, error: studentError } = await supabase.from('students').select("proxy_ids")
+	const { data: studentData, error: studentError } = await supabase.from('students').select("*").eq('id', studentUUID)
 	if (studentError) {
 		console.log("Error Fetching Student Data: 'students' Table");
 		console.log(studentError);
@@ -288,7 +289,7 @@ const sendWelcomeEmail = async (jwt, teacherName, refresh_token, email) => {
 				"activation_link": link
 			}
 		})
-		return "Email sent"
+	return "Email sent"
 	} catch (error) {
 		console.log("Error Sending Email Welcome Email");
 		console.log(error);
@@ -316,7 +317,7 @@ const sendOnboardingEmail = async (email, classCode, teacherName, className) => 
 				"next_step_link": link
 			}
 		})
-		return "Email sent"
+	return "Email sent"
 	} catch (error) {
 		console.log("Error Sending Email Welcome Email");
 		console.log(error);
