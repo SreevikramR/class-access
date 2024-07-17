@@ -272,6 +272,7 @@ const addStudentProxyToClass = async (studentProxyID, classID) => {
 
 // Sends a welcome email to the student
 const sendWelcomeEmail = async (jwt, teacherName, refresh_token, email) => {
+	console.log("Triggered Welcome Email");
 	const link = `https://classaccess.tech/activate#jwt=${jwt}&refresh_token=${refresh_token}`;
 	const sender = {
 		email: "no-reply@classaccess.tech",
@@ -299,6 +300,7 @@ const sendWelcomeEmail = async (jwt, teacherName, refresh_token, email) => {
 
 // Sends an onboarding email to the student
 const sendOnboardingEmail = async (email, classCode, teacherName, className) => {
+	console.log("triggered Onboarding Email");
 	const link = `https://classaccess.tech/join_class/${classCode}`;
 	const sender = {
 		email: "no-reply@classaccess.tech",
@@ -317,6 +319,7 @@ const sendOnboardingEmail = async (email, classCode, teacherName, className) => 
 				"next_step_link": link
 			}
 		})
+		console.log("Email Sent");
 	return "Email sent"
 	} catch (error) {
 		console.log("Error Sending Email Welcome Email");
