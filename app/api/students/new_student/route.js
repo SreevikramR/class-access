@@ -11,7 +11,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const TOKEN = process.env.EMAIL_TOKEN;
 const ENDPOINT = process.env.EMAIL_ENDPOINT;
-const client = new MailtrapClient({ endpoint: ENDPOINT, token: TOKEN });
 
 // POST Endpoint
 // Endpoint can create student account, create proxies and send welcoming and onboarding emails
@@ -272,30 +271,39 @@ const addStudentProxyToClass = async (studentProxyID, classID) => {
 
 // Sends a welcome email to the student
 const sendWelcomeEmail = async (jwt, teacherName, refresh_token, email) => {
-	console.log("Triggered Welcome Email");
 	const link = `https://classaccess.tech/activate#jwt=${jwt}&refresh_token=${refresh_token}`;
-	const sender = {
-		email: "no-reply@classaccess.tech",
-		name: "Class Access",
-	};
-	const recipients = [{email: email}];
-	
+	const mailerSend = new MailerSend({
+		apiKey: process.env.EMAIL_TOKEN,
+	});
+	const sentFrom = new Sender("no-reply@classaccess.tech", "Class Access");
+	const recipients = [
+		new Recipient(email, email)
+	];
+	const personalization = [
+		{
+			email: email,
+			data: {
+				url: link,
+				teacher_name: teacherName
+			},
+		}
+	];
+	const emailParams = new EmailParams()
+		.setFrom(sentFrom)
+		.setTo(recipients)
+		.setReplyTo(sentFrom)
+		.setSubject(`New Class Invite from ${teacherName}`)
+		.setPersonalization(personalization)
+		.setTemplateId('k68zxl2mpd34j905');
+
 	try {
-		client.send({
-			from: sender,
-			to: recipients,
-			template_uuid: "b4adc5e7-c8c3-4b1d-9bbf-556cd1cc7a00",
-			template_variables: {
-				"teacher_name": teacherName,
-				"activation_link": link
-			}
-		})
-	return "Email sent"
+		await mailerSend.email.send(emailParams);
 	} catch (error) {
-		console.log("Error Sending Email Welcome Email");
+		console.log("Error Sending Email Onboarding Email");
 		console.log(error);
 		return "Email Failed"
 	}
+	return "Email Sent"
 }
 
 // Sends an onboarding email to the student
