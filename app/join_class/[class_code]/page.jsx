@@ -160,8 +160,16 @@ export default function Component({ params: { class_code } }) {
             return
         }
         const studentId = (await supabaseClient.auth.getUser()).data.user.id
-        const { data, error } = await supabaseClient.from('student_proxies').select('*').eq('student_id', studentId).eq('teacher_id', classData.teacher_id)
-        if (!data[0].hasJoined) {
+        const { data, error } = await supabaseClient.from('students').select('*').eq('id', studentId)
+        if (error) {
+            toast({
+                title: 'Error',
+                description: "Please Try Again Later",
+                variant: "destructive"
+            })
+            return
+        }
+        if (data[0].first_name === null) {
             setUnactivated(true)
         }
         setClassDetails(classData)

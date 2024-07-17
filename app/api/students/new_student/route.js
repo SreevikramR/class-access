@@ -4,7 +4,6 @@ import {createClient} from '@supabase/supabase-js';
 import {NextResponse} from 'next/server';
 import verifyJWT from '@/components/util_function/verifyJWT';
 import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
-import {supabaseClient} from "@/components/util_function/supabaseCilent";
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
