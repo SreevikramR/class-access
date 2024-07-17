@@ -307,6 +307,11 @@ const sendOnboardingEmail = async (email, classCode, teacherName, className) => 
 		name: "Class Access",
 	};
 	const recipients = [{email: email}];
+
+	console.log("Sending Email");
+	console.log("Link:", link);
+	console.log("Sender:", sender);
+	console.log("Recipients:", recipients);
 	
 	try {
 		client.send({
@@ -318,7 +323,7 @@ const sendOnboardingEmail = async (email, classCode, teacherName, className) => 
 				"class_name": className,
 				"next_step_link": link
 			}
-		})
+		}).then(console.log, console.error)
 		console.log("Email Sent");
 	return "Email sent"
 	} catch (error) {
