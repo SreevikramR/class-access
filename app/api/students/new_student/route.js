@@ -4,6 +4,7 @@ import {createClient} from '@supabase/supabase-js';
 import {NextResponse} from 'next/server';
 import {MailtrapClient} from 'mailtrap';
 import verifyJWT from '@/components/util_function/verifyJWT';
+import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
@@ -301,40 +302,72 @@ const sendWelcomeEmail = async (jwt, teacherName, refresh_token, email) => {
 // Sends an onboarding email to the student
 const sendOnboardingEmail = async (email, classCode, teacherName, className) => {
 	console.log("triggered Onboarding Email");
-	const link = `https://classaccess.tech/join_class/${classCode}`;
-	const sender = {
-		email: "no-reply@classaccess.tech",
-		name: "Class Access",
-	};
-	const recipients = [{email: email}];
-
-	console.log("Sending Email");
-	console.log("Link:", link);
-	console.log("Sender:", sender);
-	console.log("Recipients:", recipients);
+	// const link = `https://classaccess.tech/join_class/${classCode}`;
+	// const sender = {
+	// 	email: "no-reply@classaccess.tech",
+	// 	name: "Class Access",
+	// };
+	// const recipients = [{email: email}];
 	
-	try {
-		client.send({
-			from: sender,
-			to: recipients,
-			template_uuid: "6f61e827-4cf8-4a79-8392-0aec29839e7c",
-			template_variables: {
-				"teacher_name": teacherName,
-				"class_name": className,
-				"next_step_link": link
-			}
-		}).then((response) => {
-			console.log("Email Sent");
-			console.log(response);
-		}).catch((error) => {
-			console.log("Error Sending Email");
-			console.log(error);
-		})
-		console.log("Email Sent Outside message");
-	return "Email sent"
-	} catch (error) {
-		console.log("Error Sending Email Welcome Email");
-		console.log(error);
-		return "Email Failed"
-	}
+	// try {
+	// 	client.send({
+	// 		from: sender,
+	// 		to: recipients,
+	// 		template_uuid: "6f61e827-4cf8-4a79-8392-0aec29839e7c",
+	// 		template_variables: {
+	// 			"teacher_name": teacherName,
+	// 			"class_name": className,
+	// 			"next_step_link": link
+	// 		}
+	// 	}).then((response) => {
+	// 		console.log("Email Sent");
+	// 		console.log(response);
+	// 	}).catch((error) => {
+	// 		console.log("Error Sending Email");
+	// 		console.log(error);
+	// 	})
+	// 	console.log("Email Sent Outside message");
+	// return "Email sent"
+	// } catch (error) {
+	// 	console.log("Error Sending Email Welcome Email");
+	// 	console.log(error);
+	// 	return "Email Failed"
+	// }
+
+
+	const mailerSend = new MailerSend({
+		apiKey: process.env.EMAIL_TOKEN,
+	});
+
+	const sentFrom = new Sender("no-reply@classaccess.tech", "Your name");
+
+	const recipients = [
+		new Recipient("sreevikram.r@gmail.com", "Your Client")
+	];
+
+	const personalization = [
+		{
+			email: "sreevikram.r@gmail.com",
+			data: {
+				url: 'classaccess.tech',
+				class_name: 'Class Name',
+				teacher_name: 'Teacher Name'
+			},
+		}
+	];
+
+
+	const emailParams = new EmailParams()
+		.setFrom(sentFrom)
+		.setTo(recipients)
+		.setReplyTo(sentFrom)
+		.setSubject("This is a Subject")
+		.setPersonalization(personalization)
+		.setTemplateId('yzkq340xpqx4d796');
+
+	await mailerSend.email.send(emailParams);
+
+
+
+
 }
