@@ -1,5 +1,6 @@
 import verifyJWT from "@/components/util_function/verifyJWT";
 import { createClient } from "@supabase/supabase-js";
+import {NextResponse} from "next/server";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
@@ -19,7 +20,7 @@ export async function PUT(request) {
         return NextResponse.json({ message: "Invalid Token" }, { status: 401 });
     }
 
-    const { data: teacherData, error: teacherError } = await supabase.from("teachers").select().eq("uuid", teacherUUID);
+    const { data: teacherData, error: teacherError } = await supabase.from("teachers").select().eq("id", teacherUUID);
     if (teacherError) {
         console.log("Error Fetching Teacher Data: 'teachers' Table");
         console.log(teacherError);
