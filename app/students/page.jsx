@@ -58,7 +58,8 @@ const Students = () => {
             .map(c => ({
                 ...student,
                 class_code: c.class_code,
-                has_joined: Boolean(studentInfo.hasJoined) // Ensure it's a boolean
+                has_joined: Boolean(student.hasJoined),
+	            classes_left:student.classes_left[c.id]
             }))
     )
 		
@@ -71,7 +72,7 @@ const Students = () => {
 		console.log('studentInfo:', studentInfo);
 		
 		const router = useRouter()
-		const {first_name, last_name, status, email, id, class_code, has_joined} = studentInfo
+		const {first_name, last_name, status, email, id, class_code, has_joined,classes_left} = studentInfo
 		let studentFirstName = first_name
 		let studentLastName = last_name
 		let studentStatus = status
@@ -106,10 +107,10 @@ const Students = () => {
 				</TableCell>
 				<TableCell>{studentEmail}</TableCell>
 				<TableCell>
-					<Badge variant="success" className={statusClassName}>{studentStatus}</Badge>
+					<Badge variant="success" className={statusClassName}>{has_joined ? 'Yes' : 'No'}</Badge>
 				</TableCell>
 				<TableCell>{class_code}</TableCell>
-				<TableCell>{has_joined ? 'Yes' : 'No'}</TableCell>
+				<TableCell>{classes_left}</TableCell>
 			</TableRow>)
 	};
 	return (<AuthWrapper>
@@ -129,7 +130,7 @@ const Students = () => {
 												<TableHead>Email</TableHead>
 												<TableHead>Status</TableHead>
 												<TableHead>Class Code</TableHead>
-												<TableHead>Has Joined</TableHead>
+												<TableHead>Classes Left</TableHead>
 											</TableRow>
 										</TableHeader>
 										<TableBody>
