@@ -13,7 +13,6 @@ import Header from "@/components/page_components/header";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import fetchTimeout from "@/components/util_function/fetch";
 import AuthWrapper from "@/components/page_components/authWrapper";
-import LoadingOverlay from "@/components/page_components/loadingOverlay";
 // I am here
 export default function ManageClass({params}) {
 	const [isOpenManage, setIsOpenManage] = useState(false);
@@ -36,7 +35,14 @@ export default function ManageClass({params}) {
 		fetchTeacherData();
 		fetchStudents();
 	}, []);
-	
+
+	const resetPopupStates = () => {
+		setEmail("");
+		setNumClasses(0);
+		setNotes("");
+		setSelectedStudents([]);
+	}
+
 	useEffect(() => {
 		if (classCode) {
 			fetchClassData();
@@ -72,7 +78,6 @@ export default function ManageClass({params}) {
 			}
 		}
 	};
-	
 	
 	async function fetchStudentData(studentUUIDs) {
 		setLoading(true)
@@ -148,6 +153,7 @@ export default function ManageClass({params}) {
 	};
 	
 	const handleAddNewStudent = async () => {
+		if (loading) return;
 		if (!email) {
 			toast({
 				title: 'Error', description: 'Email is required.', variant: "destructive"
@@ -200,7 +206,7 @@ export default function ManageClass({params}) {
 				});
 			}
 			
-			
+			resetPopupStates();
 			console.log("Class created successfully and students updated!");
 			toast({
 				className: "bg-green-500 border-black border-2",
@@ -222,6 +228,7 @@ export default function ManageClass({params}) {
 	};
 	
 	const handleAddExistingStudents = async () => {
+		if (loading) return;
 		if (selectedStudents.length === 0) {
 			toast({
 				title: 'Alert', description: 'At least one student must be selected.', variant: "destructive"
@@ -293,7 +300,7 @@ export default function ManageClass({params}) {
 			// Update local state
 			setClassData(prevData => ({...prevData, students: updatedStudents}));
 			await fetchStudentData(updatedStudents);
-			
+			resetPopupStates();
 			toast({
 				title: 'Success',
 				description: `${newStudents.length} new student(s) added successfully and emails sent.`,
@@ -311,7 +318,6 @@ export default function ManageClass({params}) {
 		}
 		setLoading(false);
 	};
-	
 	
 	const _newOrExisting = () => {
 		return (<>
@@ -335,9 +341,11 @@ export default function ManageClass({params}) {
 				</div>
 			</>);
 	};
+
 	const handleUpdate = async () => {
 		await fetchClassData();  // This will refresh both class and student data
 	};
+
 	const StudentDetailsPopUp = ({student, classId, onClose, onUpdate}) => {
 		const [classes, setClasses] = useState(0);
 		const {toast} = useToast();
@@ -495,7 +503,7 @@ export default function ManageClass({params}) {
 						<Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => {
 							setStep(0)
 						}}>Back</Button>
-						<Button type="button" onClick={handleAddExistingStudents} className="gap-2">Add
+					<Button type="button" onClick={handleAddExistingStudents} className={"gap-2" + (loading ? " cursor-progress" : "")}>Add
 							Students<CircleArrowRight className="h-5 w-5"/></Button>
 					</div>
 				</DialogFooter>
@@ -543,7 +551,7 @@ export default function ManageClass({params}) {
 							<div>
 								<Button variant="outline" onClick={() => setStep(0)}>Back</Button>
 							</div>
-							<Button type="button" onClick={handleAddNewStudent}>Submit</Button>
+						<Button type="button" className={(loading ? " cursor-progress" : "")} onClick={handleAddNewStudent}>Submit</Button>
 						</div>
 					</DialogFooter>
 				</form>
@@ -552,7 +560,6 @@ export default function ManageClass({params}) {
 	
 	
 	return (<AuthWrapper>
-			{loading && <LoadingOverlay/>}
 			<div className="min-h-screen bg-gray-100">
 				<Header/>
 				<main className="p-6 space-y-8">
