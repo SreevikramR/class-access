@@ -160,47 +160,7 @@ const Students = () => {
                     </div> */}
                     </div>
                     <div>
-                        <div className="flex w-full mb-2">
-                            <Tabs defaultValue="all" className='flex flex-row content-between w-full'>
-                                <TabsList>
-                                    <TabsTrigger value="all">All</TabsTrigger>
-                                    <TabsTrigger value="paid">Paid</TabsTrigger>
-                                    <TabsTrigger value="unpaid">Unpaid</TabsTrigger>
-                                    <TabsTrigger value="pending">Pending</TabsTrigger>
-                                </TabsList>
-                                <div className="ml-auto flex items-center gap-2">
-                                    <div className="relative ml-auto flex-1 md:grow-0">
-                                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            type="search"
-                                            placeholder="Search..."
-                                            className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
-                                        />
-                                    </div>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="outline" size="sm" className="h-7 gap-1">
-                                                <SortDescIcon className="h-3.5 w-3.5" />
-                                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                                    Sort
-                                                </span>
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuCheckboxItem checked>
-                                                Name
-                                            </DropdownMenuCheckboxItem>
-                                            <DropdownMenuCheckboxItem>Classes Remaining</DropdownMenuCheckboxItem>
-                                            <DropdownMenuCheckboxItem>
-                                                Payment Status
-                                            </DropdownMenuCheckboxItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            </Tabs>
-                        </div>
+                        
                         <Card>
                             <CardHeader>
                                 <CardTitle className="p-3">My Students</CardTitle>
@@ -229,11 +189,6 @@ const Students = () => {
                             ))}
                         </Card>
                     </div>
-                    <div>
-                        <h1>Zoom Meeting Creator</h1>
-                        <ZoomButton />
-                    </div>
-                    <Button onClick={handleStudentFetch}>Fetch Test</Button>
                 </main>
                 <Footer />
             </div>
