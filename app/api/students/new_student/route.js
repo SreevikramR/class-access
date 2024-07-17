@@ -73,7 +73,7 @@ export async function POST(request) {
 
 			// Add student proxy to class using the funciton
 			const studentProxyID = studentProxyData[0].id;
-			const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id);
+			const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id, teacherUUID);
 			if (addStudentProxyToClassStatus === "Error") {
 				return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 			}
@@ -94,7 +94,7 @@ export async function POST(request) {
 		}
 
 		const studentProxyID = studentInsertProxyData[0].id;
-		const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id);
+		const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id, teacherUUID);
 		if (addStudentProxyToClassStatus === "Error") {
 			return NextResponse.json({ message: "Error Adding Student" }, { status: 500 });
 		}
@@ -128,7 +128,7 @@ export async function POST(request) {
 	}
 
 	const studentProxyID = studentProxyData[0].id;
-	const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id);
+	const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id, teacherUUID);
 	if (addStudentProxyToClassStatus === "Error") {
 		return NextResponse.json({ message: "Error Adding Student" }, { status: 500 });
 	}
@@ -247,38 +247,43 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 }
 
 // Add student proxy id to the class
-const addStudentProxyToClass = async (studentProxyID, classID) => {
+const addStudentProxyToClass = async (studentProxyID, classID, teacherUUID) => {
 	const { data: classData, error: classError } = await supabase.from('classes').select('student_proxy_ids').eq('id', classID).single()
 	if (classError) {
 		console.log("Error Fetching Class Data: 'classes' Table");
 		console.log(classError);
-		return "Error"	
+		return "Error"
 	}
 	let studentProxyIDArray = classData.student_proxy_ids;
-	if (studentProxyIDArray.includes(studentProxyID)) {
-		return true;
+	if (studentProxyIDArray === null) {
+		studentProxyIDArray = [];
 	}
-	studentProxyIDArray.push(studentProxyID);
-	const { data: classUpdateData, error: classUpdateError } = await supabase.from('classes').update({ student_proxy_ids: studentProxyIDArray }).eq('id', (await supabaseClient.auth.getUser()).data.user.id).select()
+	if (!studentProxyIDArray.includes(studentProxyID)) {
+		studentProxyIDArray.push(studentProxyID);
+	}
+	const { data: classUpdateData, error: classUpdateError } = await supabase.from('classes').update({ student_proxy_ids: studentProxyIDArray }).eq('id', classID).select()
 	if (classUpdateError) {
 		console.log("Error Updating Class Data: 'classes' Table");
 		console.log(classUpdateError);
 	}
-		const { data: teacher, error:teacherror } = await supabase.from('teachers').select('student_proxy_ids').eq('id', (await supabaseClient.auth.getUser()).data.user.id).single()
+	const { data: teacher, error: teacherror } = await supabase.from('teachers').select('student_proxy_ids').eq('id', teacherUUID).single()
 	if (teacherror) {
 		console.log("Error Fetching Class Data: 'teacher' Table");
 		console.log(classError);
 		return "Error"
 	}
 	let studentProxyIDArrayt = teacher.student_proxy_ids;
-	if (studentProxyIDArrayt.includes(studentProxyID)) {
-		return true;
+	if (studentProxyIDArrayt === null) {
+		studentProxyIDArrayt = [];
 	}
-	studentProxyIDArrayt.push(studentProxyID);
-	const { data: teacherup, error: teachererror } = await supabase.from('teachers').update({ student_proxy_ids: studentProxyIDArrayt }).eq('id', classID).select()
+	if (!studentProxyIDArrayt.includes(studentProxyID)) {
+		studentProxyIDArrayt.push(studentProxyID);
+	}
+	const { data: teacherup, error: teachererror } = await supabase.from('teachers').update({ student_proxy_ids: studentProxyIDArrayt }).eq('id', teacherUUID).select()
 	if (teachererror) {
 		console.log("Error Updating Class Data: 'teachers' Table");
 		console.log(classUpdateError);
+		return "Error"
 	}
 	return true;
 }
