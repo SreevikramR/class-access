@@ -109,19 +109,6 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 			const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
 			const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token;
 
-			let addedAllStudents = true;
-			for (const student of selectedStudents) {
-				const headers = {
-					"jwt": jwt,
-					"refresh_token": refreshToken,
-					"teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
-					"email": student.email,
-					"notes": student.notes || '',
-					"classes_left": "0",
-					"class_id": classInsertData[0].id,
-					"class_code": code,
-					"class_name": className
-				};
         let addedAllStudents = true;
 		for (const student of selectedStudents) {
             const headers = {
