@@ -2,7 +2,6 @@
 
 import {createClient} from '@supabase/supabase-js';
 import {NextResponse} from 'next/server';
-import {MailtrapClient} from 'mailtrap';
 import verifyJWT from '@/components/util_function/verifyJWT';
 import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
 
@@ -301,73 +300,38 @@ const sendWelcomeEmail = async (jwt, teacherName, refresh_token, email) => {
 
 // Sends an onboarding email to the student
 const sendOnboardingEmail = async (email, classCode, teacherName, className) => {
-	console.log("triggered Onboarding Email");
-	// const link = `https://classaccess.tech/join_class/${classCode}`;
-	// const sender = {
-	// 	email: "no-reply@classaccess.tech",
-	// 	name: "Class Access",
-	// };
-	// const recipients = [{email: email}];
-	
-	// try {
-	// 	client.send({
-	// 		from: sender,
-	// 		to: recipients,
-	// 		template_uuid: "6f61e827-4cf8-4a79-8392-0aec29839e7c",
-	// 		template_variables: {
-	// 			"teacher_name": teacherName,
-	// 			"class_name": className,
-	// 			"next_step_link": link
-	// 		}
-	// 	}).then((response) => {
-	// 		console.log("Email Sent");
-	// 		console.log(response);
-	// 	}).catch((error) => {
-	// 		console.log("Error Sending Email");
-	// 		console.log(error);
-	// 	})
-	// 	console.log("Email Sent Outside message");
-	// return "Email sent"
-	// } catch (error) {
-	// 	console.log("Error Sending Email Welcome Email");
-	// 	console.log(error);
-	// 	return "Email Failed"
-	// }
-
-
+	const link = `https://classaccess.tech/join_class/${classCode}`;
 	const mailerSend = new MailerSend({
 		apiKey: process.env.EMAIL_TOKEN,
 	});
-
-	const sentFrom = new Sender("no-reply@classaccess.tech", "Your name");
-
+	const sentFrom = new Sender("no-reply@classaccess.tech", "Class Access");
 	const recipients = [
-		new Recipient("sreevikram.r@gmail.com", "Your Client")
+		new Recipient(email, email)
 	];
-
 	const personalization = [
 		{
-			email: "sreevikram.r@gmail.com",
+			email: email,
 			data: {
-				url: 'classaccess.tech',
-				class_name: 'Class Name',
-				teacher_name: 'Teacher Name'
+				url: link,
+				class_name: className,
+				teacher_name: teacherName
 			},
 		}
 	];
-
-
 	const emailParams = new EmailParams()
 		.setFrom(sentFrom)
 		.setTo(recipients)
 		.setReplyTo(sentFrom)
-		.setSubject("This is a Subject")
+		.setSubject(`New Class Invite from ${teacherName}`)
 		.setPersonalization(personalization)
 		.setTemplateId('yzkq340xpqx4d796');
 
-	await mailerSend.email.send(emailParams);
-
-
-
-
+	try {
+		await mailerSend.email.send(emailParams);
+	} catch (error) {
+		console.log("Error Sending Email Onboarding Email");
+		console.log(error);
+		return "Email Failed"
+	}
+	return "Email Sent"
 }
