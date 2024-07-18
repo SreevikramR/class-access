@@ -4,6 +4,7 @@ import {createClient} from '@supabase/supabase-js';
 import {NextResponse} from 'next/server';
 import verifyJWT from '@/components/util_function/verifyJWT';
 import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
+import generateRandomString from '@/components/util_function/generateRandomString';
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
@@ -13,7 +14,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // Endpoint can create student account, create proxies and send welcoming and onboarding emails
 // Headers needed for this endpoint:
 //// jwt: JWT Token
-//// refresh_token: Refresh Token
 //// teacher_name: Teacher Name
 //// email: Student Email
 //// notes: Notes
@@ -24,8 +24,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(request) {
 	const token = request.headers.get('jwt');
-	const refresh_token = request.headers.get('refresh_token');
-	
 	const decodedJWT = verifyJWT(token);
 	const teacherUUID = decodedJWT?.sub;
 	if (!decodedJWT) {
@@ -39,8 +37,10 @@ export async function POST(request) {
 	const class_id = request.headers.get('class_id');
 	const class_code = request.headers.get('class_code');
 	const class_name = request.headers.get('class_name');
+
+	const studentPassword = generateRandomString(10);
 	
-	const createStudentData = await createNewStudent(email);
+	const createStudentData = await createNewStudent(email, studentPassword);
 	if (createStudentData?.error === true) {
 		return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 	}
@@ -121,7 +121,7 @@ export async function POST(request) {
 	}
 	
 	// Send Welcome Email
-	const welcomeEmailStatus = await sendWelcomeEmail(teacher_name, email);
+	const welcomeEmailStatus = await sendWelcomeEmail(teacher_name, email, studentPassword);
 	if (welcomeEmailStatus === "Email Failed") {
 		return NextResponse.json({message: "Error Sending Email"}, {status: 500});
 	}
@@ -142,10 +142,10 @@ export async function POST(request) {
 }
 
 // Creates a new student Account
-const createNewStudent = async (studentEmail) => {
+const createNewStudent = async (studentEmail, password) => {
 	const {data, error} = await supabase.auth.admin.createUser({
 		email: studentEmail,
-		password: process.env.DEFAULT_PASSWORD,
+		password: password,
 		email_confirm: true,
 	})
 
@@ -288,7 +288,7 @@ const addStudentProxyToClass = async (studentProxyID, classID, teacherUUID) => {
 }
 
 // Sends a welcome email to the student
-const sendWelcomeEmail = async (teacherName, email) => {
+const sendWelcomeEmail = async (teacherName, email, password) => {
 	const link = `https://classaccess.tech/activate`;
 	const mailerSend = new MailerSend({
 		apiKey: process.env.EMAIL_TOKEN,
@@ -302,7 +302,9 @@ const sendWelcomeEmail = async (teacherName, email) => {
 			email: email,
 			data: {
 				url: link,
-				teacher_name: teacherName
+				teacher_name: teacherName,
+				email: email,
+				password: password
 			},
 		}
 	];
