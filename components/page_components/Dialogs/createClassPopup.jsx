@@ -340,7 +340,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 				</DialogFooter>
 			</div>
 		)
-	}
+	}//
 
 	const _studentTileForStudentList = (student) => {
 		const isSelected = selectedStudents.some(s => s.id === student.id);
