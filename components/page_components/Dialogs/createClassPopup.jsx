@@ -349,10 +349,10 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
 					<Avatar>
-						<AvatarFallback className="bg-white">{student.initials}</AvatarFallback>
+						<AvatarFallback className="bg-white">S</AvatarFallback>
 					</Avatar>
 					<div>
-						<p className="font-medium">{student.name}</p>
+						<p className="font-medium">{student.name && student.name !== "null null" ? student.name : 'Student Invited'}</p>
 						<p className="text-muted-foreground text-sm">{student.email}</p>
 					</div>
 				</div>

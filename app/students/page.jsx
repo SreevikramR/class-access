@@ -72,16 +72,16 @@ const Students = () => {
 		console.log('studentInfo:', studentInfo);
 
 		const router = useRouter()
-		const { first_name, last_name, status, email, id, class_code, has_joined, classes_left } = studentInfo
+		const { first_name, last_name, email, id, class_code, has_joined, classes_left } = studentInfo
 		let studentFirstName = first_name
 		let studentLastName = last_name
-		let studentStatus = status
+		let studentStatus = has_joined
 		let studentEmail = email
 		let statusClassName = ""
 
-		if (studentStatus === null) {
-			studentFirstName = "New"
-			studentLastName = "Student"
+		if (studentStatus === false) {
+			studentFirstName = "Student"
+			studentLastName = "Invited"
 			statusClassName = "text-black border-black"
 		} else if (studentStatus === "Unpaid") {
 			statusClassName = "bg-red-400"
