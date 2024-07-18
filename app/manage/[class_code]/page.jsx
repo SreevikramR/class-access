@@ -174,11 +174,9 @@ export default function ManageClass({ params }) {
 		if (teacherError) throw teacherError;
 
 		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-		const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token;
 		try {
 			const headers = {
 				"jwt": jwt,
-				"refresh_token": refreshToken,
 				"teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
 				"email": email,
 				"notes": notes || '',
@@ -262,13 +260,11 @@ export default function ManageClass({ params }) {
 			if (teacherError) throw teacherError;
 
 			const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-			const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token;
 
 			let addedAllStudents = true;
 			for (const student of newStudents) {
 				const headers = {
 					"jwt": jwt,
-					"refresh_token": refreshToken,
 					"teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
 					"email": student.email,
 					"notes": student.notes || '',

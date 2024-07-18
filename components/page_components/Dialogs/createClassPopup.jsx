@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import { useToast } from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
+import generateRandomString from '@/components/util_function/generateRandomString'
 
 // import createZoomMeeting from '@/components/util_function/createZoomMeeting'
 
@@ -43,18 +44,6 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 		setClassCreationStep(0)
 		setTempNewStudents([]);
 
-	}
-
-	const generateRandomString = (length) => {
-		const getRandomCharacter = () => {
-			const characters = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
-			return characters[Math.floor(Math.random() * characters.length)];
-		}
-		let result = '';
-		for (let i = 0; i < length; i++) {
-			result += getRandomCharacter();
-		}
-		return result;
 	}
 
 	const handleCreateClass = async () => {
@@ -106,13 +95,11 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 			if (teacherError) throw teacherError;
 
 			const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-			const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token;
 
 			let addedAllStudents = true;
 			for (const student of selectedStudents) {
 				const headers = {
 					"jwt": jwt,
-					"refresh_token": refreshToken,
 					"teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
 					"email": student.email,
 					"notes": student.notes || '',
