@@ -21,8 +21,34 @@ const ActivationPage = () => {
     const [loginPassword, setLoginPassword] = useState('')
     const [email, setEmail] = useState('')
     const phoneData = getPhoneData(phone)
+	const [activationStatusChecked, setActivationStatusChecked] = useState(false)
+	const [isActivated, setIsActivated] = useState(false)
+const checkActivationStatus = async () => {
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser()
+        if (user) {
+            const { data, error } = await supabaseClient
+                .from('students')
+                .select('first_name, last_name, phone')
+                .eq('id', user.id)
+                .single()
 
+            if (error) throw error
 
+            if (data.first_name && data.last_name && data.phone) {
+                setIsActivated(true)
+                window.location.href = '/join'
+            }
+        }
+    } catch (error) {
+        console.error("Error checking activation status:", error)
+    } finally {
+        setActivationStatusChecked(true)
+    }
+}
+useEffect(() => {
+    checkActivationStatus()
+}, [])
 
     const handleLogin = async () => {
         try {
@@ -127,6 +153,8 @@ const ActivationPage = () => {
                 duration: 3000,
             });
             setStep(3);
+			setIsActivated(true)
+            window.location.href = '/join'
 
         } catch (error) {
             console.error("Error saving student data:", error);
@@ -142,6 +170,7 @@ const ActivationPage = () => {
 
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
+	        {activationStatusChecked && !isActivated && (
             <Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw]">
                 {!isLoggedIn && (
                     <>
@@ -223,6 +252,7 @@ const ActivationPage = () => {
                     </>
                 )}
             </Card>
+		        )}
         </div>
     )
 }
