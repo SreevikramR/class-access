@@ -487,10 +487,7 @@ export default function ManageClass({params}) {
 					<DialogTitle>Add Students</DialogTitle>
 				</DialogHeader>
 				<div className='flex flex-col pr-4'>
-					<div>
-						<Label htmlFor="searchStudents" className="font-normal">Search Students</Label>
-						<Input id="searchStudents" placeholder="Enter student name or email"/>
-					</div>
+					
 					
 					<div className="bg-muted border-2 rounded-md p-4 my-4 h-[40vh] max-h-[40vh] overflow-y-auto ">
 						{students.length === 0 && <span className='text-sm'>You have not added any students yet</span>}
