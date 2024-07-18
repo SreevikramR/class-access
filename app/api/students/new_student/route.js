@@ -121,7 +121,7 @@ export async function POST(request) {
 	}
 	
 	// Send Welcome Email
-	const welcomeEmailStatus = await sendWelcomeEmail(token, teacher_name, refresh_token, email);
+	const welcomeEmailStatus = await sendWelcomeEmail(teacher_name, email);
 	if (welcomeEmailStatus === "Email Failed") {
 		return NextResponse.json({message: "Error Sending Email"}, {status: 500});
 	}
@@ -317,7 +317,7 @@ const sendWelcomeEmail = async (teacherName, email) => {
 	try {
 		await mailerSend.email.send(emailParams);
 	} catch (error) {
-		console.log("Error Sending Email Onboarding Email");
+		console.log("Error Sending Email Welcome Email");
 		console.log(error);
 		return "Email Failed"
 	}

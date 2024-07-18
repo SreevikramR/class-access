@@ -438,7 +438,7 @@ export default function Component({ params: { class_code } }) {
                                 <Button variant="outline" className="w-full">
                                     Decline
                                 </Button>
-                                <Button className="w-full" onClick={handleComplete}>Join Class</Button>
+                                <Button className={"w-full" + (loading ? " cursor-progress" : "")} onClick={handleComplete}>Join Class</Button>
                             </div>
                         </Card>
                     </div>
