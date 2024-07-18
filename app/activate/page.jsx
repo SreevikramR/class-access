@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowRightCircle, CheckCheckIcon, CheckCircleIcon, CircleCheckIcon } from 'lucide-react'
 import { PhoneInput, getPhoneData } from '@/components/ui/phoneInputComponents'
 import { toast } from "@/components/ui/use-toast"
+import LoadingOverlay from '@/components/page_components/loadingOverlay'
 
 const ActivationPage = () => {
     const [loading, setLoading] = useState(false)
@@ -21,8 +22,30 @@ const ActivationPage = () => {
     const [loginPassword, setLoginPassword] = useState('')
     const [email, setEmail] = useState('')
     const phoneData = getPhoneData(phone)
-
-
+    
+    const checkActivationStatus = async () => {
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser()
+            if (user) {
+                setIsLoggedIn(true)
+                const { data, error } = await supabaseClient
+                    .from('students')
+                    .select('first_name')
+                    .eq('id', user.id)
+                    .single()
+                if (error) throw error
+                if (data.first_name) {
+                    setStep(3)
+                }
+            }
+        } catch (error) {
+            console.error("Error checking activation status:", error)
+        }
+    }
+    
+    useEffect(() => {
+        checkActivationStatus()
+    }, [])
 
     const handleLogin = async () => {
         try {
@@ -38,6 +61,7 @@ const ActivationPage = () => {
             }
             console.log("Data:", data);
             setIsLoggedIn(true)
+            checkActivationStatus()
         }
         catch (error) {
             toast({
@@ -71,6 +95,7 @@ const ActivationPage = () => {
             });
             return;
         }
+        setLoading(true)
         if (password.length < 6) {
             toast({
                 variant: 'destructive',
@@ -78,6 +103,7 @@ const ActivationPage = () => {
                 description: "Password must be at least 6 characters long.",
                 duration: 3000,
             });
+            setLoading(false)
             return;
         }
 
@@ -109,6 +135,13 @@ const ActivationPage = () => {
             console.log("Update error:", updateError);
             if (updateError) {
                 console.error("Error updating data:", updateError);
+                toast({
+                    variant: 'destructive',
+                    title: "Failed to save",
+                    description: "Try again.",
+                    duration: 3000,
+                });
+                setLoading(false);
                 throw updateError;
             }
 
@@ -127,7 +160,7 @@ const ActivationPage = () => {
                 duration: 3000,
             });
             setStep(3);
-
+            setLoading(false);
         } catch (error) {
             console.error("Error saving student data:", error);
             toast({
@@ -136,94 +169,98 @@ const ActivationPage = () => {
                 description: "Try again.",
                 duration: 3000,
             });
+            setLoading(false);
         }
+        setLoading(false);
     }
 
-
     return (
-        <div className="flex h-screen w-full items-center justify-center bg-background">
-            <Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw]">
-                {!isLoggedIn && (
-                    <>
-                        <CardHeader className="space-y-2 text-center">
-                            <CardTitle className="sm:text-2xl text-xl font-bold">Please Login to Activate your Account</CardTitle>
-                            <CardDescription className="text-pretty">Your login details can be found in your email</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Email</Label>
-                                <Input id="email" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Confirm New Password</Label>
-                                <Input id="password" type="password" placeholder="Password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
-                            </div>
-                            <Button type="submit" className="w-full" onClick={handleLogin}>
-                                Finish <CheckCircleIcon className='ml-2 w-4 h-4' />
-                            </Button>
-                        </CardContent>
-                    </>
-                )}
-                {isLoggedIn && (
-                    <>
-                        {step === 0 && (
-                            <>
-                                <CardHeader className="space-y-2 text-center">
-                                    <CardTitle className="sm:text-2xl text-xl font-bold">Welcome to Class Access!</CardTitle>
-                                    <CardDescription className="text-pretty">Please enter your information below to get started.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="name">Student First Name</Label>
-                                        <Input id="first name" placeholder="Enter your Student&#39;s First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)}/>
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="email">Student Last Name</Label>
-                                        <Input id="last name" type="email" placeholder="Enter your Student&#39;s Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-                                    </div>
-                                    <Button type="submit" className="w-full" onClick={handleStep0}>
-                                        Next <ArrowRightCircle className='ml-2 w-4 h-4' />
-                                    </Button>
-                                </CardContent>
-                            </>
-                        )}
-                        {step === 1 && (
-                            <>
-                                <CardHeader className="space-y-2 text-center">
-                                    <CardTitle className="sm:text-2xl text-xl font-bold">Almost Done!</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="grid gap-2">
-                                        <Label>Phone Nubmber</Label>
-                                        <PhoneInput value={phone} onChange={(e) => setPhone(e.target.value)} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="name">New Password</Label>
-                                        <Input id="password" type="password" placeholder="Please Enter a new Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="email">Confirm New Password</Label>
-                                        <Input id="password" type="password" placeholder="Please Re-Enter your new Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-                                    </div>
-                                    <Button type="submit" className="w-full" onClick={handleStep1}>
-                                        Finish <CheckCircleIcon className='ml-2 w-4 h-4' />
-                                    </Button>
-                                </CardContent>
-                            </>
-                        )}
-                        {step === 3 && (
-                            <>
-                                <CardHeader className="space-y-2 text-center flex flex-col flex-wrap items-center">
-                                    <CircleCheckIcon className="text-green-500 size-12" />
-                                    <CardTitle className="sm:text-2xl text-xl font-bold">Account Activation Complete!</CardTitle>
-                                    <CardDescription className="text-pretty">Your account is setup and ready for use. Please look for another E-Mail from your teacher to join your class</CardDescription>
-                                </CardHeader>
-                            </>
-                        )}
-                    </>
-                )}
-            </Card>
-        </div>
+        <>
+            {loading && <LoadingOverlay />}
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw]">
+                    {!isLoggedIn && (
+                        <>
+                            <CardHeader className="space-y-2 text-center">
+                                <CardTitle className="sm:text-2xl text-xl font-bold">Please Login to Activate your Account</CardTitle>
+                                <CardDescription className="text-pretty">Your login details can be found in your email</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="name">Email</Label>
+                                    <Input id="email" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="email">Confirm New Password</Label>
+                                    <Input id="password" type="password" placeholder="Password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
+                                </div>
+                                <Button type="submit" className="w-full" onClick={handleLogin}>
+                                    Finish <CheckCircleIcon className='ml-2 w-4 h-4' />
+                                </Button>
+                            </CardContent>
+                        </>
+                    )}
+                    {isLoggedIn && (
+                        <>
+                            {step === 0 && (
+                                <>
+                                    <CardHeader className="space-y-2 text-center">
+                                        <CardTitle className="sm:text-2xl text-xl font-bold">Welcome to Class Access!</CardTitle>
+                                        <CardDescription className="text-pretty">Please enter your information below to get started.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="name">Student First Name</Label>
+                                            <Input id="first name" placeholder="Enter your Student&#39;s First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="email">Student Last Name</Label>
+                                            <Input id="last name" type="email" placeholder="Enter your Student&#39;s Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                                        </div>
+                                        <Button type="submit" className="w-full" onClick={handleStep0}>
+                                            Next <ArrowRightCircle className='ml-2 w-4 h-4' />
+                                        </Button>
+                                    </CardContent>
+                                </>
+                            )}
+                            {step === 1 && (
+                                <>
+                                    <CardHeader className="space-y-2 text-center">
+                                        <CardTitle className="sm:text-2xl text-xl font-bold">Almost Done!</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="grid gap-2">
+                                            <Label>Phone Nubmber</Label>
+                                            <PhoneInput value={phone} onChange={(e) => setPhone(e.target.value)} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="name">New Password</Label>
+                                            <Input id="password" type="password" placeholder="Please Enter a new Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="email">Confirm New Password</Label>
+                                            <Input id="password" type="password" placeholder="Please Re-Enter your new Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                                        </div>
+                                        <Button type="submit" className="w-full" onClick={handleStep1}>
+                                            Finish <CheckCircleIcon className='ml-2 w-4 h-4' />
+                                        </Button>
+                                    </CardContent>
+                                </>
+                            )}
+                            {step === 3 && (
+                                <>
+                                    <CardHeader className="space-y-2 text-center flex flex-col flex-wrap items-center">
+                                        <CircleCheckIcon className="text-green-500 size-12" />
+                                        <CardTitle className="sm:text-2xl text-xl font-bold">Account Activation Complete!</CardTitle>
+                                        <CardDescription className="text-pretty">Your account is setup and ready for use. Please look for another E-Mail from your teacher to join your class</CardDescription>
+                                    </CardHeader>
+                                </>
+                            )}
+                        </>
+                    )}
+                </Card>
+            </div>
+        </>
     )
 }
 

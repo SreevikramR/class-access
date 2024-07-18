@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import { useToast } from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
-import LoadingOverlay from '../loadingOverlay'
 
 // import createZoomMeeting from '@/components/util_function/createZoomMeeting'
 
@@ -109,19 +108,19 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 			const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
 			const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token;
 
-        let addedAllStudents = true;
-		for (const student of selectedStudents) {
-            const headers = {
-                "jwt": jwt,
-                "refresh_token": refreshToken,
-                "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
-                "email": student.email,
-                "notes": student.notes || '',
-                "classes_left": 0,
-                "class_id": classInsertData[0].id,
-                "class_code": code,
-                "class_name": className
-            };
+			let addedAllStudents = true;
+			for (const student of selectedStudents) {
+				const headers = {
+					"jwt": jwt,
+					"refresh_token": refreshToken,
+					"teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
+					"email": student.email,
+					"notes": student.notes || '',
+					"classes_left": 0,
+					"class_id": classInsertData[0].id,
+					"class_code": code,
+					"class_name": className
+				};
 
 				console.log('Sending request with headers:', headers);
 
@@ -455,11 +454,6 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 				<div className='flex w-full flex-row mt-6'>
 					<div className='flex flex-col w-1/2 pr-4 border-r-2'>
 						<div className='text-center font-semibold mb-2'>Existing Student</div>
-						<div>
-							<Label htmlFor="searchStudents" className="font-normal">Search Students</Label>
-							<Input id="searchStudents" placeholder="Enter student name or email" />
-						</div>
-
 						<div
 							className="bg-muted border-2 rounded-md p-4 my-4 h-[40vh] max-h-[40vh] overflow-y-auto grid gap-2">
 							{students.length === 0 && tempNewStudents.length === 0 &&
@@ -532,9 +526,9 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 						<Label htmlFor="class-name">Class Name</Label>
 						<div>{classData.name}</div>
 					</div>
-					<div className="grid grid-cols-[120px_1fr] items-center gap-4">
+					<div className="grid grid-cols-[120px_1fr] items-start gap-4">
 						<Label htmlFor="zoom-link">Zoom Link</Label>
-						<div>{classData.zoomLink}</div>
+						<div className="break-all text-pretty">{classData.zoomLink}</div>
 					</div>
 					{classDescription &&
 						<div className="grid grid-cols-[120px_1fr] items-center gap-4">
