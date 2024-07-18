@@ -64,9 +64,9 @@ const Header = () => {
 					<Link href="/students" className="hover:underline" prefetch={false}>
 						Students
 					</Link>
-					<Link href="/attendance" className="hover:underline" prefetch={false}>
-						Attendance
-					</Link>
+					{/*<Link href="/attendance" className="hover:underline" prefetch={false}>*/}
+					{/*	Attendance*/}
+					{/*</Link>*/}
 				</nav>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
