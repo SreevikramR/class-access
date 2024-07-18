@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import { useToast } from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
-import LoadingOverlay from '../loadingOverlay'
 
 // import createZoomMeeting from '@/components/util_function/createZoomMeeting'
 
@@ -109,19 +108,19 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 			const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
 			const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token;
 
-        let addedAllStudents = true;
-		for (const student of selectedStudents) {
-            const headers = {
-                "jwt": jwt,
-                "refresh_token": refreshToken,
-                "teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
-                "email": student.email,
-                "notes": student.notes || '',
-                "classes_left": 0,
-                "class_id": classInsertData[0].id,
-                "class_code": code,
-                "class_name": className
-            };
+			let addedAllStudents = true;
+			for (const student of selectedStudents) {
+				const headers = {
+					"jwt": jwt,
+					"refresh_token": refreshToken,
+					"teacher_name": `${teacherData.first_name} ${teacherData.last_name}`,
+					"email": student.email,
+					"notes": student.notes || '',
+					"classes_left": 0,
+					"class_id": classInsertData[0].id,
+					"class_code": code,
+					"class_name": className
+				};
 
 				console.log('Sending request with headers:', headers);
 
@@ -529,7 +528,7 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 					</div>
 					<div className="grid grid-cols-[120px_1fr] items-start gap-4">
 						<Label htmlFor="zoom-link">Zoom Link</Label>
-						<div className="break-all">{classData.zoomLink}</div>
+						<div className="break-all text-pretty">{classData.zoomLink}</div>
 					</div>
 					{classDescription &&
 						<div className="grid grid-cols-[120px_1fr] items-center gap-4">

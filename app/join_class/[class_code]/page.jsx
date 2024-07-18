@@ -8,6 +8,7 @@ import { useState } from "react"
 import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import fetchTimeout from "@/components/util_function/fetch"
 import { useToast } from "@/components/ui/use-toast"
+import LoadingOverlay from "@/components/page_components/loadingOverlay"
 
 export default function Component({ params: { class_code } }) {
     const [joinedClass, setJoinedClass] = useState(false)
@@ -20,11 +21,9 @@ export default function Component({ params: { class_code } }) {
     const [step, setStep] = useState(0)
     const [loading, setLoading] = useState(false)
     const [unactivated, setUnactivated] = useState(false)
-	const [joinStatusChecked, setJoinStatusChecked] = useState(false)
     const { toast } = useToast()
 
     useEffect(() => {
-		setJoinStatusChecked(false)
         fetchUser()
     }, [])
 
@@ -116,18 +115,16 @@ export default function Component({ params: { class_code } }) {
             if (data.length > 0) {
                 setStudentData(data[0])
                 setIsLoggedIn(true)
-	            const { data: proxyData, error: proxyError } = await supabaseClient
-                .from('student_proxies')
-                .select('hasJoined')
-                .eq('student_id', user.data.user.id)
-                .eq('class_id', class_code)
-                .single();
-            
-            if (proxyData && proxyData.hasJoined) {
-                // Student has already joined, redirect to /join
-                window.location.href = '/join';
-                return;
-            }
+                const { data: classData, error: classError } = await supabaseClient.from('classes').select('teacher_id, id').eq('class_code', class_code).single()
+                const { data: proxyData, error: proxyError } = await supabaseClient
+                    .from('student_proxies')
+                    .select('status')
+                    .eq('student_id', user.data.user.id)
+                    .eq('teacher_id', classData.teacher_id)
+                    .single();
+                if (proxyData && proxyData.status[classData.id] === 'Joined') {
+                    setJoinedClass(true)
+                }
             } else {
                 const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('*').eq('id', user.data.user.id);
                 if (teacherData.length > 0) {
@@ -160,10 +157,8 @@ export default function Component({ params: { class_code } }) {
             }
             fetchClassDetails()
         }
-		setJoinStatusChecked(true)
-
     }
-    
+
     const fetchClassDetails = async () => {
         const { data: classData, error: classError } = await supabaseClient
             .from('classes')
@@ -412,9 +407,8 @@ export default function Component({ params: { class_code } }) {
 
     return (
         <main className="flex flex-col items-center justify-center h-screen">
-	        {joinStatusChecked &&(
-				<>
-            {!isLoggedIn && 
+            {loading && <LoadingOverlay />}
+            {!isLoggedIn &&
                 <>
                     {step === 0 && _login()}
                     {step === 1 && noAccount()}
@@ -462,28 +456,26 @@ export default function Component({ params: { class_code } }) {
                     </div>
                 )}
             </>}
-				</>
-		        )}
         </main>
     )
 
-
-function CircleCheckIcon(props) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <circle cx="12" cy="12" r="10" />
-            <path d="m9 12 2 2 4-4" />
-        </svg>
-    )
-}}
+    function CircleCheckIcon(props) {
+        return (
+            <svg
+                {...props}
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            >
+                <circle cx="12" cy="12" r="10" />
+                <path d="m9 12 2 2 4-4" />
+            </svg>
+        )
+    }
+}
