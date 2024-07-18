@@ -455,11 +455,6 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 				<div className='flex w-full flex-row mt-6'>
 					<div className='flex flex-col w-1/2 pr-4 border-r-2'>
 						<div className='text-center font-semibold mb-2'>Existing Student</div>
-						<div>
-							<Label htmlFor="searchStudents" className="font-normal">Search Students</Label>
-							<Input id="searchStudents" placeholder="Enter student name or email" />
-						</div>
-
 						<div
 							className="bg-muted border-2 rounded-md p-4 my-4 h-[40vh] max-h-[40vh] overflow-y-auto grid gap-2">
 							{students.length === 0 && tempNewStudents.length === 0 &&
