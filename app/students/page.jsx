@@ -94,9 +94,7 @@ const Students = () => {
 		const firstLetters = words.map(word => word.charAt(0))
 		const initials = firstLetters.join('')
 		
-		return (<TableRow onClick={() => {
-				router.push(`/student/${id}`)
-			}} className="cursor-pointer">
+		return (<TableRow  className="cursor-pointer">
 				<TableCell>
 					<div className="flex items-center gap-2">
 						<Avatar className="w-8 h-8">
