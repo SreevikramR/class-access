@@ -117,14 +117,14 @@ export default function StudentClassOnboardingPopup({ isOpen, setIsOpen }) {
                     <Button type="submit" onClick={handleLogin} className="w-full">
                         Login
                     </Button>
-                    <div className="flex items-center my-2">
+                    {/* <div className="flex items-center my-2">
                         <hr className="flex-grow border-t border-gray-300" />
                         <span className="mx-2 text-gray-500 text-xs">OR CONTINUE WITH</span>
                         <hr className="flex-grow border-t border-gray-300" />
                     </div>
                     <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
                         Google
-                    </Button>
+                    </Button> */}
                     <div className='sm:text-md text-sm cursor-pointer text-blue-700 underline w-fit' onClick={() => setStep(1)}>Don&apos;t have an Account?</div>
                 </div>
             </div>

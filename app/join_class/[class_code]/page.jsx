@@ -8,6 +8,7 @@ import { useState } from "react"
 import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import fetchTimeout from "@/components/util_function/fetch"
 import { useToast } from "@/components/ui/use-toast"
+import LoadingOverlay from "@/components/page_components/loadingOverlay"
 
 export default function Component({ params: { class_code } }) {
     const [joinedClass, setJoinedClass] = useState(false)
@@ -114,6 +115,16 @@ export default function Component({ params: { class_code } }) {
             if (data.length > 0) {
                 setStudentData(data[0])
                 setIsLoggedIn(true)
+                const { data: classData, error: classError } = await supabaseClient.from('classes').select('teacher_id, id').eq('class_code', class_code).single()
+                const { data: proxyData, error: proxyError } = await supabaseClient
+                    .from('student_proxies')
+                    .select('status')
+                    .eq('student_id', user.data.user.id)
+                    .eq('teacher_id', classData.teacher_id)
+                    .single();
+                if (proxyData && proxyData.status[classData.id] === 'Joined') {
+                    setJoinedClass(true)
+                }
             } else {
                 const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('*').eq('id', user.data.user.id);
                 if (teacherData.length > 0) {
@@ -147,7 +158,7 @@ export default function Component({ params: { class_code } }) {
             fetchClassDetails()
         }
     }
-    
+
     const fetchClassDetails = async () => {
         const { data: classData, error: classError } = await supabaseClient
             .from('classes')
@@ -160,8 +171,16 @@ export default function Component({ params: { class_code } }) {
             return
         }
         const studentId = (await supabaseClient.auth.getUser()).data.user.id
-        const { data, error } = await supabaseClient.from('student_proxies').select('*').eq('student_id', studentId).eq('teacher_id', classData.teacher_id)
-        if (!data[0].hasJoined) {
+        const { data, error } = await supabaseClient.from('students').select('*').eq('id', studentId)
+        if (error) {
+            toast({
+                title: 'Error',
+                description: "Please Try Again Later",
+                variant: "destructive"
+            })
+            return
+        }
+        if (data[0].first_name === null) {
             setUnactivated(true)
         }
         setClassDetails(classData)
@@ -307,14 +326,14 @@ export default function Component({ params: { class_code } }) {
                         <Button type="submit" onClick={handlePasswordLogin} className="w-full">
                             Login
                         </Button>
-                        <div className="flex items-center my-2">
+                        {/* <div className="flex items-center my-2">
                             <hr className="flex-grow border-t border-gray-300" />
                             <span className="mx-2 text-gray-500 text-xs">OR CONTINUE WITH</span>
                             <hr className="flex-grow border-t border-gray-300" />
                         </div>
                         <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
                             Google
-                        </Button>
+                        </Button> */}
                         <div className='sm:text-md text-sm cursor-pointer text-blue-700 underline w-fit' onClick={() => setStep(1)}>Don&apos;t have an Account?</div>
                     </div>
                 </div>
@@ -388,7 +407,8 @@ export default function Component({ params: { class_code } }) {
 
     return (
         <main className="flex flex-col items-center justify-center h-screen">
-            {!isLoggedIn && 
+            {loading && <LoadingOverlay />}
+            {!isLoggedIn &&
                 <>
                     {step === 0 && _login()}
                     {step === 1 && noAccount()}
@@ -430,7 +450,7 @@ export default function Component({ params: { class_code } }) {
                                 <Button variant="outline" className="w-full">
                                     Decline
                                 </Button>
-                                <Button className="w-full" onClick={handleComplete}>Join Class</Button>
+                                <Button className={"w-full" + (loading ? " cursor-progress" : "")} onClick={handleComplete}>Join Class</Button>
                             </div>
                         </Card>
                     </div>
@@ -438,24 +458,24 @@ export default function Component({ params: { class_code } }) {
             </>}
         </main>
     )
-}
 
-function CircleCheckIcon(props) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <circle cx="12" cy="12" r="10" />
-            <path d="m9 12 2 2 4-4" />
-        </svg>
-    )
+    function CircleCheckIcon(props) {
+        return (
+            <svg
+                {...props}
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            >
+                <circle cx="12" cy="12" r="10" />
+                <path d="m9 12 2 2 4-4" />
+            </svg>
+        )
+    }
 }

@@ -4,19 +4,16 @@ import {createClient} from '@supabase/supabase-js';
 import {NextResponse} from 'next/server';
 import verifyJWT from '@/components/util_function/verifyJWT';
 import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
+import generateRandomString from '@/components/util_function/generateRandomString';
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const TOKEN = process.env.EMAIL_TOKEN;
-const ENDPOINT = process.env.EMAIL_ENDPOINT;
-
 // POST Endpoint
 // Endpoint can create student account, create proxies and send welcoming and onboarding emails
 // Headers needed for this endpoint:
 //// jwt: JWT Token
-//// refresh_token: Refresh Token
 //// teacher_name: Teacher Name
 //// email: Student Email
 //// notes: Notes
@@ -27,8 +24,6 @@ const ENDPOINT = process.env.EMAIL_ENDPOINT;
 
 export async function POST(request) {
 	const token = request.headers.get('jwt');
-	const refresh_token = request.headers.get('refresh_token');
-	
 	const decodedJWT = verifyJWT(token);
 	const teacherUUID = decodedJWT?.sub;
 	if (!decodedJWT) {
@@ -42,8 +37,10 @@ export async function POST(request) {
 	const class_id = request.headers.get('class_id');
 	const class_code = request.headers.get('class_code');
 	const class_name = request.headers.get('class_name');
+
+	const studentPassword = generateRandomString(10);
 	
-	const createStudentData = await createNewStudent(email);
+	const createStudentData = await createNewStudent(email, studentPassword);
 	if (createStudentData?.error === true) {
 		return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 	}
@@ -75,7 +72,7 @@ export async function POST(request) {
 
 			// Add student proxy to class using the funciton
 			const studentProxyID = studentProxyData[0].id;
-			const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id);
+			const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id, teacherUUID);
 			if (addStudentProxyToClassStatus === "Error") {
 				return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 			}
@@ -96,7 +93,7 @@ export async function POST(request) {
 		}
 
 		const studentProxyID = studentInsertProxyData[0].id;
-		const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id);
+		const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id, teacherUUID);
 		if (addStudentProxyToClassStatus === "Error") {
 			return NextResponse.json({ message: "Error Adding Student" }, { status: 500 });
 		}
@@ -124,13 +121,13 @@ export async function POST(request) {
 	}
 	
 	// Send Welcome Email
-	const welcomeEmailStatus = await sendWelcomeEmail(token, teacher_name, refresh_token, email);
+	const welcomeEmailStatus = await sendWelcomeEmail(teacher_name, email, studentPassword);
 	if (welcomeEmailStatus === "Email Failed") {
 		return NextResponse.json({message: "Error Sending Email"}, {status: 500});
 	}
 
 	const studentProxyID = studentProxyData[0].id;
-	const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id);
+	const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id, teacherUUID);
 	if (addStudentProxyToClassStatus === "Error") {
 		return NextResponse.json({ message: "Error Adding Student" }, { status: 500 });
 	}
@@ -145,10 +142,11 @@ export async function POST(request) {
 }
 
 // Creates a new student Account
-const createNewStudent = async (studentEmail) => {
+const createNewStudent = async (studentEmail, password) => {
+	console.log(studentEmail, password);
 	const {data, error} = await supabase.auth.admin.createUser({
 		email: studentEmail,
-		password: process.env.DEFAULT_PASSWORD,
+		password: password,
 		email_confirm: true,
 	})
 
@@ -160,6 +158,7 @@ const createNewStudent = async (studentEmail) => {
 	if (error) {
 		console.log("Error Creating Student Account");
 		console.log(error);
+		console.log(studentEmail, password);
 		return { "error": true, "message": error }
 	}
 	return {"error": false, id: data.user.id}
@@ -249,29 +248,50 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 }
 
 // Add student proxy id to the class
-const addStudentProxyToClass = async (studentProxyID, classID) => {
+const addStudentProxyToClass = async (studentProxyID, classID, teacherUUID) => {
 	const { data: classData, error: classError } = await supabase.from('classes').select('student_proxy_ids').eq('id', classID).single()
 	if (classError) {
 		console.log("Error Fetching Class Data: 'classes' Table");
 		console.log(classError);
-		return "Error"	
+		return "Error"
 	}
 	let studentProxyIDArray = classData.student_proxy_ids;
-	if (studentProxyIDArray.includes(studentProxyID)) {
-		return true;
+	if (studentProxyIDArray === null) {
+		studentProxyIDArray = [];
 	}
-	studentProxyIDArray.push(studentProxyID);
+	if (!studentProxyIDArray.includes(studentProxyID)) {
+		studentProxyIDArray.push(studentProxyID);
+	}
 	const { data: classUpdateData, error: classUpdateError } = await supabase.from('classes').update({ student_proxy_ids: studentProxyIDArray }).eq('id', classID).select()
 	if (classUpdateError) {
 		console.log("Error Updating Class Data: 'classes' Table");
 		console.log(classUpdateError);
 	}
+	const { data: teacher, error: teacherror } = await supabase.from('teachers').select('student_proxy_ids').eq('id', teacherUUID).single()
+	if (teacherror) {
+		console.log("Error Fetching Class Data: 'teacher' Table");
+		console.log(classError);
+		return "Error"
+	}
+	let studentProxyIDArrayt = teacher.student_proxy_ids;
+	if (studentProxyIDArrayt === null) {
+		studentProxyIDArrayt = [];
+	}
+	if (!studentProxyIDArrayt.includes(studentProxyID)) {
+		studentProxyIDArrayt.push(studentProxyID);
+	}
+	const { data: teacherup, error: teachererror } = await supabase.from('teachers').update({ student_proxy_ids: studentProxyIDArrayt }).eq('id', teacherUUID).select()
+	if (teachererror) {
+		console.log("Error Updating Class Data: 'teachers' Table");
+		console.log(classUpdateError);
+		return "Error"
+	}
 	return true;
 }
 
 // Sends a welcome email to the student
-const sendWelcomeEmail = async (jwt, teacherName, refresh_token, email) => {
-	const link = `https://classaccess.tech/activate#jwt=${jwt}&refresh_token=${refresh_token}`;
+const sendWelcomeEmail = async (teacherName, email, password) => {
+	const link = `https://classaccess.tech/activate`;
 	const mailerSend = new MailerSend({
 		apiKey: process.env.EMAIL_TOKEN,
 	});
@@ -284,7 +304,9 @@ const sendWelcomeEmail = async (jwt, teacherName, refresh_token, email) => {
 			email: email,
 			data: {
 				url: link,
-				teacher_name: teacherName
+				teacher_name: teacherName,
+				email: email,
+				password: password
 			},
 		}
 	];
@@ -292,14 +314,14 @@ const sendWelcomeEmail = async (jwt, teacherName, refresh_token, email) => {
 		.setFrom(sentFrom)
 		.setTo(recipients)
 		.setReplyTo(sentFrom)
-		.setSubject(`New Class Invite from ${teacherName}`)
+		.setSubject(`Welcome to Class Access!`)
 		.setPersonalization(personalization)
 		.setTemplateId('k68zxl2mpd34j905');
 
 	try {
 		await mailerSend.email.send(emailParams);
 	} catch (error) {
-		console.log("Error Sending Email Onboarding Email");
+		console.log("Error Sending Email Welcome Email");
 		console.log(error);
 		return "Email Failed"
 	}
