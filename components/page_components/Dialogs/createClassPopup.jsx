@@ -527,9 +527,9 @@ const CreateClassPopup = ({ isOpen, setIsOpen }) => {
 						<Label htmlFor="class-name">Class Name</Label>
 						<div>{classData.name}</div>
 					</div>
-					<div className="grid grid-cols-[120px_1fr] items-center gap-4">
+					<div className="grid grid-cols-[120px_1fr] items-start gap-4">
 						<Label htmlFor="zoom-link">Zoom Link</Label>
-						<div>{classData.zoomLink}</div>
+						<div className="break-all">{classData.zoomLink}</div>
 					</div>
 					{classDescription &&
 						<div className="grid grid-cols-[120px_1fr] items-center gap-4">
