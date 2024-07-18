@@ -20,6 +20,7 @@ export default function Component({ params: { class_code } }) {
     const [step, setStep] = useState(0)
     const [loading, setLoading] = useState(false)
     const [unactivated, setUnactivated] = useState(false)
+	const [joinStatusChecked, setJoinStatusChecked] = useState(false)
     const { toast } = useToast()
 
     useEffect(() => {
@@ -114,6 +115,18 @@ export default function Component({ params: { class_code } }) {
             if (data.length > 0) {
                 setStudentData(data[0])
                 setIsLoggedIn(true)
+	            const { data: proxyData, error: proxyError } = await supabaseClient
+                .from('student_proxies')
+                .select('hasJoined')
+                .eq('student_id', user.data.user.id)
+                .eq('class_id', class_code)
+                .single();
+            
+            if (proxyData && proxyData.hasJoined) {
+                // Student has already joined, redirect to /join
+                window.location.href = '/join';
+                return;
+            }
             } else {
                 const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('*').eq('id', user.data.user.id);
                 if (teacherData.length > 0) {
