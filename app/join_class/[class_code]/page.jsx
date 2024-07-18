@@ -24,6 +24,7 @@ export default function Component({ params: { class_code } }) {
     const { toast } = useToast()
 
     useEffect(() => {
+		setJoinStatusChecked(false)
         fetchUser()
     }, [])
 
@@ -159,6 +160,8 @@ export default function Component({ params: { class_code } }) {
             }
             fetchClassDetails()
         }
+		setJoinStatusChecked(true)
+
     }
     
     const fetchClassDetails = async () => {
@@ -409,6 +412,8 @@ export default function Component({ params: { class_code } }) {
 
     return (
         <main className="flex flex-col items-center justify-center h-screen">
+	        {joinStatusChecked &&(
+				<>
             {!isLoggedIn && 
                 <>
                     {step === 0 && _login()}
@@ -457,9 +462,11 @@ export default function Component({ params: { class_code } }) {
                     </div>
                 )}
             </>}
+				</>
+		        )}
         </main>
     )
-}
+
 
 function CircleCheckIcon(props) {
     return (
@@ -479,4 +486,4 @@ function CircleCheckIcon(props) {
             <path d="m9 12 2 2 4-4" />
         </svg>
     )
-}
+}}
