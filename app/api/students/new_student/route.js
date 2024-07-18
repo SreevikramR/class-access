@@ -143,6 +143,7 @@ export async function POST(request) {
 
 // Creates a new student Account
 const createNewStudent = async (studentEmail, password) => {
+	console.log(studentEmail, password);
 	const {data, error} = await supabase.auth.admin.createUser({
 		email: studentEmail,
 		password: password,
@@ -157,6 +158,7 @@ const createNewStudent = async (studentEmail, password) => {
 	if (error) {
 		console.log("Error Creating Student Account");
 		console.log(error);
+		console.log(studentEmail, password);
 		return { "error": true, "message": error }
 	}
 	return {"error": false, id: data.user.id}
