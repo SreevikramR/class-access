@@ -67,11 +67,11 @@ const MarkAttendance = () => {
         setIsFetchingStudents(false);
     }
     
-    const handleAttendanceChange = (classId, studentId, checked) => {
-        console.log(`handleAttendanceChange: classId=${classId}, studentId=${studentId}, checked=${checked}`);
-        const updatedRecords = [...attendanceRecords];
-        const recordIndex = updatedRecords.findIndex(record => record.class_id === classId && record.student_proxy_id === studentId);
-        
+const handleAttendanceChange = (classId, studentId, checked) => {
+    const updatedRecords = [...attendanceRecords];
+    const recordIndex = updatedRecords.findIndex(record => record.class_id === classId && record.student_proxy_id === studentId);
+
+    if (checked) {
         if (recordIndex > -1) {
             updatedRecords[recordIndex].isPresent = checked;
         } else {
@@ -82,26 +82,37 @@ const MarkAttendance = () => {
                 isPresent: checked
             });
         }
-        
-        setAttendanceRecords(updatedRecords);
-    }
-    
-    const saveAttendance = async () => {
-		console.log(attendanceRecords)
-        try {
-            const { error } = await supabaseClient
-                .from('attendance_records')
-                .insert(attendanceRecords);
-			
-            
-            if (error) throw error;
-            
-            toast({ title: 'Attendance saved successfully.', variant: 'success' });
-        } catch (error) {
-            console.error('Error saving attendance:', error);
-            toast({ title: 'Failed to save attendance. Please try again.', variant: 'destructive' });
+    } else {
+        if (recordIndex > -1) {
+            updatedRecords.splice(recordIndex, 1);
         }
     }
+
+    setAttendanceRecords(updatedRecords);
+}
+
+const saveAttendance = async () => {
+    try {
+        console.log(attendanceRecords);
+        const { error } = await supabaseClient
+            .from('attendance_records')
+            .upsert(attendanceRecords);
+
+        if (error) throw error;
+
+        toast({ title: 'Attendance saved successfully.', variant: 'success' });
+
+        // Reset states
+        setAttendanceRecords([]);
+        setStudents([]);
+        setStudentDataLoaded(false);
+        handleStudentFetch(); // Optionally re-fetch students
+    } catch (error) {
+        console.error('Error saving attendance:', error);
+        toast({ title: 'Failed to save attendance. Please try again.', variant: 'destructive' });
+    }
+}
+
     
     const UserRow = ({ studentInfo }) => {
         const { first_name, last_name, email, id, class_code, has_joined, class_id } = studentInfo;
