@@ -90,21 +90,22 @@ const MarkAttendance = () => {
         try {
             const { error } = await supabaseClient
                 .from('attendance_records')
-                .upsert(attendanceRecords);
+                .insert(attendanceRecords);
+			
             
             if (error) throw error;
             
-            toast({ name: 'Attendance saved successfully.', variant: 'success' });
+            toast({ title: 'Attendance saved successfully.', variant: 'success' });
         } catch (error) {
             console.error('Error saving attendance:', error);
-            toast({ name: 'Failed to save attendance. Please try again.', variant: 'destructive' });
+            toast({ title: 'Failed to save attendance. Please try again.', variant: 'destructive' });
         }
     }
     
     const UserRow = ({ studentInfo }) => {
         const { first_name, last_name, email, id, class_code, has_joined, class_id } = studentInfo;
-        const studentFirstName = first_name;
-        const studentLastName = last_name;
+        let studentFirstName = first_name;
+        let studentLastName = last_name;
         const studentEmail = email;
         let statusClassName = "";
         
@@ -115,7 +116,16 @@ const MarkAttendance = () => {
         } else if (has_joined === "Paid") {
             statusClassName = "bg-green-400 px-5";
         }
-        
+	    let studentStatus = has_joined;
+	    if (studentStatus === false) {
+			studentFirstName = "Student"
+			studentLastName = "Invited"
+			statusClassName = "text-black border-black"
+		} else if (studentStatus === "Unpaid") {
+			statusClassName = "bg-red-400"
+		} else if (studentStatus === "Paid") {
+			statusClassName = "bg-green-400 px-5"
+		}
         const studentName = `${studentFirstName} ${studentLastName}`;
         const words = studentName.split(' ');
         const firstLetters = words.map(word => word.charAt(0));
