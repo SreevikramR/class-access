@@ -131,10 +131,6 @@ export async function POST(request) {
 	if (addStudentProxyToClassStatus === "Error") {
 		return NextResponse.json({ message: "Error Adding Student" }, { status: 500 });
 	}
-	const updateTeacherClassIdsStatus = await updateTeacherClassIds(teacherUUID);
-if (updateTeacherClassIdsStatus === "Error") {
-  console.log("Error updating teacher's class IDs");
-}
 	
 	// Send Onboarding Email
 	const onboardingEmailStatus = await sendOnboardingEmail(email, class_code, teacher_name, class_name);
@@ -380,32 +376,3 @@ const sendOnboardingEmail = async (email, classCode, teacherName, className) => 
 	}
 	return "Email Sent"
 }
-const updateTeacherClassIds = async (teacherUUID) => {
-  // Fetch all class IDs for the teacher
-  const { data: classData, error: classError } = await supabase
-    .from('classes')
-    .select('id')
-    .eq('teacher_id', teacherUUID);
-
-  if (classError) {
-    console.log("Error fetching class data:", classError);
-    return "Error";
-  }
-
-  // Extract class IDs into an array
-  const classIds = classData.map(cls => cls.id);
-	console.log(classIds);
-  // Update the teacher's class_ids in the teachers table
-  const { data: updateData, error: updateError } = await supabase
-    .from('teachers')
-    .update({ class_ids: classIds })
-    .eq('id', teacherUUID)
-    .select();
-
-  if (updateError) {
-    console.log("Error updating teacher's class_ids:", updateError);
-    return "Error";
-  }
-
-  return "Success";
-};
