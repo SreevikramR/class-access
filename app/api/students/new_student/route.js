@@ -5,6 +5,7 @@ import {NextResponse} from 'next/server';
 import verifyJWT from '@/components/util_function/verifyJWT';
 import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
 import generateRandomString from '@/components/util_function/generateRandomString';
+import fetchTimeout from '@/components/util_function/fetch';
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
@@ -291,38 +292,43 @@ const addStudentProxyToClass = async (studentProxyID, classID, teacherUUID) => {
 
 // Sends a welcome email to the student
 const sendWelcomeEmail = async (teacherName, email, password) => {
-	const link = `https://classaccess.tech/activate`;
-	const mailerSend = new MailerSend({
-		apiKey: process.env.EMAIL_TOKEN,
-	});
-	const sentFrom = new Sender("no-reply@classaccess.tech", "Class Access");
-	const recipients = [
-		new Recipient(email, email)
-	];
-	const personalization = [
-		{
-			email: email,
-			data: {
-				url: link,
-				teacher_name: teacherName,
-				email: email,
-				password: password
-			},
-		}
-	];
-	const emailParams = new EmailParams()
-		.setFrom(sentFrom)
-		.setTo(recipients)
-		.setReplyTo(sentFrom)
-		.setSubject(`Welcome to Class Access!`)
-		.setPersonalization(personalization)
-		.setTemplateId('k68zxl2mpd34j905');
+	const controller = new AbortController()
+	const { signal } = controller;
 
-	try {
-		await mailerSend.email.send(emailParams);
-	} catch (error) {
+	const data = {
+		"sender": {
+			"email": "no-reply@classaccess.tech",
+			"name": "Class Access"
+		},
+		"templateId": 2,
+		"params": {
+			"teacher_name": teacherName,
+			"url": 'https://classaccess.tech/activate',
+			"email": email,
+			"password": password
+		},
+		"to": [
+			{
+				"email": email,
+				"name": email
+			}
+		],
+	}
+
+	const response = await fetchTimeout(`https://api.brevo.com/v3/smtp/email`, 2000, {
+		signal,
+		method: 'POST',
+		headers: {
+			'accept': 'application/json',
+			'content-type': 'application/json',
+			'api-key': process.env.EMAIL_TOKEN,
+		},
+		'body': JSON.stringify(data),
+	})
+
+	if (response.status !== 201) {
 		console.log("Error Sending Email Welcome Email");
-		console.log(error);
+		console.log(await response.json());
 		return "Email Failed"
 	}
 	return "Email Sent"
@@ -331,36 +337,42 @@ const sendWelcomeEmail = async (teacherName, email, password) => {
 // Sends an onboarding email to the student
 const sendOnboardingEmail = async (email, classCode, teacherName, className) => {
 	const link = `https://classaccess.tech/join_class/${classCode}`;
-	const mailerSend = new MailerSend({
-		apiKey: process.env.EMAIL_TOKEN,
-	});
-	const sentFrom = new Sender("no-reply@classaccess.tech", "Class Access");
-	const recipients = [
-		new Recipient(email, email)
-	];
-	const personalization = [
-		{
-			email: email,
-			data: {
-				url: link,
-				class_name: className,
-				teacher_name: teacherName
-			},
-		}
-	];
-	const emailParams = new EmailParams()
-		.setFrom(sentFrom)
-		.setTo(recipients)
-		.setReplyTo(sentFrom)
-		.setSubject(`New Class Invite from ${teacherName}`)
-		.setPersonalization(personalization)
-		.setTemplateId('yzkq340xpqx4d796');
+	const controller = new AbortController()
+	const { signal } = controller;
 
-	try {
-		await mailerSend.email.send(emailParams);
-	} catch (error) {
-		console.log("Error Sending Email Onboarding Email");
-		console.log(error);
+	const data = {
+		"sender": {
+			"email": "no-reply@classaccess.tech",
+			"name": "Class Access"
+		},
+		"templateId": 1,
+		"params": {
+			"url": link,
+			"class_name": className,
+			"teacher_name": teacherName
+		},
+		"to": [
+			{
+				"email": email,
+				"name": email
+			}
+		],
+	}
+
+	const response = await fetchTimeout(`https://api.brevo.com/v3/smtp/email`, 2000, {
+		signal,
+		method: 'POST',
+		headers: {
+			'accept': 'application/json',
+			'content-type': 'application/json',
+			'api-key': process.env.EMAIL_TOKEN,
+		},
+		'body': JSON.stringify(data),
+	})
+
+	if (response.status !== 201) {
+		console.log("Error Sending Email Welcome Email");
+		console.log(await response.json());
 		return "Email Failed"
 	}
 	return "Email Sent"
