@@ -175,7 +175,6 @@ const ViewAttendance = () => {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Class</TableHead>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Attendance</TableHead>
                                 <TableHead className="w-1/4">Classes Left</TableHead>
@@ -183,8 +182,25 @@ const ViewAttendance = () => {
                         </TableHeader>
                         <TableBody>
                             <TableRow>
-                                <TableCell>Math</TableCell>
                                 <TableCell>2023-04-01</TableCell>
+                                <TableCell>
+                                    <Badge variant="secondary">Present</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <ClassesLeftBar classesLeft={0} />
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>2023-04-01</TableCell>
+                                <TableCell>
+                                    <Badge variant="secondary">Present</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <ClassesLeftBar classesLeft={1}/>
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>2023-04-02</TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">Present</Badge>
                                 </TableCell>
@@ -193,17 +209,6 @@ const ViewAttendance = () => {
                                 </TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell>English</TableCell>
-                                <TableCell>2023-04-02</TableCell>
-                                <TableCell>
-                                    <Badge variant="secondary">Present</Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <ClassesLeftBar classesLeft={5}/>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Science</TableCell>
                                 <TableCell>2023-04-03</TableCell>
                                 <TableCell>
                                     <Badge variant="outline">Absent</Badge>
@@ -213,53 +218,48 @@ const ViewAttendance = () => {
                                 </TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell>History</TableCell>
                                 <TableCell>2023-04-04</TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">Present</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <ClassesLeftBar classesLeft={4}/>
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>2023-04-05</TableCell>
+                                <TableCell>
+                                    <Badge variant="secondary">Present</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <ClassesLeftBar classesLeft={5}/>
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>2023-04-06</TableCell>
+                                <TableCell>
+                                    <Badge variant="outline">Absent</Badge>
                                 </TableCell>
                                 <TableCell>
                                     <ClassesLeftBar classesLeft={6}/>
                                 </TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell>Math</TableCell>
-                                <TableCell>2023-04-05</TableCell>
+                                <TableCell>2023-04-07</TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">Present</Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <ClassesLeftBar classesLeft={8}/>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>English</TableCell>
-                                <TableCell>2023-04-06</TableCell>
-                                <TableCell>
-                                    <Badge variant="outline">Absent</Badge>
                                 </TableCell>
                                 <TableCell>
                                     <ClassesLeftBar classesLeft={7}/>
                                 </TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell>Science</TableCell>
-                                <TableCell>2023-04-07</TableCell>
-                                <TableCell>
-                                    <Badge variant="secondary">Present</Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <ClassesLeftBar classesLeft={0}/>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>History</TableCell>
                                 <TableCell>2023-04-08</TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">Present</Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <ClassesLeftBar classesLeft={1}/>
+                                    <ClassesLeftBar classesLeft={8}/>
                                 </TableCell>
                             </TableRow>
                         </TableBody>
