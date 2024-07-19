@@ -167,12 +167,10 @@ const MarkAttendance = () => {
 		let studentStatus = hasJoined;
 		let studentEmail = email;
 		
-		let statusClassName = "";
 		
 		if (studentStatus === false) {
 			studentFirstName = "Student";
 			studentLastName = "Invited";
-			statusClassName = "text-black border-black";
 		}
 		
 		let studentName = studentFirstName + " " + studentLastName;
