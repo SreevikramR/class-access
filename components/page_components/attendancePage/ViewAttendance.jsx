@@ -1,15 +1,86 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Button } from "@/components/ui/button"
+import { Check, ChevronsUpDown, Calendar as CalendarIcon } from 'lucide-react'
 import Link from "next/link"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Card } from '@/components/ui/card'
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
+import { Command, CommandInput, CommandGroup, CommandList, CommandEmpty, CommandItem } from '@/components/ui/command'
+import ClassesLeftBar from './ClassesLeftBar'
 
 const ViewAttendance = () => {
+    const [classSelectOpen, setClassSelectOpen] = React.useState(false)
+    const [classSelectValue, setClassSelectValue] = React.useState("Select Class")
+
+    function ClassSelectionCombobox() {
+        const frameworks = [
+            {
+                value: "next.js",
+                label: "Next.js",
+            },
+            {
+                value: "sveltekit",
+                label: "SvelteKit",
+            },
+            {
+                value: "nuxt.js",
+                label: "Nuxt.js",
+            },
+            {
+                value: "remix",
+                label: "Remix",
+            },
+            {
+                value: "astro",
+                label: "Astro",
+            },
+        ]
+        return (
+            <PopoverContent className="w-[250px] p-0">
+                <Command>
+                    <CommandInput placeholder="Search Class..." />
+                    <CommandEmpty>No Class found.</CommandEmpty>
+                    <CommandGroup>
+                        <CommandList>
+                            {frameworks.map((framework) => (
+                                <CommandItem
+                                    key={framework.label}
+                                    value={framework.label}
+                                    onSelect={(currentValue) => {
+                                        setClassSelectValue(currentValue)
+                                        setClassSelectOpen(false)
+                                    }}
+                                >
+                                    <Check className={"mr-2 h-4 w-4" + (classSelectValue === framework.label ? " opacity-100" : " opacity-0")} />
+                                    {framework.label}
+                                </CommandItem>
+                            ))}
+                        </CommandList>
+                    </CommandGroup>
+                </Command>
+            </PopoverContent>
+        )
+    }
+
     return (
         <Card className="grid w-full min-h-screen grid-cols-[300px_1fr] bg-background text-foreground">
             <div className="border-r bg-muted/40 p-4">
+                <div className="mb-2 flex items-center justify-between">
+                    <h1 className="text-xl font-bold">Class</h1>
+                </div>
+                <Popover open={classSelectOpen} onOpenChange={setClassSelectOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant={"outline"}
+                            className="w-[250px] mr-2 justify-start text-left font-normal mb-6">
+                            <ChevronsUpDown className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                            {classSelectValue}
+                        </Button>
+                    </PopoverTrigger>
+                    <ClassSelectionCombobox classSelectValue={classSelectValue} setClassSelectValue={setClassSelectValue} setOpen={setClassSelectOpen} />
+                </Popover>
                 <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-bold">Students</h1>
                 </div>
@@ -91,14 +162,14 @@ const ViewAttendance = () => {
             <div className="p-4">
                 <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-bold">Attendance History</h1>
-                    <div className="flex items-center gap-2">
+                    {/* <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm">
                             Export
                         </Button>
                         <Button variant="outline" size="sm">
                             Print
                         </Button>
-                    </div>
+                    </div> */}
                 </div>
                 <div className="overflow-auto">
                     <Table>
@@ -106,73 +177,89 @@ const ViewAttendance = () => {
                             <TableRow>
                                 <TableHead>Class</TableHead>
                                 <TableHead>Date</TableHead>
-                                <TableHead>Time</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead>Attendance</TableHead>
+                                <TableHead className="w-1/4">Classes Left</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             <TableRow>
                                 <TableCell>Math</TableCell>
                                 <TableCell>2023-04-01</TableCell>
-                                <TableCell>9:00 AM</TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">Present</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <ClassesLeftBar />
                                 </TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell>English</TableCell>
                                 <TableCell>2023-04-02</TableCell>
-                                <TableCell>11:00 AM</TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">Present</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <ClassesLeftBar />
                                 </TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell>Science</TableCell>
                                 <TableCell>2023-04-03</TableCell>
-                                <TableCell>1:00 PM</TableCell>
                                 <TableCell>
                                     <Badge variant="outline">Absent</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <ClassesLeftBar/>
                                 </TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell>History</TableCell>
                                 <TableCell>2023-04-04</TableCell>
-                                <TableCell>3:00 PM</TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">Present</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <ClassesLeftBar />
                                 </TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell>Math</TableCell>
                                 <TableCell>2023-04-05</TableCell>
-                                <TableCell>9:00 AM</TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">Present</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <ClassesLeftBar />
                                 </TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell>English</TableCell>
                                 <TableCell>2023-04-06</TableCell>
-                                <TableCell>11:00 AM</TableCell>
                                 <TableCell>
                                     <Badge variant="outline">Absent</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <ClassesLeftBar />
                                 </TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell>Science</TableCell>
                                 <TableCell>2023-04-07</TableCell>
-                                <TableCell>1:00 PM</TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">Present</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <ClassesLeftBar />
                                 </TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell>History</TableCell>
                                 <TableCell>2023-04-08</TableCell>
-                                <TableCell>3:00 PM</TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">Present</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <ClassesLeftBar />
                                 </TableCell>
                             </TableRow>
                         </TableBody>
