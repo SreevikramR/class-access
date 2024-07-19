@@ -1,3 +1,5 @@
+// Page.js
+
 "use client"
 import React from 'react'
 import Header from '@/components/page_components/header'
@@ -9,7 +11,6 @@ import AuthWrapper from '@/components/page_components/authWrapper'
 import ViewAttendance from '@/components/page_components/attendancePage/ViewAttendance'
 
 const Page = () => {
-    
     return (
         <AuthWrapper>
             <div className="flex flex-col min-h-screen">
