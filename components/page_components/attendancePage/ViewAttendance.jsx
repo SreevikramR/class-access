@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from '@/components/ui/card'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { Command, CommandInput, CommandGroup, CommandList, CommandEmpty, CommandItem } from '@/components/ui/command'
-import ClassesLeftBar from './ClassesLeftBar'
 
 const ViewAttendance = () => {
     const [classSelectOpen, setClassSelectOpen] = React.useState(false)
@@ -198,7 +197,7 @@ const ViewAttendance = () => {
                             </TableRow>
                             <TableRow>
                                 <TableCell>2023-04-03</TableCell>
-                                <TableCell>3</TableCell>
+                                <TableCell>3</TableCell>   
                                 <TableCell>
                                     <Badge variant="outline">Absent</Badge>
                                 </TableCell>

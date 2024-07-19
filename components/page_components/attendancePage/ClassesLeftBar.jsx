@@ -16,15 +16,7 @@ const ClassesLeftBar = ({ classesLeft }) => {
         if (classesLeft == 0) {
             if (i == 0) {
                 elements.push(
-                    <div className={"h-full border-4 rounded-l-md border-red-500 flex-1 "} style={{ width: "12.5%" }} />
-                )
-            } else if (i == 7) {
-                elements.push(
-                    <div className={"h-full border-4 rounded-r-md border-red-500 flex-1 "} style={{ width: "12.5%" }} />
-                )
-            } else {
-                elements.push(
-                    <div className={"h-full border-4 border-red-500 flex-1 "} style={{ width: "12.5%" }} />
+                    <div className='text-red-500 font-semibold'>No Classes Left</div>
                 )
             }
         } else if ( i < classesLeft) {
