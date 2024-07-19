@@ -189,7 +189,7 @@ const ViewAttendance = () => {
                                     <Badge variant="secondary">Present</Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <ClassesLeftBar />
+                                    <ClassesLeftBar classesLeft={2}/>
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -199,7 +199,7 @@ const ViewAttendance = () => {
                                     <Badge variant="secondary">Present</Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <ClassesLeftBar />
+                                    <ClassesLeftBar classesLeft={5}/>
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -209,7 +209,7 @@ const ViewAttendance = () => {
                                     <Badge variant="outline">Absent</Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <ClassesLeftBar/>
+                                    <ClassesLeftBar classesLeft={3}/>
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -219,7 +219,7 @@ const ViewAttendance = () => {
                                     <Badge variant="secondary">Present</Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <ClassesLeftBar />
+                                    <ClassesLeftBar classesLeft={6}/>
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -229,7 +229,7 @@ const ViewAttendance = () => {
                                     <Badge variant="secondary">Present</Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <ClassesLeftBar />
+                                    <ClassesLeftBar classesLeft={8}/>
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -239,7 +239,7 @@ const ViewAttendance = () => {
                                     <Badge variant="outline">Absent</Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <ClassesLeftBar />
+                                    <ClassesLeftBar classesLeft={7}/>
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -249,7 +249,7 @@ const ViewAttendance = () => {
                                     <Badge variant="secondary">Present</Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <ClassesLeftBar />
+                                    <ClassesLeftBar classesLeft={0}/>
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -259,7 +259,7 @@ const ViewAttendance = () => {
                                     <Badge variant="secondary">Present</Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <ClassesLeftBar />
+                                    <ClassesLeftBar classesLeft={1}/>
                                 </TableCell>
                             </TableRow>
                         </TableBody>
