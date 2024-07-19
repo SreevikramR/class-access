@@ -87,6 +87,7 @@ const MarkAttendance = () => {
     }
     
     const saveAttendance = async () => {
+		console.log(attendanceRecords)
         try {
             const { error } = await supabaseClient
                 .from('attendance_records')
