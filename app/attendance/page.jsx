@@ -1,3 +1,5 @@
+// Page.js
+
 "use client"
 import React from 'react'
 import Header from '@/components/page_components/header'
@@ -8,7 +10,6 @@ import MarkAttendance from '@/components/page_components/attendancePage/MarkAtte
 import AuthWrapper from '@/components/page_components/authWrapper'
 
 const Page = () => {
-    
     return (
         <AuthWrapper>
             <div className="flex flex-col min-h-screen">
@@ -22,7 +23,10 @@ const Page = () => {
                         <TabsContent value="mark" className="w-full p-1 pt-2">
                             <MarkAttendance />
                         </TabsContent>
-                        <TabsContent value="view">Change your password here.</TabsContent>
+                        <TabsContent value="view">
+                            {/* Placeholder for future View Attendance component */}
+                            <div>View Attendance functionality will be implemented here.</div>
+                        </TabsContent>
                     </Tabs>
                 </main>
                 <Footer />
