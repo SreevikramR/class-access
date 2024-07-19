@@ -147,11 +147,11 @@ const MarkAttendance = () => {
 					<CommandList>
 						{classes.map((classItem) => (<CommandItem
 							key={classItem.id}
-							value={classItem.name}
+							value={classItem.id}
 							onSelect={() => handleClassSelect(classItem.id, classItem.name)}
 						>
 							<Check
-								className={"mr-2 h-4 w-4" + (classSelectValue === classItem.name ? " opacity-100" : " opacity-0")}/>
+								className={"mr-2 h-4 w-4" + (classSelectValue === classItem.id ? " opacity-100" : " opacity-0")}/>
 							{classItem.name}
 						</CommandItem>))}
 					</CommandList>
