@@ -1,9 +1,8 @@
 // app/api/students/new_student
 
-import {createClient} from '@supabase/supabase-js';
-import {NextResponse} from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 import verifyJWT from '@/components/util_function/verifyJWT';
-import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
 import generateRandomString from '@/components/util_function/generateRandomString';
 import fetchTimeout from '@/components/util_function/fetch';
 
@@ -167,7 +166,7 @@ const createNewStudent = async (studentEmail, password) => {
 
 // Adds the student to the student table
 const addToStudentTable = async (studentEmail, studentID) => {
-	const {data, error} = await supabase.from('students').insert([{id: studentID, email: studentEmail}]).select()	
+	const {data, error} = await supabase.from('students').insert([{id: studentID, email: studentEmail}]).select()
 	if (error) {
 		console.log("Error Inserting Student Data: 'students' Table");
 		console.log(error);
