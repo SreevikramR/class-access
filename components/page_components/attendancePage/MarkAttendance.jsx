@@ -99,12 +99,12 @@ const MarkAttendance = () => {
 	};
 	
 	const saveAttendance = async () => {
-		    const attendanceRecords = Object.entries(attendance).map(([studentId, isChecked]) => ({
-        class_id: selectedClassId,
-        date: format(date, "yyyy-MM-dd"),
-        student_proxy_id: studentId,
-        isPresent: isChecked,
-    }));
+		const attendanceRecords = Object.entries(attendance).map(([studentId, isChecked]) => ({
+			class_id: selectedClassId,
+			date: format(date, "yyyy-MM-dd"),
+			student_proxy_id: studentId,
+			isPresent: isChecked,
+		}));
 		
 		const {error} = await supabaseClient
 			.from('attendance_records')
@@ -112,9 +112,9 @@ const MarkAttendance = () => {
 		
 		if (error) {
 			console.error('Error saving attendance:', error);
-			toast({title:'Failed to save attendance.',variant:'destructive'});
+			toast({title: 'Failed to save attendance.', variant: 'destructive'});
 		} else {
-			toast({title:'Attendance saved successfully.',class:'bg-green-500'});
+			toast({title: 'Attendance saved successfully.', class: 'bg-green-500'});
 			clearStates();
 		}
 	};
@@ -130,35 +130,35 @@ const MarkAttendance = () => {
 	
 	function DatePickerPopup() {
 		return (<PopoverContent className="w-[auto] p-0">
-				<Calendar
-					mode="single"
-					selected={date}
-					onSelect={setDate}
-					initialFocus
-				/>
-			</PopoverContent>);
+			<Calendar
+				mode="single"
+				selected={date}
+				onSelect={setDate}
+				initialFocus
+			/>
+		</PopoverContent>);
 	}
 	
 	function ClassSelectionCombobox() {
 		return (<PopoverContent className="w-[250px] p-0">
-				<Command>
-					<CommandInput placeholder="Search Class..."/>
-					<CommandEmpty>No Class found.</CommandEmpty>
-					<CommandGroup>
-						<CommandList>
-							{classes.map((classItem) => (<CommandItem
-									key={classItem.id}
-									value={classItem.name}
-									onSelect={() => handleClassSelect(classItem.id, classItem.name)}
-								>
-									<Check
-										className={"mr-2 h-4 w-4" + (classSelectValue === classItem.name ? " opacity-100" : " opacity-0")}/>
-									{classItem.name}
-								</CommandItem>))}
-						</CommandList>
-					</CommandGroup>
-				</Command>
-			</PopoverContent>);
+			<Command>
+				<CommandInput placeholder="Search Class..."/>
+				<CommandEmpty>No Class found.</CommandEmpty>
+				<CommandGroup>
+					<CommandList>
+						{classes.map((classItem) => (<CommandItem
+							key={classItem.id}
+							value={classItem.name}
+							onSelect={() => handleClassSelect(classItem.id, classItem.name)}
+						>
+							<Check
+								className={"mr-2 h-4 w-4" + (classSelectValue === classItem.name ? " opacity-100" : " opacity-0")}/>
+							{classItem.name}
+						</CommandItem>))}
+					</CommandList>
+				</CommandGroup>
+			</Command>
+		</PopoverContent>);
 	}
 	
 	const UserRow = ({id, first_name, last_name, email, hasJoined}) => {
@@ -181,69 +181,67 @@ const MarkAttendance = () => {
 		const initials = firstLetters.join('');
 		
 		return (<TableRow className="cursor-pointer">
-				<TableCell>
-					<div className="flex items-center gap-2">
-						<div>{studentFirstName} {studentLastName}</div>
-					</div>
-				</TableCell>
-				<TableCell>{studentEmail}</TableCell>
-				
-				<TableCell className="text-center">
-<Checkbox
-                    checked={attendance[id] || false} // Ensure checkbox reflects the state
-                    onCheckedChange={(checked) => handleAttendanceChange(id, checked)}
-                />				</TableCell>
-			</TableRow>);
+			<TableCell>
+				<div className="flex items-center gap-2">
+					<div>{studentFirstName} {studentLastName}</div>
+				</div>
+			</TableCell>
+			<TableCell>{studentEmail}</TableCell>
+			
+			<TableCell className="text-center">
+				<Checkbox
+					checked={attendance[id] || false} // Ensure checkbox reflects the state
+					onCheckedChange={(checked) => handleAttendanceChange(id, checked)}
+				/> </TableCell>
+		</TableRow>);
 	};
 	
 	return (<>
-			<Popover open={classSelectOpen} onOpenChange={setClassSelectOpen}>
-				<PopoverTrigger asChild>
-					<Button
-						variant={"outline"}
-						className="w-[250px] mr-2 justify-start text-left font-normal ">
-						<ChevronsUpDown className="mr-2 h-4 w-4 shrink-0 opacity-50"/>
-						{classSelectValue}
-					</Button>
-				</PopoverTrigger>
-				<ClassSelectionCombobox/>
-			</Popover>
-			<Popover>
-				<PopoverTrigger asChild>
-					<Button
-						variant={"outline"}
-						className={"w-[280px] ml-2 justify-start text-left font-normal " + (!date && " text-muted-foreground")}>
-						<CalendarIcon className="mr-2 h-4 w-4"/>
-						{date ? format(date, "PPP") : <span>Pick a date</span>}
-					</Button>
-				</PopoverTrigger>
-				<DatePickerPopup/>
-			</Popover>
-			<Card className="mt-4">
-				{students.length > 0 ? (<CardContent>
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Student</TableHead>
-									<TableHead>Email</TableHead>
-									<TableHead className="text-center">Attendance</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{studentDataLoaded && students.map((student) => (
-									<UserRow key={student.id} {...student} />))}
-							</TableBody>
-						</Table>
-					</CardContent>) : (isFetchingStudents ? (
-						<CardContent className="p-8 pt-0 text-gray-500">Loading Student
-							Information...</CardContent>) : (
-						<CardContent className="p-8 text-gray-500">Please add students to your class to view them
-							here</CardContent>))}
-			</Card>
-			<div className='flex ml-auto justify-end'>
-				<Button className="mt-4" onClick={saveAttendance}>Save Attendance</Button>
-			</div>
-		</>);
+		<Popover open={classSelectOpen} onOpenChange={setClassSelectOpen}>
+			<PopoverTrigger asChild>
+				<Button
+					variant={"outline"}
+					className="w-[250px] mr-2 justify-start text-left font-normal ">
+					<ChevronsUpDown className="mr-2 h-4 w-4 shrink-0 opacity-50"/>
+					{classSelectValue}
+				</Button>
+			</PopoverTrigger>
+			<ClassSelectionCombobox/>
+		</Popover>
+		<Popover>
+			<PopoverTrigger asChild>
+				<Button
+					variant={"outline"}
+					className={"w-[280px] ml-2 justify-start text-left font-normal " + (!date && " text-muted-foreground")}>
+					<CalendarIcon className="mr-2 h-4 w-4"/>
+					{date ? format(date, "PPP") : <span>Pick a date</span>}
+				</Button>
+			</PopoverTrigger>
+			<DatePickerPopup/>
+		</Popover>
+		<Card className="mt-4">
+			{students.length > 0 ? (<CardContent>
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>Student</TableHead>
+							<TableHead>Email</TableHead>
+							<TableHead className="text-center">Attendance</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{studentDataLoaded && students.map((student) => (<UserRow key={student.id} {...student} />))}
+					</TableBody>
+				</Table>
+			</CardContent>) : (isFetchingStudents ? (<CardContent className="p-8 pt-0 text-gray-500">Loading Student
+				Information...</CardContent>) : (
+				<CardContent className="p-8 text-gray-500">Please add students to your class to view them
+					here</CardContent>))}
+		</Card>
+		<div className='flex ml-auto justify-end'>
+			<Button className="mt-4" onClick={saveAttendance}>Save Attendance</Button>
+		</div>
+	</>);
 };
 
 export default MarkAttendance;
