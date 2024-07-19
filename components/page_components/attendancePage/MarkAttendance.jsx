@@ -110,13 +110,12 @@ const MarkAttendance = () => {
 			.from('attendance_records')
 			.upsert(attendanceRecords);
 		
-		if (error) {
-			console.error('Error saving attendance:', error);
-			toast({title: 'Failed to save attendance.', variant: 'destructive'});
-		} else {
+		if (!error) {
 			toast({title: 'Attendance saved successfully.', class: 'bg-green-500'});
-			clearStates();
+		} else {
+			toast({title: 'Failed to save attendance.', variant: 'destructive'});
 		}
+		clearStates();
 	};
 	
 	const clearStates = () => {
