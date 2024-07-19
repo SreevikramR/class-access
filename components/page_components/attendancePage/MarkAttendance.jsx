@@ -130,11 +130,7 @@ const MarkAttendance = () => {
 					</div>
 				</TableCell>
 				<TableCell>{email}</TableCell>
-				{/*<TableCell>*/}
-				{/*  /!*<Badge variant="success">{has_joined ? 'Yes' : 'No'}</Badge>*!/*/}
-				{/*</TableCell>*/}
 				<TableCell>{class_code}</TableCell>
-				{/*<TableCell>{classes_left}</TableCell>*/}
 				<TableCell>
 					<Checkbox
 						onCheckedChange={(checked) => handleAttendanceChange(class_id, id, checked)}
@@ -153,9 +149,7 @@ const MarkAttendance = () => {
 							<TableRow>
 								<TableHead>Student</TableHead>
 								<TableHead>Email</TableHead>
-								{/*<TableHead>Status</TableHead>*/}
 								<TableHead>Class Code</TableHead>
-								{/*<TableHead>Classes Left</TableHead>*/}
 								<TableHead>Present</TableHead>
 							</TableRow>
 						</TableHeader>
