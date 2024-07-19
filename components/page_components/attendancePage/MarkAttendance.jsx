@@ -71,7 +71,7 @@ const handleAttendanceChange = (classId, studentId, checked) => {
     const updatedRecords = [...attendanceRecords];
     const recordIndex = updatedRecords.findIndex(record => record.class_id === classId && record.student_proxy_id === studentId);
 
-    if (checked) {
+    if (checked) {// If the student is present
         if (recordIndex > -1) {
             updatedRecords[recordIndex].isPresent = checked;
         } else {
