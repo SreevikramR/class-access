@@ -38,7 +38,7 @@ export async function POST(request) {
 	const class_id = request.headers.get('class_id');
 	const class_code = request.headers.get('class_code');
 	const class_name = request.headers.get('class_name');
-	
+
 	const studentPassword = generateRandomString(10);
 	
 	const createStudentData = await createNewStudent(email, studentPassword);
@@ -48,7 +48,8 @@ export async function POST(request) {
 	if (createStudentData.error === "User Exists") {
 		// User Already Exists, Need to Create a proxy
 		const {
-			data: studentProxyData, error: studentProxyError
+			data: studentProxyData,
+			error: studentProxyError
 		} = await supabase.from('student_proxies').select().eq('email', email).eq('teacher_id', teacherUUID);
 		if (studentProxyError) {
 			console.log("Error Fetching Student Proxy Data: 'student_proxies' Table");
@@ -61,14 +62,15 @@ export async function POST(request) {
 			const classes_left_jb = studentProxyData[0].classes_left;
 			classes_left_jb[class_id] = classes_left;
 			const {
-				data, error
+				data,
+				error
 			} = await supabase.from('student_proxies').update({classes_left: classes_left_jb}).eq('email', email).eq('teacher_id', teacherUUID).select()
 			if (error) {
 				console.log("Error Updating Student Data: 'student_proxies' Table");
 				console.log(error);
 				return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 			}
-			
+
 			// Add student proxy to class using the funciton
 			const studentProxyID = studentProxyData[0].id;
 			const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id, teacherUUID);
@@ -90,13 +92,12 @@ export async function POST(request) {
 		if (studentInsertProxyData === "Error") {
 			return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 		}
-		
+
 		const studentProxyID = studentInsertProxyData[0].id;
 		const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id, teacherUUID);
 		if (addStudentProxyToClassStatus === "Error") {
-			return NextResponse.json({message: "Error Adding Student"}, {status: 500});
+			return NextResponse.json({ message: "Error Adding Student" }, { status: 500 });
 		}
-		
 		
 		// Send Onboarding Email
 		const onboardingEmailStatus = await sendOnboardingEmail(email, class_code, teacher_name, class_name);
@@ -120,17 +121,16 @@ export async function POST(request) {
 		return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 	}
 	
-	
 	// Send Welcome Email
 	const welcomeEmailStatus = await sendWelcomeEmail(teacher_name, email, studentPassword);
 	if (welcomeEmailStatus === "Email Failed") {
 		return NextResponse.json({message: "Error Sending Email"}, {status: 500});
 	}
-	
+
 	const studentProxyID = studentProxyData[0].id;
 	const addStudentProxyToClassStatus = await addStudentProxyToClass(studentProxyID, class_id, teacherUUID);
 	if (addStudentProxyToClassStatus === "Error") {
-		return NextResponse.json({message: "Error Adding Student"}, {status: 500});
+		return NextResponse.json({ message: "Error Adding Student" }, { status: 500 });
 	}
 	
 	// Send Onboarding Email
@@ -138,10 +138,7 @@ export async function POST(request) {
 	if (onboardingEmailStatus === "Email Failed") {
 		return NextResponse.json({message: "Error Sending Email"}, {status: 500});
 	}
-	const updateTeacherClassIdsStatus = await updateTeacherClassIds(teacherUUID);
-	if (updateTeacherClassIdsStatus === "Error") {
-		console.log("Error updating teacher's class IDs");
-		return NextResponse.json({message: "Error Adding class id to teacher"}, {status: 500});
+	
 	return NextResponse.json({message: "Student Added"}, {status: 200});
 }
 
@@ -149,22 +146,21 @@ export async function POST(request) {
 const createNewStudent = async (studentEmail, password) => {
 	console.log(studentEmail, password);
 	const {data, error} = await supabase.auth.admin.createUser({
-		email: studentEmail, password: password, email_confirm: true,
+		email: studentEmail,
+		password: password,
+		email_confirm: true,
 	})
-	
+
 	// Check if User already exists
 	if (error?.code === 'email_exists') {
-		const {
-			data: userData,
-			error: userError
-		} = await supabase.from('students').select('id').eq('email', studentEmail);
+		const {data: userData, error: userError} = await supabase.from('students').select('id').eq('email', studentEmail);
 		return {"error": "User Exists", "id": userData[0].id}
 	}
 	if (error) {
 		console.log("Error Creating Student Account");
 		console.log(error);
 		console.log(studentEmail, password);
-		return {"error": true, "message": error}
+		return { "error": true, "message": error }
 	}
 	return {"error": false, id: data.user.id}
 }
@@ -184,7 +180,8 @@ const addToStudentTable = async (studentEmail, studentID) => {
 const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left, studentEmail, notes) => {
 	// Get row from student proxy where student_id = studentUUID and teacher_id = teacherUUID
 	const {
-		data: studentProxyData, error: studentProxyError
+		data: studentProxyData,
+		error: studentProxyError
 	} = await supabase.from('student_proxies').select().eq('student_id', studentUUID).eq('teacher_id', teacherUUID);
 	if (studentProxyError) {
 		console.log("Error Fetching Student Proxy Data: 'student_proxies' Table");
@@ -198,11 +195,9 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 		let status_jb = studentProxyData[0].status;
 		status_jb[class_id] = "Invited";
 		const {
-			data, error
-		} = await supabase.from('student_proxies').update({
-			classes_left: classes_left_jb,
-			status: status_jb
-		}).eq('student_id', studentUUID).eq('teacher_id', teacherUUID).select()
+			data,
+			error
+		} = await supabase.from('student_proxies').update({classes_left: classes_left_jb, status: status_jb}).eq('student_id', studentUUID).eq('teacher_id', teacherUUID).select()
 		if (error) {
 			console.log("Error Updating Student Data: 'student_proxies' Table");
 			console.log(error);
@@ -224,7 +219,7 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 		hasJoined: false,
 		status: status_jb
 	}]).select()
-	
+
 	if (error) {
 		console.log("Error Inserting Student Data: 'student_proxies' Table");
 		console.log(error);
@@ -232,7 +227,7 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 	}
 	// Add student proxy ID to student table proxy_ids array
 	const studentProxyID = data[0].id;
-	const {data: studentData, error: studentError} = await supabase.from('students').select("*").eq('id', studentUUID)
+	const { data: studentData, error: studentError } = await supabase.from('students').select("*").eq('id', studentUUID)
 	if (studentError) {
 		console.log("Error Fetching Student Data: 'students' Table");
 		console.log(studentError);
@@ -243,11 +238,8 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 		proxy_ids = [];
 	}
 	proxy_ids.push(studentProxyID);
-	
-	const {
-		data: studentUpdateData,
-		error: studentUpdateError
-	} = await supabase.from('students').update({proxy_ids: proxy_ids}).eq('id', studentUUID).select()
+
+	const { data: studentUpdateData, error: studentUpdateError } = await supabase.from('students').update({proxy_ids: proxy_ids}).eq('id', studentUUID).select()
 	if (studentUpdateError) {
 		console.log("Error Updating Student Data: 'students' Table");
 		console.log(studentUpdateError);
@@ -258,10 +250,7 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 
 // Add student proxy id to the class
 const addStudentProxyToClass = async (studentProxyID, classID, teacherUUID) => {
-	const {
-		data: classData,
-		error: classError
-	} = await supabase.from('classes').select('student_proxy_ids').eq('id', classID).single()
+	const { data: classData, error: classError } = await supabase.from('classes').select('student_proxy_ids').eq('id', classID).single()
 	if (classError) {
 		console.log("Error Fetching Class Data: 'classes' Table");
 		console.log(classError);
@@ -274,18 +263,12 @@ const addStudentProxyToClass = async (studentProxyID, classID, teacherUUID) => {
 	if (!studentProxyIDArray.includes(studentProxyID)) {
 		studentProxyIDArray.push(studentProxyID);
 	}
-	const {
-		data: classUpdateData,
-		error: classUpdateError
-	} = await supabase.from('classes').update({student_proxy_ids: studentProxyIDArray}).eq('id', classID).select()
+	const { data: classUpdateData, error: classUpdateError } = await supabase.from('classes').update({ student_proxy_ids: studentProxyIDArray }).eq('id', classID).select()
 	if (classUpdateError) {
 		console.log("Error Updating Class Data: 'classes' Table");
 		console.log(classUpdateError);
 	}
-	const {
-		data: teacher,
-		error: teacherror
-	} = await supabase.from('teachers').select('student_proxy_ids').eq('id', teacherUUID).single()
+	const { data: teacher, error: teacherror } = await supabase.from('teachers').select('student_proxy_ids').eq('id', teacherUUID).single()
 	if (teacherror) {
 		console.log("Error Fetching Class Data: 'teacher' Table");
 		console.log(classError);
@@ -298,71 +281,48 @@ const addStudentProxyToClass = async (studentProxyID, classID, teacherUUID) => {
 	if (!studentProxyIDArrayt.includes(studentProxyID)) {
 		studentProxyIDArrayt.push(studentProxyID);
 	}
-	const {
-		data: teacherup,
-		error: teachererror
-	} = await supabase.from('teachers').update({student_proxy_ids: studentProxyIDArrayt}).eq('id', teacherUUID).select()
+	const { data: teacherup, error: teachererror } = await supabase.from('teachers').update({ student_proxy_ids: studentProxyIDArrayt }).eq('id', teacherUUID).select()
 	if (teachererror) {
 		console.log("Error Updating Class Data: 'teachers' Table");
 		console.log(classUpdateError);
 		return "Error"
 	}
 	return true;
-}
-const updateTeacherClassIds = async (teacherUUID) => {
-	// Fetch all class IDs for the teacher
-	const {data: classData, error: classError} = await supabase
-		.from('classes')
-		.select('id')
-		.eq('teacher_id', teacherUUID);
-	
-	if (classError) {
-		console.log("Error fetching class data:", classError);
-		return "Error";
-	}
-	
-	// Extract class IDs into an array
-	const classIds = classData.map(cls => cls.id);
-	
-	// Update the teacher's class_ids in the teachers table
-	const {data: updateData, error: updateError} = await supabase
-		.from('teachers')
-		.update({class_ids: classIds})
-		.eq('id', teacherUUID)
-		.select();
-	
-	if (updateError) {
-		console.log("Error updating teacher's class_ids:", updateError);
-		return "Error";
-	}
-	
-	return "Success";
-};
-
-// Sends a welcome email to the student
 const sendWelcomeEmail = async (teacherName, email, password) => {
 	const controller = new AbortController()
-	const {signal} = controller;
-	
+	const { signal } = controller;
+
 	const data = {
 		"sender": {
-			"email": "no-reply@classaccess.tech", "name": "Class Access"
-		}, "templateId": 2, "params": {
+			"email": "no-reply@classaccess.tech",
+			"name": "Class Access"
+		},
+		"templateId": 2,
+		"params": {
 			"teacher_name": teacherName,
 			"url": 'https://classaccess.tech/activate',
 			"email": email,
 			"password": password
-		}, "to": [{
-			"email": email, "name": email
-		}],
+		},
+		"to": [
+			{
+				"email": email,
+				"name": email
+			}
+		],
 	}
-	
+
 	const response = await fetchTimeout(`https://api.brevo.com/v3/smtp/email`, 2000, {
-		signal, method: 'POST', headers: {
-			'accept': 'application/json', 'content-type': 'application/json', 'api-key': process.env.EMAIL_TOKEN,
-		}, 'body': JSON.stringify(data),
+		signal,
+		method: 'POST',
+		headers: {
+			'accept': 'application/json',
+			'content-type': 'application/json',
+			'api-key': process.env.EMAIL_TOKEN,
+		},
+		'body': JSON.stringify(data),
 	})
-	
+
 	if (response.status !== 201) {
 		console.log("Error Sending Email Welcome Email");
 		console.log(await response.json());
@@ -375,24 +335,38 @@ const sendWelcomeEmail = async (teacherName, email, password) => {
 const sendOnboardingEmail = async (email, classCode, teacherName, className) => {
 	const link = `https://classaccess.tech/join_class/${classCode}`;
 	const controller = new AbortController()
-	const {signal} = controller;
-	
+	const { signal } = controller;
+
 	const data = {
 		"sender": {
-			"email": "no-reply@classaccess.tech", "name": "Class Access"
-		}, "templateId": 1, "params": {
-			"url": link, "class_name": className, "teacher_name": teacherName
-		}, "to": [{
-			"email": email, "name": email
-		}],
+			"email": "no-reply@classaccess.tech",
+			"name": "Class Access"
+		},
+		"templateId": 1,
+		"params": {
+			"url": link,
+			"class_name": className,
+			"teacher_name": teacherName
+		},
+		"to": [
+			{
+				"email": email,
+				"name": email
+			}
+		],
 	}
-	
+
 	const response = await fetchTimeout(`https://api.brevo.com/v3/smtp/email`, 2000, {
-		signal, method: 'POST', headers: {
-			'accept': 'application/json', 'content-type': 'application/json', 'api-key': process.env.EMAIL_TOKEN,
-		}, 'body': JSON.stringify(data),
+		signal,
+		method: 'POST',
+		headers: {
+			'accept': 'application/json',
+			'content-type': 'application/json',
+			'api-key': process.env.EMAIL_TOKEN,
+		},
+		'body': JSON.stringify(data),
 	})
-	
+
 	if (response.status !== 201) {
 		console.log("Error Sending Email Welcome Email");
 		console.log(await response.json());
