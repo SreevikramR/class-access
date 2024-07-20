@@ -441,20 +441,20 @@ export default function ManageClass({params}) {
 					<DialogTitle>Edit Class</DialogTitle>
 					<DialogDescription>Modify the details of your class</DialogDescription>
 				</DialogHeader>
-				<form className="space-y-4 pt-3">
+				<form className="space-y-4">
 					<div>
-						<Label htmlFor="name">Name</Label>
+						<Label htmlFor="name" className="font-semibold">Name</Label>
 						<Input id="name" type="text" value={name} placeholder="Class Name"
 						       onChange={(e) => setName(e.target.value)} required/>
 					</div>
 					<div>
-						<Label htmlFor="meetingLink">Meeting Link</Label>
+						<Label htmlFor="meetingLink" className="font-semibold">Meeting Link</Label>
 						<Input id="meetingLink" type="url" value={meetingLink}
 						       placeholder="https://zoom.us/j/example"
 						       onChange={(e) => setMeetingLink(e.target.value)} required/>
 					</div>
 					<div>
-						<Label>Days</Label>
+						<Label className="font-semibold">Days</Label>
 						<div className="grid grid-cols-2 gap-4 pt-2">
 							{days.map(day => (<div key={day} className="flex items-center gap-2">
 								<Checkbox
@@ -468,7 +468,7 @@ export default function ManageClass({params}) {
 					</div>
 					<div className="flex w-full flex-row items-center justify-between">
 						<div className='flex flex-col'>
-							<Label htmlFor="startTime" className="pt-4 pb-2">Start Time</Label>
+							<Label htmlFor="startTime" className="pt-4 pb-2 font-semibold">Start Time</Label>
 							<div className="flex items-center gap-1">
 								<Input
 									className="w-12 text-center"
@@ -496,7 +496,7 @@ export default function ManageClass({params}) {
 							</div>
 						</div>
 						<div className='flex flex-col'>
-							<Label htmlFor="endTime" className="pt-4 pb-2">Finish Time</Label>
+							<Label htmlFor="endTime" className="pt-4 pb-2 font-semibold">Finish Time</Label>
 							<div className="flex items-center gap-1">
 								<Input
 									className="w-12 text-center"
@@ -526,7 +526,7 @@ export default function ManageClass({params}) {
 					</div>
 				</form>
 				<DialogFooter>
-					<div className='flex justify-between flex-wrap w-full'>
+					<div className='flex justify-between flex-wrap w-full mt-4'>
 						<Button className="border-slate-400 hover:border-black" variant="outline"
 						        onClick={onClose}>Cancel</Button>
 						<Button type="button" onClick={handleSubmit} className="gap-2">
@@ -778,7 +778,7 @@ export default function ManageClass({params}) {
 				<div className="w-full grid grid-cols-2">
 					<section className="space-y-1">
 						<div>
-							<h1 className="text-3xl font-bold pb-1">{classData ? classData.name : 'Class Name'}</h1>
+							<h1 className="text-3xl font-bold pb-1">{classData ? classData.name : 'Loading...'}</h1>
 							<Button size="sm" className="h-7 gap-1 flex items-center"
 							        onClick={() => setIsEditClassOpen(true)}>
 								<EditIcon className="w-3 h-3"/>
