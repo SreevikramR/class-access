@@ -87,7 +87,7 @@ export async function POST(request) {
 		}
 		
 		// Student Proxy Does Not Exist, Need to Create a new proxy
-		const studentInsertProxyData = await addStudentProxy(createStudentData.id, teacherUUID, class_id, classes_left, email, notes);
+		const studentInsertProxyData = await addStudentProxy(createStudentData.id, teacherUUID, class_id, classes_left, email, notes, createStudentData.hasJoined);
 		if (studentInsertProxyData === "Error") {
 			return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 		}
@@ -115,7 +115,7 @@ export async function POST(request) {
 	}
 	
 	// Add Student to Student Proxy Table
-	const studentProxyData = await addStudentProxy(studentUUID, teacherUUID, class_id, classes_left, email, notes);
+	const studentProxyData = await addStudentProxy(studentUUID, teacherUUID, class_id, classes_left, email, notes, createStudentData.hasJoined);
 	if (studentProxyData === "Error") {
 		return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 	}
@@ -143,7 +143,6 @@ export async function POST(request) {
 
 // Creates a new student Account
 const createNewStudent = async (studentEmail, password) => {
-	console.log(studentEmail, password);
 	const {data, error} = await supabase.auth.admin.createUser({
 		email: studentEmail,
 		password: password,
@@ -152,8 +151,12 @@ const createNewStudent = async (studentEmail, password) => {
 
 	// Check if User already exists
 	if (error?.code === 'email_exists') {
-		const {data: userData, error: userError} = await supabase.from('students').select('id').eq('email', studentEmail);
-		return {"error": "User Exists", "id": userData[0].id}
+		const {data: userData, error: userError} = await supabase.from('students').select('id, first_name').eq('email', studentEmail);
+		let hasJoined = true;
+		if (userData[0].first_name == null) {
+			hasJoined = false;
+		}
+		return {"error": "User Exists", "id": userData[0].id, "hasJoined": hasJoined}
 	}
 	if (error) {
 		console.log("Error Creating Student Account");
@@ -161,7 +164,7 @@ const createNewStudent = async (studentEmail, password) => {
 		console.log(studentEmail, password);
 		return { "error": true, "message": error }
 	}
-	return {"error": false, id: data.user.id}
+	return {"error": false, id: data.user.id, "hasJoined": false}
 }
 
 // Adds the student to the student table
@@ -176,7 +179,7 @@ const addToStudentTable = async (studentEmail, studentID) => {
 }
 
 // Adds the student to the student proxy table or updates the classes_left if the student proxy row already exists
-const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left, studentEmail, notes) => {
+const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left, studentEmail, notes, hasJoined) => {
 	// Get row from student proxy where student_id = studentUUID and teacher_id = teacherUUID
 	const {
 		data: studentProxyData,
@@ -215,7 +218,7 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 		classes_left: classes_left_jb,
 		email: studentEmail,
 		notes: notes,
-		hasJoined: false,
+		hasJoined: hasJoined,
 		status: status_jb
 	}]).select()
 
