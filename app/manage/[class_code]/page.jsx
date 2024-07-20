@@ -781,8 +781,8 @@ export default function ManageClass({params}) {
 							<h1 className="text-3xl font-bold pb-1">{classData ? classData.name : 'Class Name'}</h1>
 							<Button size="sm" className="h-7 gap-1 flex items-center"
 							        onClick={() => setIsEditClassOpen(true)}>
-								<EditIcon className="w-4 h-4"/> {/* Replace this with your actual edit icon */}
-								<span className="ml-2 py-1">Edit Class</span>
+								<EditIcon className="w-3 h-4"/>
+								<span className="py-1">Edit Class</span>
 							</Button></div>
 						<div>
 							<p className="font-medium pt-4">{classData ? classData.description : 'No description available'}</p>
