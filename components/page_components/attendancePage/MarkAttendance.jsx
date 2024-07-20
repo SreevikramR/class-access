@@ -86,6 +86,7 @@ const MarkAttendance = () => {
 		setStudentDataLoaded(true);
 		setIsFetchingStudents(false);
 	};
+
 	const fetchExistingAttendance = async (classId, selectedDate) => {
 		const {data, error} = await supabaseClient
 			.from('attendance_records')
@@ -109,6 +110,7 @@ const MarkAttendance = () => {
 		setSelectedClassId(classId);
 		setClassSelectOpen(false);
 	};
+	
 	const fetchAndSetAttendance = async (classId, selectedDate) => {
 		const existingAttendance = await fetchExistingAttendance(classId, selectedDate);
 		setAttendance(existingAttendance);
@@ -184,7 +186,7 @@ const MarkAttendance = () => {
 		</PopoverContent>);
 	}
 	
-	const UserRow = ({id, first_name, last_name, email}) => {
+	const UserRow = ({id, first_name, last_name, email, classes_left}) => {
 		let studentFirstName = first_name;
 		let studentLastName = last_name;
 		let studentEmail = email;
@@ -200,6 +202,14 @@ const MarkAttendance = () => {
 		const firstLetters = words.map(word => word.charAt(0));
 		const initials = firstLetters.join('');
 		
+		let classesNumber = classes_left[selectedClassId];
+		let classesLeftElement;
+		if (classesNumber == 0) {
+			classesLeftElement = <span className="text-red-500 font-semibold">0</span>;
+		} else {
+			classesLeftElement = {classesNumber}
+		}
+
 		return (<TableRow className="cursor-pointer">
 			<TableCell>
 				<div className="flex items-center gap-2">
@@ -207,7 +217,7 @@ const MarkAttendance = () => {
 				</div>
 			</TableCell>
 			<TableCell>{studentEmail}</TableCell>
-			
+			<TableCell>{classesLeftElement}</TableCell>
 			<TableCell className="text-center">
 				<Checkbox
 					checked={attendance[id] || false}
@@ -246,6 +256,7 @@ const MarkAttendance = () => {
 						<TableRow>
 							<TableHead>Student</TableHead>
 							<TableHead>Email</TableHead>
+							<TableHead>Classes Left</TableHead>
 							<TableHead className="text-center">Attendance</TableHead>
 						</TableRow>
 					</TableHeader>
