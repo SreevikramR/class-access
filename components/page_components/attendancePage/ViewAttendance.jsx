@@ -71,8 +71,8 @@ const ViewAttendance = () => {
 
         const updatedStudents = studentsData.map(student => ({
             ...student,
-            first_name: student.first_name || "Student",
-            last_name: student.last_name || "Invited"
+            first_name: student.first_name || student.email,
+            last_name: student.last_name || ""
         }));
 
         setStudents(updatedStudents);
