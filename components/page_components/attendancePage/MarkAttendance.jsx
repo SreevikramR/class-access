@@ -160,14 +160,13 @@ const MarkAttendance = () => {
 		</PopoverContent>);
 	}
 	
-	const UserRow = ({id, first_name, last_name, email, hasJoined}) => {
+	const UserRow = ({id, first_name, last_name, email}) => {
 		let studentFirstName = first_name;
 		let studentLastName = last_name;
-		let studentStatus = hasJoined;
 		let studentEmail = email;
 		
 		
-		if (studentStatus === false) {
+		if (studentFirstName == null) {
 			studentFirstName = "Student";
 			studentLastName = "Invited";
 		}
