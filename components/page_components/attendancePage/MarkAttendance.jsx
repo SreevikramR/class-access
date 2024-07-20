@@ -34,10 +34,11 @@ const MarkAttendance = () => {
 	}, []);
 	
 	useEffect(() => {
-		if (selectedClassId) {
+		if (selectedClassId && date) {
 			fetchStudentsForClass(selectedClassId);
+			fetchAndSetAttendance(selectedClassId, date);
 		}
-	}, [selectedClassId]);
+	}, [selectedClassId, date]);
 	
 	const fetchClasses = async () => {
 		const {data, error} = await supabaseClient
@@ -85,11 +86,32 @@ const MarkAttendance = () => {
 		setStudentDataLoaded(true);
 		setIsFetchingStudents(false);
 	};
+	const fetchExistingAttendance = async (classId, selectedDate) => {
+		const {data, error} = await supabaseClient
+			.from('attendance_records')
+			.select('student_proxy_id, isPresent')
+			.eq('class_id', classId)
+			.eq('date', format(selectedDate, "yyyy-MM-dd"));
+		
+		if (error) {
+			console.error('Error fetching attendance data:', error);
+			return {};
+		}
+		
+		return data.reduce((acc, record) => {
+			acc[record.student_proxy_id] = record.isPresent;
+			return acc;
+		}, {});
+	};
 	
 	const handleClassSelect = (classId, className) => {
 		setClassSelectValue(className);
 		setSelectedClassId(classId);
 		setClassSelectOpen(false);
+	};
+	const fetchAndSetAttendance = async (classId, selectedDate) => {
+		const existingAttendance = await fetchExistingAttendance(classId, selectedDate);
+		setAttendance(existingAttendance);
 	};
 	
 	const handleAttendanceChange = (studentId, checked) => {
@@ -99,11 +121,11 @@ const MarkAttendance = () => {
 	};
 	
 	const saveAttendance = async () => {
-		const attendanceRecords = Object.entries(attendance).map(([studentId, isChecked]) => ({
+		const attendanceRecords = students.map((student) => ({
 			class_id: selectedClassId,
 			date: format(date, "yyyy-MM-dd"),
-			student_proxy_id: studentId,
-			isPresent: isChecked,
+			student_proxy_id: student.id,
+			isPresent: attendance[student.id] || false,
 		}));
 		
 		const {error} = await supabaseClient
@@ -111,9 +133,11 @@ const MarkAttendance = () => {
 			.upsert(attendanceRecords);
 		
 		if (!error) {
-			toast({title: 'Attendance saved successfully.', className: 'bg-green-500 border-black border-2',duration: 3000});
+			toast({
+				title: 'Attendance saved successfully.', className: 'bg-green-500 border-black border-2', duration: 3000
+			});
 		} else {
-			toast({title: 'Failed to save attendance.', variant: 'destructive',duration: 3000});
+			toast({title: 'Failed to save attendance.', variant: 'destructive', duration: 3000});
 		}
 		clearStates();
 	};
@@ -187,7 +211,7 @@ const MarkAttendance = () => {
 			
 			<TableCell className="text-center">
 				<Checkbox
-					checked={attendance[id] || false} // Ensure checkbox reflects the state
+					checked={attendance[id] || false}
 					onCheckedChange={(checked) => handleAttendanceChange(id, checked)}
 				/> </TableCell>
 		</TableRow>);
