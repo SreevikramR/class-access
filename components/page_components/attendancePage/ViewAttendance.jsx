@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+"use client";
+import React, { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Check, ChevronsUpDown, Calendar as CalendarIcon } from 'lucide-react'
 import Link from "next/link"
@@ -8,34 +9,103 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from '@/components/ui/card'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { Command, CommandInput, CommandGroup, CommandList, CommandEmpty, CommandItem } from '@/components/ui/command'
-//
+import { supabaseClient } from '@/components/util_function/supabaseCilent'
+
 const ViewAttendance = () => {
-    const [classSelectOpen, setClassSelectOpen] = React.useState(false)
-    const [classSelectValue, setClassSelectValue] = React.useState("Select Class")
+    const [classSelectOpen, setClassSelectOpen] = useState(false)
+    const [classSelectValue, setClassSelectValue] = useState("Select Class")
+    const [selectedClassId, setSelectedClassId] = useState(null)
+    const [classes, setClasses] = useState([])
+    const [students, setStudents] = useState([])
+    const [selectedStudent, setSelectedStudent] = useState(null)
+    const [attendanceRecords, setAttendanceRecords] = useState([])
+
+    useEffect(() => {
+        fetchClasses();
+    }, []);
+
+    useEffect(() => {
+        if (selectedClassId) {
+            fetchStudents(selectedClassId);
+        }
+    }, [selectedClassId]);
+
+    useEffect(() => {
+        if (selectedClassId && selectedStudent) {
+            fetchAttendanceRecords(selectedClassId, selectedStudent.id);
+        }
+    }, [selectedStudent]);
+
+    const fetchClasses = async () => {
+        const { data, error } = await supabaseClient.from('classes').select('id, name');
+        if (error) {
+            console.error('Error fetching classes:', error);
+            return;
+        }
+        setClasses(data);
+    };
+
+    const fetchStudents = async (classId) => {
+        const { data: classInfo, error: classError } = await supabaseClient
+            .from('classes')
+            .select('student_proxy_ids')
+            .eq('id', classId)
+            .single();
+
+        if (classError) {
+            console.error('Error fetching class data:', classError);
+            return;
+        }
+
+        const studentIds = classInfo.student_proxy_ids;
+
+        const { data: studentsData, error: studentsError } = await supabaseClient
+            .from('student_proxies')
+            .select('id, first_name, last_name, email, status')
+            .in('id', studentIds);
+
+        if (studentsError) {
+            console.error('Error fetching students data:', studentsError);
+            return;
+        }
+
+        const updatedStudents = studentsData.map(student => ({
+            ...student,
+            first_name: student.first_name || "Student",
+            last_name: student.last_name || "Invited"
+        }));
+
+        setStudents(updatedStudents);
+    };
+
+    const fetchAttendanceRecords = async (classId, studentId) => {
+        const { data, error } = await supabaseClient
+            .from('attendance_records')
+            .select('date, isPresent')
+            .eq('class_id', classId)
+            .eq('student_proxy_id', studentId);
+
+        if (error) {
+            console.error('Error fetching attendance records:', error);
+            return;
+        }
+
+        setAttendanceRecords(data);
+    };
+
+    const handleClassSelect = (classId, className) => {
+        setClassSelectValue(className);
+        setSelectedClassId(classId);
+        setSelectedStudent(null);
+        setAttendanceRecords([]);
+        setClassSelectOpen(false);
+    };
+
+    const handleStudentSelect = (student) => {
+        setSelectedStudent(student);
+    };
 
     function ClassSelectionCombobox() {
-        const frameworks = [
-            {
-                value: "next.js",
-                label: "Next.js",
-            },
-            {
-                value: "sveltekit",
-                label: "SvelteKit",
-            },
-            {
-                value: "nuxt.js",
-                label: "Nuxt.js",
-            },
-            {
-                value: "remix",
-                label: "Remix",
-            },
-            {
-                value: "astro",
-                label: "Astro",
-            },
-        ]
         return (
             <PopoverContent className="w-[250px] p-0">
                 <Command>
@@ -43,17 +113,14 @@ const ViewAttendance = () => {
                     <CommandEmpty>No Class found.</CommandEmpty>
                     <CommandGroup>
                         <CommandList>
-                            {frameworks.map((framework) => (
+                            {classes.map((classItem) => (
                                 <CommandItem
-                                    key={framework.label}
-                                    value={framework.label}
-                                    onSelect={(currentValue) => {
-                                        setClassSelectValue(currentValue)
-                                        setClassSelectOpen(false)
-                                    }}
+                                    key={classItem.id}
+                                    value={classItem.id}
+                                    onSelect={() => handleClassSelect(classItem.id, classItem.name)}
                                 >
-                                    <Check className={"mr-2 h-4 w-4" + (classSelectValue === framework.label ? " opacity-100" : " opacity-0")} />
-                                    {framework.label}
+                                    <Check className={"mr-2 h-4 w-4" + (classSelectValue === classItem.id ? " opacity-100" : " opacity-0")} />
+                                    {classItem.name}
                                 </CommandItem>
                             ))}
                         </CommandList>
@@ -78,165 +145,53 @@ const ViewAttendance = () => {
                             {classSelectValue}
                         </Button>
                     </PopoverTrigger>
-                    <ClassSelectionCombobox classSelectValue={classSelectValue} setClassSelectValue={setClassSelectValue} setOpen={setClassSelectOpen} />
+                    <ClassSelectionCombobox />
                 </Popover>
                 <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-bold">Students</h1>
                 </div>
                 <div className="flex-1 overflow-auto">
                     <div className="space-y-2">
-                        <Link
-                            href="#"
-                            className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-                            prefetch={false}
-                        >
-                            <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8 border">
-                                    <AvatarImage src="/placeholder-user.jpg" />
-                                    <AvatarFallback>JD</AvatarFallback>
-                                </Avatar>
-                                <div>John Doe</div>
+                        {students.map((student) => (
+                            <div
+                                key={student.id}
+                                onClick={() => handleStudentSelect(student)}
+                                className={`flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${selectedStudent && selectedStudent.id === student.id ? 'bg-accent text-accent-foreground' : 'bg-muted'}`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-8 w-8 border">
+                                        <AvatarImage src="/placeholder-user.jpg" />
+                                        <AvatarFallback>{student.first_name.charAt(0)}{student.last_name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>{student.first_name} {student.last_name}</div>
+                                </div>
+                                <ChevronRightIcon className="h-4 w-4" />
                             </div>
-                            <ChevronRightIcon className="h-4 w-4" />
-                        </Link>
-                        <Link
-                            href="#"
-                            className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-                            prefetch={false}
-                        >
-                            <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8 border">
-                                    <AvatarImage src="/placeholder-user.jpg" />
-                                    <AvatarFallback>JS</AvatarFallback>
-                                </Avatar>
-                                <div>Jane Smith</div>
-                            </div>
-                            <ChevronRightIcon className="h-4 w-4" />
-                        </Link>
-                        <Link
-                            href="#"
-                            className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-                            prefetch={false}
-                        >
-                            <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8 border">
-                                    <AvatarImage src="/placeholder-user.jpg" />
-                                    <AvatarFallback>MJ</AvatarFallback>
-                                </Avatar>
-                                <div>Michael Johnson</div>
-                            </div>
-                            <ChevronRightIcon className="h-4 w-4" />
-                        </Link>
-                        <Link
-                            href="#"
-                            className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-                            prefetch={false}
-                        >
-                            <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8 border">
-                                    <AvatarImage src="/placeholder-user.jpg" />
-                                    <AvatarFallback>ED</AvatarFallback>
-                                </Avatar>
-                                <div>Emily Davis</div>
-                            </div>
-                            <ChevronRightIcon className="h-4 w-4" />
-                        </Link>
-                        <Link
-                            href="#"
-                            className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-                            prefetch={false}
-                        >
-                            <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8 border">
-                                    <AvatarImage src="/placeholder-user.jpg" />
-                                    <AvatarFallback>DL</AvatarFallback>
-                                </Avatar>
-                                <div>David Lee</div>
-                            </div>
-                            <ChevronRightIcon className="h-4 w-4" />
-                        </Link>
+                        ))}
                     </div>
                 </div>
             </div>
             <div className="p-4">
                 <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-bold">Attendance History</h1>
-                    {/* <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                            Export
-                        </Button>
-                        <Button variant="outline" size="sm">
-                            Print
-                        </Button>
-                    </div> */}
                 </div>
                 <div className="overflow-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date</TableHead>
-                                <TableHead>Classes Left</TableHead>
                                 <TableHead>Status</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            
-                            <TableRow>
-                                <TableCell>2023-04-01</TableCell>
-                                <TableCell>1</TableCell>
-                                <TableCell>
-                                    <Badge variant="secondary">Present</Badge>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>2023-04-02</TableCell>
-                                <TableCell>2</TableCell>
-                                <TableCell>
-                                    <Badge variant="secondary">Present</Badge>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>2023-04-03</TableCell>
-                                <TableCell>3</TableCell>   
-                                <TableCell>
-                                    <Badge variant="outline">Absent</Badge>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>2023-04-04</TableCell>
-                                <TableCell>4</TableCell>
-                                <TableCell>
-                                    <Badge variant="secondary">Present</Badge>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>2023-04-05</TableCell>
-                                <TableCell>5</TableCell>
-                                <TableCell>
-                                    <Badge variant="secondary">Present</Badge>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>2023-04-06</TableCell>
-                                <TableCell>6</TableCell>
-                                <TableCell>
-                                    <Badge variant="outline">Absent</Badge>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>2023-04-07</TableCell>
-                                <TableCell>7</TableCell>
-                                <TableCell>
-                                    <Badge variant="secondary">Present</Badge>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>2023-04-08</TableCell>
-                                <TableCell>8</TableCell>
-                                <TableCell>
-                                    <Badge variant="secondary">Present</Badge>
-                                </TableCell>
-                            </TableRow>
+                            {attendanceRecords.map((record) => (
+                                <TableRow key={record.date}>
+                                    <TableCell>{record.date}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={record.isPresent ? "secondary" : "outline"}>{record.isPresent ? "Present" : "Absent"}</Badge>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
                         </TableBody>
                     </Table>
                 </div>
@@ -244,7 +199,6 @@ const ViewAttendance = () => {
         </Card>
     )
 }
-
 
 function ChevronRightIcon(props) {
     return (
@@ -261,27 +215,6 @@ function ChevronRightIcon(props) {
             strokeLinejoin="round"
         >
             <path d="m9 18 6-6-6-6" />
-        </svg>
-    )
-}
-
-
-function XIcon(props) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
         </svg>
     )
 }
