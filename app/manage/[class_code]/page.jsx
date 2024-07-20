@@ -1,18 +1,26 @@
 'use client'
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {supabaseClient} from '@/components/util_function/supabaseCilent';
 import {useToast} from "@/components/ui/use-toast";
-import {Copy, PlusCircle, UserPlusIcon, UserIcon, CircleArrowRight} from "lucide-react";
+import {CheckCircle, CircleArrowRight, Copy, EditIcon, PlusCircle, UserIcon, UserPlusIcon} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter} from "@/components/ui/dialog";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from "@/components/ui/dialog";
 import {Checkbox} from "@/components/ui/checkbox";
 import Header from "@/components/page_components/header";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import fetchTimeout from "@/components/util_function/fetch";
 import AuthWrapper from "@/components/page_components/authWrapper";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 // I am here
 export default function ManageClass({params}) {
 	const [isOpenManage, setIsOpenManage] = useState(false);
@@ -30,6 +38,8 @@ export default function ManageClass({params}) {
 	const [selectedStudent, setSelectedStudent] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [teacherData, setTeacherData] = useState(null);
+	const [isEditClassOpen, setIsEditClassOpen] = useState(false);
+	
 	
 	useEffect(() => {
 		fetchTeacherData();
@@ -262,7 +272,7 @@ export default function ManageClass({params}) {
 			if (teacherError) throw teacherError;
 			
 			const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-      
+			
 			let addedAllStudents = true;
 			for (const student of newStudents) {
 				const headers = {
@@ -343,6 +353,191 @@ export default function ManageClass({params}) {
 	const handleUpdate = async () => {
 		await fetchClassData();  // This will refresh both class and student data
 	};
+	
+	function parseTime(timeString) {
+		const [time, period] = timeString.split(' ');
+		const [hour, minute] = time.split(':');
+		return {hour, minute, ampm: period};
+	}
+	
+	const EditClassDialog = ({isOpen, onClose, classData, onUpdate}) => {
+		
+		const [name, setName] = useState(classData.name);
+		const [meetingLink, setMeetingLink] = useState(classData.meeting_link || '');
+		const [startTime, setStartTime] = useState(classData.start_time ? parseTime(classData.start_time) : {
+			hour: '', minute: '', ampm: 'AM'
+		});
+		const [endTime, setEndTime] = useState(classData.end_time ? parseTime(classData.end_time) : {
+			hour: '', minute: '', ampm: 'AM'
+		});
+		const [selectedDays, setSelectedDays] = useState(classData.days || []);
+		
+		const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+		
+		const convertTo24HourFormat = (time) => {
+			let hour = parseInt(time.hour, 10);
+			const minute = time.minute.padStart(2, '0');
+			const ampm = time.ampm;
+			
+			if (ampm === 'PM' && hour < 12) hour += 12;
+			if (ampm === 'AM' && hour === 12) hour = 0;
+			
+			return `${hour.toString().padStart(2, '0')}:${minute}:00`;
+		};
+		const handleDayChange = (day, checked) => {
+			setSelectedDays(prevDays => {
+				// Ensure prevDays is an array
+				const currentDays = Array.isArray(prevDays) ? prevDays : [];
+				
+				if (checked) {
+					// Add day if checked and not already in the array
+					if (!currentDays.includes(day)) {
+						return [...currentDays, day];
+					}
+				} else {
+					// Remove day if unchecked
+					return currentDays.filter(d => d !== day);
+				}
+				return currentDays;
+			});
+		};
+		
+		
+		const handleSubmit = async () => {
+			const formattedStartTime = convertTo24HourFormat(startTime);
+			const formattedEndTime = convertTo24HourFormat(endTime);
+			
+			const {data, error} = await supabaseClient
+				.from('classes')
+				.update({
+					name: name,
+					meeting_link: meetingLink,
+					start_time: formattedStartTime,
+					end_time: formattedEndTime,
+					days: selectedDays
+				})
+				.eq('id', classData.id);
+			
+			if (error) {
+				console.error('Error updating class:', error);
+				toast({
+					variant: 'destructive',
+					title: "Failed to update class",
+					description: "Please try again.",
+					duration: 3000
+				});
+			} else {
+				toast({
+					title: 'Success', description: 'Class updated successfully.',
+				});
+				onUpdate();
+				onClose();
+			}
+		};
+		
+		return (<Dialog open={isOpen} onOpenChange={onClose}>
+			<DialogContent className="sm:max-w-[425px] lg:max-w-[32vw]">
+				<DialogHeader>
+					<DialogTitle>Edit Class</DialogTitle>
+					<DialogDescription>Modify the details of your class</DialogDescription>
+				</DialogHeader>
+				<form className="space-y-4">
+					<div>
+						<Label htmlFor="name" className="font-semibold">Name</Label>
+						<Input id="name" type="text" value={name} placeholder="Class Name"
+						       onChange={(e) => setName(e.target.value)} required/>
+					</div>
+					<div>
+						<Label htmlFor="meetingLink" className="font-semibold">Meeting Link</Label>
+						<Input id="meetingLink" type="url" value={meetingLink}
+						       placeholder="https://zoom.us/j/example"
+						       onChange={(e) => setMeetingLink(e.target.value)} required/>
+					</div>
+					<div>
+						<Label className="font-semibold">Days</Label>
+						<div className="grid grid-cols-2 gap-4 pt-2">
+							{days.map(day => (<div key={day} className="flex items-center gap-2">
+								<Checkbox
+									id={day}
+									checked={selectedDays.includes(day)}
+									onCheckedChange={(checked) => handleDayChange(day, checked)}
+								/>
+								<Label htmlFor={day}>{day}</Label>
+							</div>))}
+						</div>
+					</div>
+					<div className="flex w-full flex-row items-center justify-between">
+						<div className='flex flex-col'>
+							<Label htmlFor="startTime" className="pt-4 pb-2 font-semibold">Start Time</Label>
+							<div className="flex items-center gap-1">
+								<Input
+									className="w-12 text-center"
+									value={startTime.hour}
+									onChange={(e) => setStartTime({...startTime, hour: e.target.value})}
+								/>
+								<span>:</span>
+								<Input
+									className="w-12 text-center"
+									value={startTime.minute}
+									onChange={(e) => setStartTime({...startTime, minute: e.target.value})}
+								/>
+								<Select
+									value={startTime.ampm}
+									onValueChange={(value) => setStartTime({...startTime, ampm: value})}
+								>
+									<SelectTrigger className="w-full">
+										<SelectValue placeholder="AM"/>
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="AM">AM</SelectItem>
+										<SelectItem value="PM">PM</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+						<div className='flex flex-col'>
+							<Label htmlFor="endTime" className="pt-4 pb-2 font-semibold">Finish Time</Label>
+							<div className="flex items-center gap-1">
+								<Input
+									className="w-12 text-center"
+									value={endTime.hour}
+									onChange={(e) => setEndTime({...endTime, hour: e.target.value})}
+								/>
+								<span>:</span>
+								<Input
+									className="w-12 text-center"
+									value={endTime.minute}
+									onChange={(e) => setEndTime({...endTime, minute: e.target.value})}
+								/>
+								<Select
+									value={endTime.ampm}
+									onValueChange={(value) => setEndTime({...endTime, ampm: value})}
+								>
+									<SelectTrigger className="w-full">
+										<SelectValue placeholder="AM"/>
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="AM">AM</SelectItem>
+										<SelectItem value="PM">PM</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+					</div>
+				</form>
+				<DialogFooter>
+					<div className='flex justify-between flex-wrap w-full mt-4'>
+						<Button className="border-slate-400 hover:border-black" variant="outline"
+						        onClick={onClose}>Cancel</Button>
+						<Button type="button" onClick={handleSubmit} className="gap-2">
+							Save Changes<CheckCircle className="h-5 w-5"/>
+						</Button>
+					</div>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>);
+	};
+	
 	
 	const StudentDetailsPopUp = ({student, classId, onClose, onUpdate}) => {
 		const [classes, setClasses] = useState(0);
@@ -556,7 +751,12 @@ export default function ManageClass({params}) {
 	return (<AuthWrapper>
 		<div className="min-h-screen bg-gray-100">
 			<Header/>
-			<main className="p-6 space-y-8">
+			<main className="p-6 space-y-8">{classData && (<EditClassDialog
+				isOpen={isEditClassOpen}
+				onClose={() => setIsEditClassOpen(false)}
+				classData={classData}
+				onUpdate={fetchClassData}
+			/>)}
 				<Dialog open={isOpenManage} onOpenChange={setIsOpenManage}>
 					{selectedStudent && (<StudentDetailsPopUp
 						student={selectedStudent}
@@ -577,8 +777,16 @@ export default function ManageClass({params}) {
 				</Dialog>
 				<div className="w-full grid grid-cols-2">
 					<section className="space-y-1">
-						<h1 className="text-3xl font-bold">{classData ? classData.name : 'Class Name'}</h1>
-						<p className="font-medium pt-4">{classData ? classData.description : 'No description available'}</p>
+						<div>
+							<h1 className="text-3xl font-bold pb-1">{classData ? classData.name : 'Loading...'}</h1>
+							<Button size="sm" className="h-7 gap-1 flex items-center"
+							        onClick={() => setIsEditClassOpen(true)}>
+								<EditIcon className="w-3 h-3"/>
+								<span className="py-1">Edit Class</span>
+							</Button></div>
+						<div>
+							<p className="font-medium pt-4">{classData ? classData.description : 'No description available'}</p>
+						</div>
 					</section>
 					<section
 						className="space-y-1 bg-background border-2 p-2 rounded-lg justify-center flex flex-col">
