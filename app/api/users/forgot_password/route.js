@@ -2,42 +2,47 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const sendResetEmail = async ({ email, link }) => {
-    const mailerSend = new MailerSend({
-        apiKey: process.env.EMAIL_TOKEN,
-    });
-    const sentFrom = new Sender("no-reply@classaccess.tech", "Class Access");
-    const recipients = [
-        new Recipient(email, email)
-    ];
-    const personalization = [
-        {
-            email: email,
-            data: {
-                url: link,
-                user_email: email
-            },
-        }
-    ];
-    const emailParams = new EmailParams()
-        .setFrom(sentFrom)
-        .setTo(recipients)
-        .setReplyTo(sentFrom)
-        .setSubject(`Password Recovery Link`)
-        .setPersonalization(personalization)
-        .setTemplateId('zr6ke4nmw2egon12');
+    const controller = new AbortController()
+    const { signal } = controller;
 
-    try {
-        await mailerSend.email.send(emailParams);
-    } catch (error) {
-        console.log("Error Sending Forgot Password Email");
-        console.log(error);
+    const data = {
+        "sender": {
+            "email": "no-reply@classaccess.tech",
+            "name": "Class Access"
+        },
+        "templateId": 3,
+        "params": {
+            "url": link,
+            "email": email,
+        },
+        "to": [
+            {
+                "email": email,
+                "name": email
+            }
+        ],
+    }
+
+    const response = await fetchTimeout(`https://api.brevo.com/v3/smtp/email`, 2000, {
+        signal,
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+            'api-key': process.env.EMAIL_TOKEN,
+        },
+        'body': JSON.stringify(data),
+    })
+
+    if (response.status !== 201) {
+        console.log("Error Sending Email Welcome Email");
+        console.log(await response.json());
         return "Email Failed"
     }
     return "Email Sent"
