@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CircleCheckBig, ClipboardList } from 'lucide-react'
 import MarkAttendance from '@/components/page_components/attendancePage/MarkAttendance'
 import AuthWrapper from '@/components/page_components/authWrapper'
+import ViewAttendance from '@/components/page_components/attendancePage/ViewAttendance'
 
 const Page = () => {
     return (
@@ -23,9 +24,8 @@ const Page = () => {
                         <TabsContent value="mark" className="w-full p-1 pt-2">
                             <MarkAttendance />
                         </TabsContent>
-                        <TabsContent value="view">
-                            {/* Placeholder for future View Attendance component */}
-                            <div>View Attendance functionality will be implemented here.</div>
+                        <TabsContent value="view" className="w-full p-1 pt-2">
+                            <ViewAttendance />
                         </TabsContent>
                     </Tabs>
                 </main>

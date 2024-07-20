@@ -9,6 +9,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { fetchStudentList, supabaseClient } from '@/components/util_function/supabaseCilent'
 import AuthWrapper from '@/components/page_components/authWrapper'
+import ClassesLeftBar from '@/components/page_components/attendancePage/ClassesLeftBar'
 
 const Students = () => {
 	const [students, setStudents] = useState([])
@@ -108,7 +109,7 @@ const Students = () => {
 				<Badge variant="success" className={statusClassName}>{has_joined ? 'Yes' : 'No'}</Badge>
 			</TableCell>
 			<TableCell>{class_code}</TableCell>
-			<TableCell>{classes_left}</TableCell>
+			<TableCell><ClassesLeftBar classesLeft={classes_left}/></TableCell>
 		</TableRow>)
 	};
 	return (<AuthWrapper>
