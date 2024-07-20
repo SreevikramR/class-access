@@ -385,23 +385,23 @@ export default function ManageClass({params}) {
 			return `${hour.toString().padStart(2, '0')}:${minute}:00`;
 		};
 		const handleDayChange = (day, checked) => {
-    setSelectedDays(prevDays => {
-        // Ensure prevDays is an array
-        const currentDays = Array.isArray(prevDays) ? prevDays : [];
-
-        if (checked) {
-            // Add day if checked and not already in the array
-            if (!currentDays.includes(day)) {
-                return [...currentDays, day];
-            }
-        } else {
-            // Remove day if unchecked
-            return currentDays.filter(d => d !== day);
-        }
-        return currentDays;
-    });
-};
-
+			setSelectedDays(prevDays => {
+				// Ensure prevDays is an array
+				const currentDays = Array.isArray(prevDays) ? prevDays : [];
+				
+				if (checked) {
+					// Add day if checked and not already in the array
+					if (!currentDays.includes(day)) {
+						return [...currentDays, day];
+					}
+				} else {
+					// Remove day if unchecked
+					return currentDays.filter(d => d !== day);
+				}
+				return currentDays;
+			});
+		};
+		
 		
 		const handleSubmit = async () => {
 			const formattedStartTime = convertTo24HourFormat(startTime);
