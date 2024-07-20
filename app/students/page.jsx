@@ -43,7 +43,7 @@ const Students = () => {
 
 		const { data: studentInfo, error: studentError } = await supabaseClient
 			.from('student_proxies')
-			.select('id,first_name,last_name,email,status,classes_left,hasJoined')
+			.select('id,first_name,last_name,email,status,classes_left')
 			.in('id', studentIds)
 
 		if (studentError) {
@@ -58,7 +58,6 @@ const Students = () => {
 				.map(c => ({
 					...student,
 					class_code: c.class_code,
-					has_joined: Boolean(student.hasJoined),
 					classes_left: student.classes_left[c.id]
 				}))
 		)
@@ -72,21 +71,18 @@ const Students = () => {
 		console.log('studentInfo:', studentInfo);
 
 		const router = useRouter()
-		const { first_name, last_name, email, id, class_code, has_joined, classes_left } = studentInfo
+		const { first_name, last_name, email, class_code, classes_left } = studentInfo
 		let studentFirstName = first_name
 		let studentLastName = last_name
-		let studentStatus = has_joined
 		let studentEmail = email
 		let statusClassName = ""
+		let studentStatus = "Joined"
 
-		if (studentStatus === false) {
+		if (studentFirstName === null) {
 			studentFirstName = "Student"
 			studentLastName = "Invited"
 			statusClassName = "text-black border-black"
-		} else if (studentStatus === "Unpaid") {
-			statusClassName = "bg-red-400"
-		} else if (studentStatus === "Paid") {
-			statusClassName = "bg-green-400 px-5"
+			studentStatus = "Invited"
 		}
 
 		let studentName = studentFirstName + " " + studentLastName
@@ -105,7 +101,7 @@ const Students = () => {
 			</TableCell>
 			<TableCell>{studentEmail}</TableCell>
 			<TableCell>
-				<Badge variant="success" className={statusClassName}>{has_joined ? 'Yes' : 'No'}</Badge>
+				<Badge variant="success" className={statusClassName}>{studentStatus}</Badge>
 			</TableCell>
 			<TableCell>{class_code}</TableCell>
 			<TableCell>{classes_left}</TableCell>
