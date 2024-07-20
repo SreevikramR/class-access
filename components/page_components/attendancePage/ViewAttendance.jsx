@@ -78,28 +78,44 @@ const ViewAttendance = () => {
         setStudents(updatedStudents);
     };
 
-    const fetchAttendanceRecords = async (classId, studentId) => {
-        const { data, error } = await supabaseClient
-            .from('attendance_records')
-            .select('date, isPresent')
-            .eq('class_id', classId)
-            .eq('student_proxy_id', studentId);
+const fetchAttendanceRecords = async (classId, studentId) => {
+    const { data, error } = await supabaseClient
+        .from('attendance_records')
+        .select('date, isPresent')
+        .eq('class_id', classId)
+        .eq('student_proxy_id', studentId);
 
-        if (error) {
-            console.error('Error fetching attendance records:', error);
-            return;
-        }
+    if (error) {
+        console.error('Error fetching attendance records:', error);
+        return;
+    }
 
-        setAttendanceRecords(data);
-    };
+    const { data: studentData, error: studentError } = await supabaseClient
+        .from('student_proxies')
+        .select('classes_left')
+        .eq('id', studentId)
+        .single();
 
-    const handleClassSelect = (classId, className) => {
-        setClassSelectValue(className);
-        setSelectedClassId(classId);
-        setSelectedStudent(null);
-        setAttendanceRecords([]);
-        setClassSelectOpen(false);
-    };
+    if (studentError) {
+        console.error('Error fetching student data:', studentError);
+        return;
+    }
+
+    const classesLeft = studentData.classes_left[classId];
+
+    const updatedRecords = data.map(record => ({
+        ...record,
+        classes_left: classesLeft
+    }));
+
+    setAttendanceRecords(updatedRecords);
+};
+	const handleClassSelect = (classId, className) => {
+		setClassSelectValue(className);
+		setSelectedClassId(classId);
+		setClassSelectOpen(false);
+	};
+
 
     const handleStudentSelect = (student) => {
         setSelectedStudent(student);
@@ -180,6 +196,7 @@ const ViewAttendance = () => {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date</TableHead>
+	                            <TableHead>Classes Left</TableHead>
                                 <TableHead>Status</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -187,6 +204,7 @@ const ViewAttendance = () => {
                             {attendanceRecords.map((record) => (
                                 <TableRow key={record.date}>
                                     <TableCell>{record.date}</TableCell>
+	                                <TableCell>{record.classes_left}</TableCell>
                                     <TableCell>
                                         <Badge variant={record.isPresent ? "secondary" : "outline"}>{record.isPresent ? "Present" : "Absent"}</Badge>
                                     </TableCell>
