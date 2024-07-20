@@ -234,11 +234,11 @@ const MarkAttendance = () => {
 				<Button
 					variant={"outline"}
 					className={"w-[280px] ml-2 justify-start text-left font-normal " + (!date && " text-muted-foreground")}>
-					<CalendarIcon className="mr-2 h-4 w-4"/>
+					<CalendarIcon className="mr-2 h-4 w-4" />
 					{date ? format(date, "PPP") : <span>Pick a date</span>}
 				</Button>
 			</PopoverTrigger>
-			<DatePickerPopup/>
+			<DatePickerPopup />
 		</Popover>
 		<Card className="mt-4">
 			{students.length > 0 ? (<CardContent>

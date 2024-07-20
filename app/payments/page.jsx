@@ -5,17 +5,38 @@ import Header from '@/components/page_components/header'
 import Footer from '@/components/page_components/footer'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { fetchStudentList, supabaseClient } from '@/components/util_function/supabaseCilent'
 import AuthWrapper from '@/components/page_components/authWrapper'
-import ClassesLeftBar from '@/components/page_components/attendancePage/ClassesLeftBar'
+import { Button } from '@/components/ui/button'
+import { PlusCircle, CalendarIcon } from 'lucide-react'
+import { Calendar } from "@/components/ui/calendar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { PopoverContent } from '@/components/ui/popover'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 
 const Payments = () => {
     const [students, setStudents] = useState([])
     const [teacherID, setTeacherID] = useState("")
     const [studentDataLoaded, setStudentDataLoaded] = useState(false)
     const [isFetchingStudents, setIsFetchingStudents] = useState(false)
+
+    const [date, setDate] = useState(new Date())
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+
+    function DatePickerPopup() {
+        return (<PopoverContent className="w-[auto] p-0">
+            <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                initialFocus
+            />
+        </PopoverContent>);
+    }
 
     useEffect(() => {
         handleStudentFetch()
@@ -84,10 +105,6 @@ const Payments = () => {
             studentFirstName = "Student"
             studentLastName = "Invited"
             statusClassName = "text-black border-black"
-        } else if (studentStatus === "Unpaid") {
-            statusClassName = "bg-red-400"
-        } else if (studentStatus === "Paid") {
-            statusClassName = "bg-green-400 px-5"
         }
 
         let studentName = studentFirstName + " " + studentLastName
@@ -105,7 +122,7 @@ const Payments = () => {
                 </div>
             </TableCell>
             <TableCell>{studentEmail}</TableCell>
-            <TableCell>{class_code}</TableCell>
+            <TableCell>01/01/2024</TableCell>
             <TableCell>UPI</TableCell>
             <TableCell>800</TableCell>
         </TableRow>)
@@ -114,10 +131,59 @@ const Payments = () => {
         <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-1 bg-gray-100 p-6 md:p-10 md:pt-8">
+                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} className="bg-white">                    
+                    <DialogContent className="sm:max-w-[500px]">
+                        <DialogHeader>
+                            <DialogTitle>Add Payment</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="date">Date</Label>
+                                <Input id="date" type="date" />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="amount">Amount</Label>
+                                <Input id="amount" type="number" placeholder="Enter amount" />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="method">Payment Method</Label>
+                                <Select id="method">
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select payment method" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem className="hover:cursor-pointer hover:bg-slate-100" value="upi">UPI</SelectItem>
+                                        <SelectItem className="hover:cursor-pointer hover:bg-slate-100" value="bank-transfer">Bank Transfer</SelectItem>
+                                        <SelectItem className="hover:cursor-pointer hover:bg-slate-100" value="cash">Cash</SelectItem>
+                                        <SelectItem className="hover:cursor-pointer hover:bg-slate-100" value="credit-ard">Credit Card</SelectItem>
+                                        <SelectItem className="hover:cursor-pointer hover:bg-slate-100" value="other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="notes">Notes</Label>
+                                <Textarea id="notes" placeholder="Add any notes" />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <div>
+                                <Button>Save Payment</Button>
+                            </div>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
                 <div>
                     <Card>
                         <CardHeader>
-                            <CardTitle className="p-3">Payment Records</CardTitle>
+                            <CardTitle className="p-3 flex flex-row justify-between flex-wrap">
+                                <div>Payments</div>
+                                <Button size="sm" className="h-7 gap-1 hover:bg-zinc-700">
+                                    <PlusCircle className="h-3.5 w-3.5" />
+                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap" onClick={() => setIsAddDialogOpen(true)}>
+                                        Add Payment
+                                    </span>
+                                </Button>
+                            </CardTitle>
                         </CardHeader>
                         {students.length > 0 && teacherID ? (<CardContent>
                             <Table>
@@ -125,7 +191,7 @@ const Payments = () => {
                                     <TableRow>
                                         <TableHead>Student</TableHead>
                                         <TableHead>Email</TableHead>
-                                        <TableHead>Class Code</TableHead>
+                                        <TableHead>Date</TableHead>
                                         <TableHead>Payment Mode</TableHead>
                                         <TableHead>Amount</TableHead>
                                     </TableRow>
@@ -137,10 +203,8 @@ const Payments = () => {
                                 </TableBody>
                             </Table>
                         </CardContent>) : ((isFetchingStudents) ? (
-                            <CardContent className="p-8 pt-0 text-gray-500">Loading Student
-                                Information...</CardContent>) : (
-                            <CardContent className="p-8 pt-0 text-gray-500">Please create a class and add some
-                                students to view them here</CardContent>))}
+                            <CardContent className="p-8 pt-0 text-gray-500">Loading Payments...</CardContent>) : (
+                            <CardContent className="p-8 pt-0 text-gray-500">Please add payments to view them here</CardContent>))}
                     </Card>
                 </div>
             </main>
