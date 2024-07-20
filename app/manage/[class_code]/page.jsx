@@ -2,7 +2,7 @@
 import React, {useEffect, useState} from "react";
 import {supabaseClient} from '@/components/util_function/supabaseCilent';
 import {useToast} from "@/components/ui/use-toast";
-import {CheckCircle, CircleArrowRight, Copy, PlusCircle, UserIcon, UserPlusIcon} from "lucide-react";
+import {CheckCircle, CircleArrowRight, Copy, EditIcon, PlusCircle, UserIcon, UserPlusIcon} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
@@ -778,10 +778,15 @@ export default function ManageClass({params}) {
 				<div className="w-full grid grid-cols-2">
 					<section className="space-y-1">
 						<div>
-							<h1 className="text-3xl font-bold">{classData ? classData.name : 'Class Name'}</h1>
-							<Button onClick={() => setIsEditClassOpen(true)}>Edit Class</Button>
+							<h1 className="text-3xl font-bold pb-1">{classData ? classData.name : 'Class Name'}</h1>
+							<Button size="sm" className="h-7 gap-1 flex items-center"
+							        onClick={() => setIsEditClassOpen(true)}>
+								<EditIcon className="w-4 h-4"/> {/* Replace this with your actual edit icon */}
+								<span className="ml-2 py-1">Edit Class</span>
+							</Button></div>
+						<div>
+							<p className="font-medium pt-4">{classData ? classData.description : 'No description available'}</p>
 						</div>
-						<p className="font-medium pt-4">{classData ? classData.description : 'No description available'}</p>
 					</section>
 					<section
 						className="space-y-1 bg-background border-2 p-2 rounded-lg justify-center flex flex-col">
