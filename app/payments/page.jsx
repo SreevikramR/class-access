@@ -161,6 +161,10 @@ const Payments = () => {
                                 </Select>
                             </div>
                             <div className="grid gap-2">
+                                <Label htmlFor="amount">Transaction ID</Label>
+                                <Input id="id" placeholder="Transaction Identification Number" />
+                            </div>
+                            <div className="grid gap-2">
                                 <Label htmlFor="notes">Notes</Label>
                                 <Textarea id="notes" placeholder="Add any notes" />
                             </div>
