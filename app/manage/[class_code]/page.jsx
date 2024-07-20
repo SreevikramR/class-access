@@ -30,6 +30,9 @@ export default function ManageClass({params}) {
 	const [selectedStudent, setSelectedStudent] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [teacherData, setTeacherData] = useState(null);
+	const [isEditClassOpen, setIsEditClassOpen] = useState(false);
+
+
 	
 	useEffect(() => {
 		fetchTeacherData();
@@ -343,7 +346,54 @@ export default function ManageClass({params}) {
 	const handleUpdate = async () => {
 		await fetchClassData();  // This will refresh both class and student data
 	};
-	
+	const EditClassDialog = ({ isOpen, onClose, classData, onUpdate }) => {
+  const [name, setName] = useState(classData.name);
+  const [meetingLink, setMeetingLink] = useState(classData.meeting_link || '');
+  const [startTime, setStartTime] = useState(classData.start_time || '');
+  const [endTime, setEndTime] = useState(classData.end_time || '');
+  const [days, setDays] = useState(classData.days || []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Class</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Class Name</Label>
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="meetingLink">Meeting Link</Label>
+              <Input id="meetingLink" value={meetingLink} onChange={(e) => setMeetingLink(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="startTime">Start Time</Label>
+              <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="endTime">End Time</Label>
+              <Input id="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+            </div>
+            <div>
+              <Label>Days</Label>
+              {/* Implement a days selector here, e.g., checkboxes for each day of the week */}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit">Save Changes</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
 	const StudentDetailsPopUp = ({student, classId, onClose, onUpdate}) => {
 		const [classes, setClasses] = useState(0);
 		const {toast} = useToast();
@@ -556,7 +606,14 @@ export default function ManageClass({params}) {
 	return (<AuthWrapper>
 		<div className="min-h-screen bg-gray-100">
 			<Header/>
-			<main className="p-6 space-y-8">
+			<main className="p-6 space-y-8" >{classData && (
+  <EditClassDialog
+    isOpen={isEditClassOpen}
+    onClose={() => setIsEditClassOpen(false)}
+    classData={classData}
+    onUpdate={fetchClassData}
+  />
+)}
 				<Dialog open={isOpenManage} onOpenChange={setIsOpenManage}>
 					{selectedStudent && (<StudentDetailsPopUp
 						student={selectedStudent}
@@ -577,7 +634,10 @@ export default function ManageClass({params}) {
 				</Dialog>
 				<div className="w-full grid grid-cols-2">
 					<section className="space-y-1">
+						<div>
 						<h1 className="text-3xl font-bold">{classData ? classData.name : 'Class Name'}</h1>
+						<Button onClick={() => setIsEditClassOpen(true)}>Edit Class</Button>
+						</div>
 						<p className="font-medium pt-4">{classData ? classData.description : 'No description available'}</p>
 					</section>
 					<section
