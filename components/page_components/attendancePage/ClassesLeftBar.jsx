@@ -33,6 +33,12 @@ const ClassesLeftBar = ({ classesLeft }) => {
                     <div className={"h-full border-2 border-black flex-1 " + color} style={{ width: "12.5%" }} />
                 )
             }
+        } else if ( classesLeft< 0) {
+            if (i == 0) {
+                elements.push(
+                    <div className='text-red-500 font-semibold'>Negative Balance: {classesLeft}</div>
+                )
+            }
         } else {
             if (i == 0) {
                 elements.push(
