@@ -1,16 +1,16 @@
 "use client"
-import React, {useEffect, useState} from 'react';
-import {Calendar as CalendarIcon, Check, ChevronsUpDown} from 'lucide-react';
-import {format} from "date-fns";
-import {Button} from "@/components/ui/button";
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
-import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
-import {Calendar} from "@/components/ui/calendar";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {Card, CardContent} from "@/components/ui/card";
-import {supabaseClient} from '@/components/util_function/supabaseCilent';
-import {Checkbox} from '@/components/ui/checkbox';
-import {toast} from "@/components/ui/use-toast";
+import React, { useEffect, useState } from 'react';
+import { Calendar as CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Calendar } from "@/components/ui/calendar";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
+import { supabaseClient } from '@/components/util_function/supabaseCilent';
+import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from "@/components/ui/use-toast";
 import fetchTimeout from '@/components/util_function/fetch';
 
 const MarkAttendance = () => {
@@ -23,104 +23,110 @@ const MarkAttendance = () => {
 	const [isFetchingStudents, setIsFetchingStudents] = useState(false);
 	const [studentDataLoaded, setStudentDataLoaded] = useState(false);
 	const [attendance, setAttendance] = useState({}); // Track attendance state
-	
+	const [isSavingAttendance, setIsSavingAttendance] = useState(false);
+
 	useEffect(() => {
 		fetchClasses();
 	}, []);
-	
+
 	useEffect(() => {
 		if (selectedClassId && date) {
-			fetchStudentsForClass(selectedClassId);
-			fetchAndSetAttendance(selectedClassId, date);
+			fetchStudentsAndSetAttendance(selectedClassId, date);
 		}
 	}, [selectedClassId, date]);
-	
+
 	const fetchClasses = async () => {
-		const {data, error} = await supabaseClient
+		const { data, error } = await supabaseClient
 			.from('classes')
 			.select('id, name');
-		
+
 		if (error) {
 			console.error('Error fetching classes:', error);
 			return;
 		}
-		
+
 		setClasses(data);
 	};
-	
-	const fetchStudentsForClass = async (classId) => {
+
+	const fetchStudentsAndSetAttendance = async (classId, selectedDate) => {
 		if (isFetchingStudents) return;
 		setIsFetchingStudents(true);
-		
-		const {data: classInfo, error: classError} = await supabaseClient
+
+		const { data: classInfo, error: classError } = await supabaseClient
 			.from('classes')
 			.select('student_proxy_ids')
 			.eq('id', classId)
 			.single();
-		
 		if (classError) {
 			console.error('Error fetching class data:', classError);
 			setIsFetchingStudents(false);
 			return;
 		}
-		
-		const studentIds = classInfo.student_proxy_ids;
-		
-		const {data: studentsData, error: studentsError} = await supabaseClient
-			.from('student_proxies')
-			.select('id, first_name, last_name, email, status, classes_left')
-			.in('id', studentIds);
-		
-		if (studentsError) {
-			console.error('Error fetching students data:', studentsError);
-			setIsFetchingStudents(false);
-			return;
-		}
-		
-		setStudents(studentsData);
-		setStudentDataLoaded(true);
-		setIsFetchingStudents(false);
-	};
 
-	const fetchExistingAttendance = async (classId, selectedDate) => {
-		const {data, error} = await supabaseClient
-			.from('attendance_records')
-			.select('student_proxy_id, isPresent')
-			.eq('class_id', classId)
-			.eq('date', format(selectedDate, "yyyy-MM-dd"));
-		
-		if (error) {
-			console.error('Error fetching attendance data:', error);
-			return {};
+		const fetchStudentProxies = async () => {
+			const studentIds = classInfo.student_proxy_ids;
+			const { data: studentsData, error: studentsError } = await supabaseClient
+				.from('student_proxies')
+				.select('id, first_name, last_name, email, status, classes_left')
+				.in('id', studentIds);
+			if (studentsError) {
+				console.error('Error fetching students data:', studentsError);
+				setIsFetchingStudents(false);
+				return;
+			}
+			setStudents(studentsData);
+			setStudentDataLoaded(true);
+			setIsFetchingStudents(false);
+			return studentsData;
 		}
-		
-		return data.reduce((acc, record) => {
-			acc[record.student_proxy_id] = record.isPresent;
-			return acc;
-		}, {});
-	};
-	
+
+		const fetchAttendanceRecords = async () => {
+			const { data, error } = await supabaseClient
+				.from('attendance_records')
+				.select('student_proxy_id, isPresent')
+				.eq('class_id', classId)
+				.eq('date', format(selectedDate, "yyyy-MM-dd"));
+
+			if (error) {
+				console.error('Error fetching attendance data:', error);
+				return {};
+			}
+			return data.reduce((acc, record) => {
+				acc[record.student_proxy_id] = record.isPresent;
+				return acc;
+			}, {});
+		}
+
+		Promise.all([fetchStudentProxies(), fetchAttendanceRecords()]).then(([studentsData, attendanceData]) => {
+			console.log(studentsData, attendanceData);
+			console.log('keys', Object.keys(attendanceData));
+			for (const student of studentsData) {
+				if (!Object.keys(attendanceData).includes(student.id)) {
+					attendanceData[student.id] = false;
+				}
+			}
+			setAttendance(attendanceData);
+			console.log('attendance', attendanceData);
+		});
+	}
+
 	const handleClassSelect = (classId, className) => {
 		setClassSelectValue(className);
 		setSelectedClassId(classId);
 		setClassSelectOpen(false);
 	};
 
-	const fetchAndSetAttendance = async (classId, selectedDate) => {
-		const existingAttendance = await fetchExistingAttendance(classId, selectedDate);
-		setAttendance(existingAttendance);
-	};
-	
 	const handleAttendanceChange = (studentId, checked) => {
 		setAttendance((prev) => ({
 			...prev, [studentId]: checked,
 		}));
 		console.log(attendance);
 	};
-	
+
 	const saveAttendance = async () => {
 		// Save attendance records through API call to /api/students/mark_attendance
-
+		if (isSavingAttendance) return;
+		setIsSavingAttendance(true);
 		const url = `${window.location.origin}/api/students/mark_attendance`;
 		const signal = new AbortController().signal;
 		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
@@ -130,12 +136,13 @@ const MarkAttendance = () => {
 			toast({
 				title: 'Attendance saved successfully.', className: 'bg-green-500 border-black border-2', duration: 3000
 			});
-			clearStates();
+			clearStates()
 		} else {
-			toast({title: 'Failed to save attendance.', variant: 'destructive', duration: 3000});
+			toast({ title: 'Failed to save attendance.', variant: 'destructive', duration: 3000 });
 		}
+		setIsSavingAttendance(false);
 	};
-	
+
 	const clearStates = () => {
 		setDate(new Date());
 		setClassSelectValue("Select Class");
@@ -144,7 +151,7 @@ const MarkAttendance = () => {
 		setAttendance({});
 		setStudentDataLoaded(false);
 	};
-	
+
 	function DatePickerPopup() {
 		return (<PopoverContent className="w-[auto] p-0">
 			<Calendar
@@ -155,11 +162,11 @@ const MarkAttendance = () => {
 			/>
 		</PopoverContent>);
 	}
-	
+
 	function ClassSelectionCombobox() {
 		return (<PopoverContent className="w-[250px] p-0">
 			<Command>
-				<CommandInput placeholder="Search Class..."/>
+				<CommandInput placeholder="Search Class..." />
 				<CommandEmpty>No Class found.</CommandEmpty>
 				<CommandGroup>
 					<CommandList>
@@ -169,7 +176,7 @@ const MarkAttendance = () => {
 							onSelect={() => handleClassSelect(classItem.id, classItem.name)}
 						>
 							<Check
-								className={"mr-2 h-4 w-4" + (classSelectValue === classItem.id ? " opacity-100" : " opacity-0")}/>
+								className={"mr-2 h-4 w-4" + (classSelectValue === classItem.id ? " opacity-100" : " opacity-0")} />
 							{classItem.name}
 						</CommandItem>))}
 					</CommandList>
@@ -177,23 +184,23 @@ const MarkAttendance = () => {
 			</Command>
 		</PopoverContent>);
 	}
-	
-	const UserRow = ({id, first_name, last_name, email, classes_left}) => {
+
+	const UserRow = ({ id, first_name, last_name, email, classes_left }) => {
 		let studentFirstName = first_name;
 		let studentLastName = last_name;
 		let studentEmail = email;
-		
-		
+
+
 		if (studentFirstName == null) {
 			studentFirstName = "Student";
 			studentLastName = "Invited";
 		}
-		
+
 		let studentName = studentFirstName + " " + studentLastName;
 		const words = studentName.split(' ');
 		const firstLetters = words.map(word => word.charAt(0));
 		const initials = firstLetters.join('');
-		
+
 		let classesNumber = classes_left[selectedClassId];
 		let classesLeftElement;
 		if (classesNumber == 0) {
@@ -217,29 +224,29 @@ const MarkAttendance = () => {
 				/> </TableCell>
 		</TableRow>);
 	};
-	
+
 	return (<>
 		<Popover open={classSelectOpen} onOpenChange={setClassSelectOpen}>
 			<PopoverTrigger asChild>
 				<Button
 					variant={"outline"}
 					className="w-[250px] mr-2 justify-start text-left font-normal ">
-					<ChevronsUpDown className="mr-2 h-4 w-4 shrink-0 opacity-50"/>
+					<ChevronsUpDown className="mr-2 h-4 w-4 shrink-0 opacity-50" />
 					{classSelectValue}
 				</Button>
 			</PopoverTrigger>
-			<ClassSelectionCombobox/>
+			<ClassSelectionCombobox />
 		</Popover>
 		<Popover>
 			<PopoverTrigger asChild>
 				<Button
 					variant={"outline"}
 					className={"w-[280px] ml-2 justify-start text-left font-normal " + (!date && " text-muted-foreground")}>
-					<CalendarIcon className="mr-2 h-4 w-4"/>
+					<CalendarIcon className="mr-2 h-4 w-4" />
 					{date ? format(date, "PPP") : <span>Pick a date</span>}
 				</Button>
 			</PopoverTrigger>
-			<DatePickerPopup/>
+			<DatePickerPopup />
 		</Popover>
 		<Card className="mt-4">
 			{students.length > 0 ? (<CardContent>
@@ -262,7 +269,7 @@ const MarkAttendance = () => {
 					here</CardContent>))}
 		</Card>
 		<div className='flex ml-auto justify-end'>
-			<Button className="mt-4" onClick={saveAttendance}>Save Attendance</Button>
+			<Button className={"mt-4" + (isSavingAttendance ? " cursor-progress" : "")} onClick={saveAttendance}>Save Attendance</Button>
 		</div>
 	</>);
 };
