@@ -11,6 +11,7 @@ import {Card, CardContent} from "@/components/ui/card";
 import {supabaseClient} from '@/components/util_function/supabaseCilent';
 import {Checkbox} from '@/components/ui/checkbox';
 import {toast} from "@/components/ui/use-toast";
+import fetchTimeout from '@/components/util_function/fetch';
 
 const MarkAttendance = () => {
 	const [date, setDate] = useState(new Date());
@@ -20,16 +21,10 @@ const MarkAttendance = () => {
 	const [students, setStudents] = useState([]);
 	const [selectedClassId, setSelectedClassId] = useState(null);
 	const [isFetchingStudents, setIsFetchingStudents] = useState(false);
-	const [teacherID, setTeacherID] = useState("");
 	const [studentDataLoaded, setStudentDataLoaded] = useState(false);
 	const [attendance, setAttendance] = useState({}); // Track attendance state
 	
 	useEffect(() => {
-		const fetchTeacherID = async () => {
-			const teacherUUID = (await supabaseClient.auth.getUser()).data.user.id;
-			setTeacherID(teacherUUID);
-		};
-		fetchTeacherID();
 		fetchClasses();
 	}, []);
 	
@@ -110,7 +105,7 @@ const MarkAttendance = () => {
 		setSelectedClassId(classId);
 		setClassSelectOpen(false);
 	};
-	
+
 	const fetchAndSetAttendance = async (classId, selectedDate) => {
 		const existingAttendance = await fetchExistingAttendance(classId, selectedDate);
 		setAttendance(existingAttendance);
@@ -120,28 +115,25 @@ const MarkAttendance = () => {
 		setAttendance((prev) => ({
 			...prev, [studentId]: checked,
 		}));
+		console.log(attendance);
 	};
 	
 	const saveAttendance = async () => {
-		const attendanceRecords = students.map((student) => ({
-			class_id: selectedClassId,
-			date: format(date, "yyyy-MM-dd"),
-			student_proxy_id: student.id,
-			isPresent: attendance[student.id] || false,
-		}));
-		
-		const {error} = await supabaseClient
-			.from('attendance_records')
-			.upsert(attendanceRecords);
-		
-		if (!error) {
+		// Save attendance records through API call to /api/students/mark_attendance
+
+		const url = `${window.location.origin}/api/students/mark_attendance`;
+		const signal = new AbortController().signal;
+		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+		const response = await fetchTimeout(url, 5500, { signal, method: 'POST', headers: { 'jwt': jwt, 'attendance': JSON.stringify(attendance), 'attendance_date': date, 'class_id': selectedClassId } });
+
+		if (response.status === 200) {
 			toast({
 				title: 'Attendance saved successfully.', className: 'bg-green-500 border-black border-2', duration: 3000
 			});
+			clearStates();
 		} else {
 			toast({title: 'Failed to save attendance.', variant: 'destructive', duration: 3000});
 		}
-		clearStates();
 	};
 	
 	const clearStates = () => {
@@ -207,7 +199,7 @@ const MarkAttendance = () => {
 		if (classesNumber == 0) {
 			classesLeftElement = <span className="text-red-500 font-semibold">0</span>;
 		} else {
-			classesLeftElement = {classesNumber}
+			classesLeftElement = <span>{classesNumber}</span>
 		}
 
 		return (<TableRow className="cursor-pointer">
