@@ -9,11 +9,9 @@ import {supabaseClient} from '@/components/util_function/supabaseCilent'
 import AuthWrapper from '@/components/page_components/authWrapper'
 import {Button} from '@/components/ui/button'
 import {PlusCircle} from 'lucide-react'
-import {Calendar} from "@/components/ui/calendar";
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog"
 import {Label} from "@/components/ui/label"
 import {Input} from "@/components/ui/input"
-import {PopoverContent} from '@/components/ui/popover'
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Textarea} from "@/components/ui/textarea"
 import {toast} from "@/components/ui/use-toast";
@@ -21,10 +19,7 @@ import {toast} from "@/components/ui/use-toast";
 const Payments = () => {
 	const [students, setStudents] = useState([])
 	const [teacherID, setTeacherID] = useState("")
-	const [studentDataLoaded, setStudentDataLoaded] = useState(false)
 	const [isFetchingStudents, setIsFetchingStudents] = useState(false)
-	
-	const [date, setDate] = useState(new Date())
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 	const [selectedStudent, setSelectedStudent] = useState("")
 	
@@ -89,15 +84,16 @@ const Payments = () => {
 			fetchPayments()
 		}
 	}, [teacherID])
+	
 	function resetForm() {
-    setSelectedClass("")
-    setSelectedStudent("")
-    setPaymentDate("")
-    setPaymentAmount("")
-    setPaymentMethod("")
-    setTransactionId("")
-    setNotes("")
-}
+		setSelectedClass("")
+		setSelectedStudent("")
+		setPaymentDate("")
+		setPaymentAmount("")
+		setPaymentMethod("")
+		setTransactionId("")
+		setNotes("")
+	}
 	
 	async function fetchClasses() {
 		const {data: classesData, error: classesError} = await supabaseClient
@@ -150,13 +146,11 @@ const Payments = () => {
 	async function handleSavePayment() {
 		console.log('selectedClass:', selectedClass);
 		if (!selectedClass || !selectedStudent || !paymentDate || !paymentAmount || !paymentMethod) {
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Please fill all required fields",
-        })
-        return
-    }
+			toast({
+				variant: "destructive", title: "Error", description: "Please fill all required fields",
+			})
+			return
+		}
 		
 		const {data, error} = await supabaseClient
 			.from('payments')
@@ -173,16 +167,13 @@ const Payments = () => {
 		
 		if (error) {
 			console.error('Error saving payment:', error)
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Error saving payment. Please try again.",
-        })
+			toast({
+				variant: "destructive", title: "Error", description: "Error saving payment. Please try again.",
+			})
 		} else {
 			toast({
-            title: "Success",
-            description: "Payment saved successfully!",
-        })
+				title: "Success", description: "Payment saved successfully!",
+			})
 			setIsAddDialogOpen(false)
 			// Reset form fields
 			resetForm()
@@ -192,16 +183,6 @@ const Payments = () => {
 		}
 	}
 	
-	function DatePickerPopup() {
-		return (<PopoverContent className="w-[auto] p-0">
-			<Calendar
-				mode="single"
-				selected={date}
-				onSelect={setDate}
-				initialFocus
-			/>
-		</PopoverContent>);
-	}
 	
 	useEffect(() => {
 		handleStudentFetch()
@@ -267,19 +248,19 @@ const Payments = () => {
 		const initials = studentName.split(' ').map(n => n[0]).join('').toUpperCase()
 		
 		return (<TableRow>
-				<TableCell>
-					<div className="flex items-center gap-2">
-						<Avatar className="w-8 h-8">
-							<AvatarFallback>{initials}</AvatarFallback>
-						</Avatar>
-						<div>{(studentName) ? studentName : 'Student Invited'}</div>
-					</div>
-				</TableCell>
-				<TableCell>{studentEmail}</TableCell>
-				<TableCell>{new Date(date).toLocaleDateString()}</TableCell>
-				<TableCell>{type}</TableCell>
-				<TableCell>{amount}</TableCell>
-			</TableRow>)
+			<TableCell>
+				<div className="flex items-center gap-2">
+					<Avatar className="w-8 h-8">
+						<AvatarFallback>{initials}</AvatarFallback>
+					</Avatar>
+					<div>{(studentName) ? studentName : 'Student Invited'}</div>
+				</div>
+			</TableCell>
+			<TableCell>{studentEmail}</TableCell>
+			<TableCell>{new Date(date).toLocaleDateString()}</TableCell>
+			<TableCell>{type}</TableCell>
+			<TableCell>{amount}</TableCell>
+		</TableRow>)
 	}
 	return (<AuthWrapper>
 		<div className="flex flex-col min-h-screen">
