@@ -12,7 +12,7 @@ import {PlusCircle} from 'lucide-react'
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog"
 import {Label} from "@/components/ui/label"
 import {Input} from "@/components/ui/input"
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {Textarea} from "@/components/ui/textarea"
 import {toast} from "@/components/ui/use-toast";
 
@@ -230,7 +230,6 @@ const Payments = () => {
 			})))
 		
 		setStudents(studentsWithClasses)
-		setStudentDataLoaded(true)
 		setIsFetchingStudents(false)
 	}
 	
@@ -285,7 +284,7 @@ const Payments = () => {
 							</div>
 							<div className="grid gap-2">
 								<Label htmlFor="class">Class</Label>
-								<Select id="class" value={selectedClass} onValueChange={setSelectedClass}>
+								<Select id="class" value={selectedClass} onValueChange={setSelectedClass} >
 									<SelectTrigger>
 										<SelectValue placeholder="Select class"/>
 									</SelectTrigger>
@@ -296,7 +295,7 @@ const Payments = () => {
 							</div>
 							<div className="grid gap-2">
 								<Label htmlFor="student">Student</Label>
-								<Select id="student" value={selectedStudent} onValueChange={setSelectedStudent}>
+								<Select id="student" value={selectedStudent} onValueChange={setSelectedStudent} >
 									<SelectTrigger>
 										<SelectValue placeholder="Select student"/>
 									</SelectTrigger>
