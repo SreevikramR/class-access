@@ -109,6 +109,7 @@ const ViewAttendance = () => {
 		
 		setAttendanceRecords(updatedRecords);
 	};
+
 	const handleClassSelect = (classId, className) => {
 		setClassSelectValue(className);
 		setSelectedClassId(classId);
@@ -144,6 +145,16 @@ const ViewAttendance = () => {
 					</CommandGroup>
 				</Command>
 			</PopoverContent>
+		)
+	}
+
+	const _paymentRecordRow = () => {
+		return (
+			<TableRow className="bg-green-300 hover:bg-green-200">
+				<TableCell>2024-07-22</TableCell>
+				<TableCell>$50</TableCell>
+				<TableCell>Notes</TableCell>
+			</TableRow>
 		)
 	}
 	
@@ -204,8 +215,8 @@ const ViewAttendance = () => {
 								<TableHeader>
 									<TableRow>
 										<TableHead>Date</TableHead>
-										<TableHead>Classes Left</TableHead>
-										<TableHead>Status</TableHead>
+										<TableHead>Classes Left / Amount</TableHead>
+										<TableHead>Status / Notes</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -219,6 +230,7 @@ const ViewAttendance = () => {
 											</TableCell>
 										</TableRow>
 									))}
+									<_paymentRecordRow/>
 								</TableBody>
 							</Table>
 						</div>
