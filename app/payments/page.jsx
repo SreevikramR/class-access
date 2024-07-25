@@ -1,20 +1,21 @@
 "use client"
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from '@/components/page_components/header'
 import Footer from '@/components/page_components/footer'
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table"
-import {Avatar, AvatarFallback} from "@/components/ui/avatar"
-import {supabaseClient} from '@/components/util_function/supabaseCilent'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import AuthWrapper from '@/components/page_components/authWrapper'
-import {Button} from '@/components/ui/button'
-import {PlusCircle} from 'lucide-react'
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog"
-import {Label} from "@/components/ui/label"
-import {Input} from "@/components/ui/input"
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {Textarea} from "@/components/ui/textarea"
-import {toast} from "@/components/ui/use-toast";
+import { Button } from '@/components/ui/button'
+import { PlusCircle } from 'lucide-react'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "@/components/ui/use-toast";
+import fetchTimeout from '@/components/util_function/fetch'
 
 const Payments = () => {
 	const [students, setStudents] = useState([])
@@ -22,12 +23,12 @@ const Payments = () => {
 	const [isFetchingStudents, setIsFetchingStudents] = useState(false)
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 	const [selectedStudent, setSelectedStudent] = useState("")
-	
-	
+
 	const [classes, setClasses] = useState([])
 	const [selectedClass, setSelectedClass] = useState("")
 	const [filteredStudents, setFilteredStudents] = useState([])
-	
+
+	const [classesToAdd, setClassesToAdd] = useState(8)
 	const [paymentDate, setPaymentDate] = useState("")
 	const [paymentAmount, setPaymentAmount] = useState("")
 	const [paymentMethod, setPaymentMethod] = useState("")
@@ -35,56 +36,57 @@ const Payments = () => {
 	const [notes, setNotes] = useState("")
 	const [payments, setPayments] = useState([])
 	const [isLoading, setIsLoading] = useState(true)
-	
+
 	async function fetchPayments() {
 		setIsLoading(true)
-		
+
 		// Fetch payments
-		const {data: paymentsData, error: paymentsError} = await supabaseClient
+		const { data: paymentsData, error: paymentsError } = await supabaseClient
 			.from('payments')
 			.select('*')
 			.eq('teacher_id', teacherID)
-		
+
 		if (paymentsError) {
 			console.error('Error fetching payments:', paymentsError.message, paymentsError.details, paymentsError.hint)
 			setIsLoading(false)
 			return
 		}
-		
+
 		// Extract unique student IDs from payments
 		const studentIds = [...new Set(paymentsData.map(p => p.student_proxy_id))]
-		
+
 		// Fetch students
-		const {data: studentsData, error: studentsError} = await supabaseClient
+		const { data: studentsData, error: studentsError } = await supabaseClient
 			.from('student_proxies')
 			.select('id, first_name, last_name, email')
 			.in('id', studentIds)
-		
+
 		if (studentsError) {
 			console.error('Error fetching students:', studentsError.message, studentsError.details, studentsError.hint)
 			setIsLoading(false)
 			return
 		}
-		
+
 		// Create a map of student data for easy lookup
 		const studentsMap = new Map(studentsData.map(s => [s.id, s]))
-		
+
 		// Combine payment and student data
 		const paymentsWithStudents = paymentsData.map(payment => ({
 			...payment, student_proxies: studentsMap.get(payment.student_proxy_id) || null
 		}))
-		
+
 		console.log('Payments with students:', paymentsWithStudents)
 		setPayments(paymentsWithStudents)
 		setIsLoading(false)
 	}
-	
+
 	useEffect(() => {
 		if (teacherID) {
 			fetchPayments()
+			fetchClasses()
 		}
 	}, [teacherID])
-	
+
 	function resetForm() {
 		setSelectedClass("")
 		setSelectedStudent("")
@@ -94,46 +96,41 @@ const Payments = () => {
 		setTransactionId("")
 		setNotes("")
 	}
-	
+
 	async function fetchClasses() {
-		const {data: classesData, error: classesError} = await supabaseClient
+		const { data: classesData, error: classesError } = await supabaseClient
 			.from('classes')
 			.select('id, class_code, student_proxy_ids,name')
 			.eq('teacher_id', teacherID)
-		
+
 		if (classesError) {
 			console.error('Error fetching classes:', classesError)
 			return
 		}
-		
+
 		setClasses(classesData)
-		
+
 		const allStudentIds = [...new Set(classesData.flatMap(c => c.student_proxy_ids))]
-		
-		const {data: studentsData, error: studentsError} = await supabaseClient
+
+		const { data: studentsData, error: studentsError } = await supabaseClient
 			.from('student_proxies')
 			.select('id, first_name, last_name, email')
 			.in('id', allStudentIds)
-		
+
 		if (studentsError) {
 			console.error('Error fetching students:', studentsError)
 			return
 		}
-		
+
 		const studentsMap = new Map(studentsData.map(s => [s.id, s]))
-		
+
 		const classesWithStudents = classesData.map(c => ({
 			...c, students: c.student_proxy_ids.map(id => studentsMap.get(id)).filter(Boolean)
 		}))
-		
+
 		setClasses(classesWithStudents)
 	}
-	
-	useEffect(() => {
-		if (teacherID) {
-			fetchClasses()
-		}
-	}, [teacherID])
+
 	useEffect(() => {
 		if (selectedClass) {
 			const selectedClassData = classes.find(c => c.id === selectedClass)
@@ -142,17 +139,20 @@ const Payments = () => {
 			setFilteredStudents([])
 		}
 	}, [selectedClass, classes])
-	
+
 	async function handleSavePayment() {
-		console.log('selectedClass:', selectedClass);
+		if (isLoading) {
+			return
+		}
+		setIsLoading(true)
 		if (!selectedClass || !selectedStudent || !paymentDate || !paymentAmount || !paymentMethod) {
 			toast({
 				variant: "destructive", title: "Error", description: "Please fill all required fields",
 			})
 			return
 		}
-		
-		const {data, error} = await supabaseClient
+
+		const { data, error } = await supabaseClient
 			.from('payments')
 			.insert({
 				teacher_id: teacherID,
@@ -164,12 +164,33 @@ const Payments = () => {
 				transaction_id: transactionId,
 				notes: notes
 			})
+
+		const {data: studentData, error: studentError} = await supabaseClient.from('student_proxies').select('classes_left').eq('id', selectedStudent)
 		
+		const controller = new AbortController()
+		const { signal } = controller
+		const url = `${window.location.origin}/api/students/update_classes`
+		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
+		const response = await fetchTimeout(url, 5000, {
+			method: 'PUT',
+			headers: {
+				'jwt': jwt,
+				'student_proxy_id': selectedStudent,
+				'class_id': selectedClass,
+				'classes_left': parseInt(studentData[0].classes_left[selectedClass]) + parseInt(classesToAdd)
+			},
+			signal
+		})
+
+		if (response.status !== 200) {
+			console.error('Error updating classes:', response.statusText)
+			toast({ variant: "destructive", title: "Error", description: "Error updating classes. Please try again." })
+			setIsLoading(false)
+			return
+		}
 		if (error) {
 			console.error('Error saving payment:', error)
-			toast({
-				variant: "destructive", title: "Error", description: "Error saving payment. Please try again.",
-			})
+			toast({ variant: "destructive", title: "Error", description: "Error saving payment. Please try again." })
 		} else {
 			toast({
 				title: "Success", description: "Payment saved successfully!",
@@ -181,13 +202,13 @@ const Payments = () => {
 			await fetchClasses()
 			await fetchPayments()
 		}
+		setIsLoading(false)
 	}
-	
-	
+
 	useEffect(() => {
 		handleStudentFetch()
 	}, [])
-	
+
 	async function handleStudentFetch() {
 		if (isFetchingStudents) {
 			return
@@ -195,31 +216,31 @@ const Payments = () => {
 		setIsFetchingStudents(true)
 		const teacherUUID = (await supabaseClient.auth.getUser()).data.user.id
 		setTeacherID(teacherUUID)
-		
-		const {data: classesInfo, error: classesError} = await supabaseClient
+
+		const { data: classesInfo, error: classesError } = await supabaseClient
 			.from('classes')
 			.select('id, class_code, student_proxy_ids')
 			.eq('teacher_id', teacherUUID)
-		
+
 		if (classesError) {
 			console.error('Error fetching classes data:', classesError)
 			setIsFetchingStudents(false)
 			return
 		}
-		
+
 		const studentIds = [...new Set(classesInfo.flatMap(c => c.student_proxy_ids))]
-		
-		const {data: studentInfo, error: studentError} = await supabaseClient
+
+		const { data: studentInfo, error: studentError } = await supabaseClient
 			.from('student_proxies')
 			.select('id,first_name,last_name,email,status,classes_left,hasJoined')
 			.in('id', studentIds)
-		
+
 		if (studentError) {
 			console.error('Error fetching student data:', studentError)
 			setIsFetchingStudents(false)
 			return
 		}
-		
+
 		const studentsWithClasses = studentInfo.flatMap(student => classesInfo
 			.filter(c => c.student_proxy_ids.includes(student.id))
 			.map(c => ({
@@ -228,24 +249,24 @@ const Payments = () => {
 				has_joined: Boolean(student.hasJoined),
 				classes_left: student.classes_left[c.id]
 			})))
-		
+
 		setStudents(studentsWithClasses)
 		setIsFetchingStudents(false)
 	}
-	
-	const UserRow = ({paymentInfo}) => {
-		const {date, amount, type, student_proxies} = paymentInfo
-		const {first_name, last_name, email} = student_proxies || {}
-		
+
+	const UserRow = ({ paymentInfo }) => {
+		const { date, amount, type, student_proxies } = paymentInfo
+		const { first_name, last_name, email } = student_proxies || {}
+
 		let studentName = "Student Invited"
 		let studentEmail = email || "N/A"
-		
+
 		if (first_name && last_name) {
 			studentName = `${first_name} ${last_name}`
 		}
-		
+
 		const initials = studentName.split(' ').map(n => n[0]).join('').toUpperCase()
-		
+
 		return (<TableRow>
 			<TableCell>
 				<div className="flex items-center gap-2">
@@ -261,9 +282,10 @@ const Payments = () => {
 			<TableCell>{amount}</TableCell>
 		</TableRow>)
 	}
+
 	return (<AuthWrapper>
 		<div className="flex flex-col min-h-screen">
-			<Header/>
+			<Header />
 			<main className="flex-1 bg-gray-100 p-6 md:p-10 md:pt-8">
 				<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} className="bg-white">
 					<DialogContent className="sm:max-w-[500px]">
@@ -274,19 +296,27 @@ const Payments = () => {
 							<div className="grid gap-2">
 								<Label htmlFor="date">Date</Label>
 								<Input id="date" type="date" value={paymentDate}
-								       onChange={(e) => setPaymentDate(e.target.value)}/>
+									onChange={(e) => setPaymentDate(e.target.value)} />
 							</div>
 							<div className="grid gap-2">
-								<Label htmlFor="amount">Amount</Label>
-								<Input id="amount" type="number" placeholder="Enter amount" value={paymentAmount}
-								       onChange={(e) => setPaymentAmount(e.target.value)}/>
-							
+								<div className='flex flex-row w-full'>
+									<div className='flex-col w-1/2 pr-2'>
+										<Label htmlFor="amount">Amount</Label>
+										<Input id="amount" type="number" placeholder="Enter amount" value={paymentAmount}
+											onChange={(e) => setPaymentAmount(e.target.value)} />
+									</div>
+									<div className='flex-col w-1/2 pl-2'>
+										<Label htmlFor="amount">Add Classes</Label>
+										<Input id="amount" type="number" placeholder="Add Classes to Student" value={classesToAdd}
+											onChange={(e) => setClassesToAdd(e.target.value)} />
+									</div>
+								</div>
 							</div>
 							<div className="grid gap-2">
 								<Label htmlFor="class">Class</Label>
 								<Select id="class" value={selectedClass} onValueChange={setSelectedClass} >
 									<SelectTrigger>
-										<SelectValue placeholder="Select class"/>
+										<SelectValue placeholder="Select class" />
 									</SelectTrigger>
 									<SelectContent>
 										{classes.map(c => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
@@ -297,7 +327,7 @@ const Payments = () => {
 								<Label htmlFor="student">Student</Label>
 								<Select id="student" value={selectedStudent} onValueChange={setSelectedStudent} >
 									<SelectTrigger>
-										<SelectValue placeholder="Select student"/>
+										<SelectValue placeholder="Select student" />
 									</SelectTrigger>
 									<SelectContent>
 										{filteredStudents.map(s => (<SelectItem key={s.id} value={s.id}>
@@ -310,32 +340,31 @@ const Payments = () => {
 								<Label htmlFor="method">Payment Method</Label>
 								<Select id="method" value={paymentMethod} onValueChange={setPaymentMethod}>
 									<SelectTrigger>
-										<SelectValue placeholder="Select payment method"/>
+										<SelectValue placeholder="Select payment method" />
 									</SelectTrigger>
 									<SelectContent>
 										<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
-										            value="upi">UPI</SelectItem>
+											value="UPI">UPI</SelectItem>
 										<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
-										            value="bank-transfer">Bank Transfer</SelectItem>
+											value="Bacnk Trasfer">Bank Transfer</SelectItem>
 										<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
-										            value="cash">Cash</SelectItem>
+											value="Cash">Cash</SelectItem>
 										<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
-										            value="credit-ard">Credit Card</SelectItem>
+											value="Credit Card">Credit Card</SelectItem>
 										<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
-										            value="other">Other</SelectItem>
+											value="Other">Other</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
 							<div className="grid gap-2">
 								<Label htmlFor="amount">Transaction ID</Label>
 								<Input id="id" placeholder="Transaction Identification Number" value={transactionId}
-								       onChange={(e) => setTransactionId(e.target.value)}/>
+									onChange={(e) => setTransactionId(e.target.value)} />
 							</div>
 							<div className="grid gap-2">
 								<Label htmlFor="notes">Notes</Label>
 								<Textarea id="notes" placeholder="Add any notes" value={notes}
-								          onChange={(e) => setNotes(e.target.value)}/>
-							
+									onChange={(e) => setNotes(e.target.value)} />
 							</div>
 						</div>
 						<DialogFooter>
@@ -350,11 +379,11 @@ const Payments = () => {
 							<CardTitle className="p-3 flex flex-row justify-between flex-wrap">
 								<div>Payments</div>
 								<Button size="sm" className="h-7 gap-1 hover:bg-zinc-700">
-									<PlusCircle className="h-3.5 w-3.5"/>
+									<PlusCircle className="h-3.5 w-3.5" />
 									<span className="sr-only sm:not-sr-only sm:whitespace-nowrap"
-									      onClick={() => setIsAddDialogOpen(true)}>
-                                        Add Payment
-                                    </span>
+										onClick={() => setIsAddDialogOpen(true)}>
+										Add Payment
+									</span>
 								</Button>
 							</CardTitle>
 						</CardHeader>
@@ -370,9 +399,9 @@ const Payments = () => {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{payments.map((payment) => (<UserRow key={payment.id} paymentInfo={payment}/>))}
+									{payments.map((payment) => (<UserRow key={payment.id} paymentInfo={payment} />))}
 								</TableBody>
-							
+
 							</Table>
 						</CardContent>) : ((isFetchingStudents) ? (
 							<CardContent className="p-8 pt-0 text-gray-500">Loading Payments...</CardContent>) : (
@@ -381,7 +410,7 @@ const Payments = () => {
 					</Card>
 				</div>
 			</main>
-			<Footer/>
+			<Footer />
 		</div>
 	</AuthWrapper>)
 }
