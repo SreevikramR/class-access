@@ -369,7 +369,7 @@ const Payments = () => {
 						</div>
 						<DialogFooter>
 							<div>
-								<Button onClick={handleSavePayment}>Save Payment</Button></div>
+								<Button className={(isLoading) ? "cursor-progress" : ""} onClick={handleSavePayment}>Save Payment</Button></div>
 						</DialogFooter>
 					</DialogContent>
 				</Dialog>
