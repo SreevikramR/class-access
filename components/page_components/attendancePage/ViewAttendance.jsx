@@ -227,7 +227,7 @@ const ViewAttendance = () => {
 						<TableHeader>
 							<TableRow>
 								<TableHead>Date</TableHead>
-								<TableHead>Classes Left / Amount</TableHead>
+								<TableHead>Payment Amount</TableHead>
 								<TableHead>Status / Notes</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -235,7 +235,7 @@ const ViewAttendance = () => {
 							{combinedRecords.map((record) => (record.type === 'attendance' ? (
 								<TableRow key={record.date}>
 									<TableCell>{record.date}</TableCell>
-									<TableCell>{record.classes_left}</TableCell>
+									<TableCell></TableCell>
 									<TableCell>
 										<Badge
 											variant={record.isPresent ? "secondary" : "outline"}
