@@ -138,8 +138,14 @@ const InvoicesTab = () => {
     }, [selectedClass, classes])
 
     async function createInvoice() {
-        console.log('selectedClass:', selectedClass);
-        console.log('selectedStudent:', students);
+        if (!selectedClass || !selectedStudent || !invoiceTitle || !invoiceDescription || !invoiceClasses || !invoiceAmount) {
+            toast({
+                variant: "destructive", title: "Error", description: "Please fill all fields.",
+            })
+            return
+        }
+        if (isLoading) return
+        setIsLoading(true)
         const { data, error } = await supabaseClient.from('invoices').insert({
             status: 'Sent',
             class_id: selectedClass,
@@ -156,11 +162,11 @@ const InvoicesTab = () => {
             toast({
                 variant: "destructive", title: "Error", description: "Error creating invoice. Please try again later.",
             })
+            setIsLoading(false)
+            return
         }
 
         const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('email, first_name, last_name').eq('id', teacherID)
-
-        // Send email
         const controller = new AbortController()
         const { signal } = controller;
         const email = students.find(s => s.id === selectedStudent).email
@@ -192,6 +198,7 @@ const InvoicesTab = () => {
         })
         resetForm()
         setIsAddDialogOpen(false)
+        setIsLoading(false)
     }
 
 
@@ -328,7 +335,7 @@ const InvoicesTab = () => {
                     </div>
                     <DialogFooter>
                         <div>
-                            <Button onClick={createInvoice}>Create Invoice</Button></div>
+                            <Button onClick={createInvoice} className={(isLoading ? "cursor-progress" : "")}>Create Invoice</Button></div>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
