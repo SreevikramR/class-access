@@ -2,8 +2,15 @@
 
 import { NextResponse } from 'next/server';
 import fetchTimeout from '@/components/util_function/fetch';
+import verifyJWT from '@/components/util_function/verifyJWT';
 
 export async function POST(request) {
+    const token = request.headers.get("jwt");
+    const decodedJWT = verifyJWT(token);
+    if (!decodedJWT) {
+        return NextResponse.json({ message: "Invalid Token" }, { status: 401 });
+    }
+
     const email = request.headers.get('email');
     const teacherEmail = request.headers.get('teacherEmail');
     const invoiceDate = request.headers.get('invoice_date');

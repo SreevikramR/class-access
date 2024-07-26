@@ -169,12 +169,14 @@ const InvoicesTab = () => {
         const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('email, first_name, last_name').eq('id', teacherID)
         const controller = new AbortController()
         const { signal } = controller;
+        const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
         const email = students.find(s => s.id === selectedStudent).email
         const response = await fetchTimeout(`/api/emails/new_invoice`, 5000, {
             signal,
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'jwt': jwt,
                 "email": email,
                 "teacherName": `${teacherData[0].first_name} ${teacherData[0].last_name}`,
                 "teacherEmail": teacherData[0].email,
