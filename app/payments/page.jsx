@@ -6,6 +6,7 @@ import AuthWrapper from '@/components/page_components/authWrapper'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PaymentsTab from '@/components/page_components/paymentsPage/paymentsTab'
 import { ReceiptTextIcon, WalletIcon } from 'lucide-react'
+import InvoicesTab from '@/components/page_components/paymentsPage/invoicesTab'
 
 const Payments = () => {
 
@@ -20,6 +21,9 @@ const Payments = () => {
 					</TabsList>
 					<TabsContent value="payments" className="w-full p-1 pt-2">
 						<PaymentsTab />
+					</TabsContent>
+					<TabsContent value="invoices" className="w-full p-1 pt-2">
+						<InvoicesTab />
 					</TabsContent>
 				</Tabs>
 			</main>
