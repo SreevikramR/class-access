@@ -29,13 +29,15 @@ const Payments = () => {
 	const [filteredStudents, setFilteredStudents] = useState([])
 
 	const [classesToAdd, setClassesToAdd] = useState(8)
-	const [paymentDate, setPaymentDate] = useState("")
+	const [paymentDate, setPaymentDate] = useState(new Date())
 	const [paymentAmount, setPaymentAmount] = useState("")
 	const [paymentMethod, setPaymentMethod] = useState("")
 	const [transactionId, setTransactionId] = useState("")
 	const [notes, setNotes] = useState("")
 	const [payments, setPayments] = useState([])
 	const [isLoading, setIsLoading] = useState(true)
+
+	const monthStrings = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 	async function fetchPayments() {
 		setIsLoading(true)
@@ -90,7 +92,7 @@ const Payments = () => {
 	function resetForm() {
 		setSelectedClass("")
 		setSelectedStudent("")
-		setPaymentDate("")
+		setPaymentDate(new Date())
 		setPaymentAmount("")
 		setPaymentMethod("")
 		setTransactionId("")
@@ -266,6 +268,7 @@ const Payments = () => {
 		}
 
 		const initials = studentName.split(' ').map(n => n[0]).join('').toUpperCase()
+		const paymentDate = new Date(date)
 
 		return (<TableRow>
 			<TableCell>
@@ -277,7 +280,7 @@ const Payments = () => {
 				</div>
 			</TableCell>
 			<TableCell>{studentEmail}</TableCell>
-			<TableCell>{new Date(date).toLocaleDateString()}</TableCell>
+			<TableCell>{paymentDate.getUTCDate()} {monthStrings[paymentDate.getUTCMonth()]} {paymentDate.getUTCFullYear()}</TableCell>
 			<TableCell>{type}</TableCell>
 			<TableCell>{amount}</TableCell>
 		</TableRow>)
@@ -346,7 +349,7 @@ const Payments = () => {
 										<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
 											value="UPI">UPI</SelectItem>
 										<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
-											value="Bacnk Trasfer">Bank Transfer</SelectItem>
+											value="Bank Trasfer">Bank Transfer</SelectItem>
 										<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
 											value="Cash">Cash</SelectItem>
 										<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
