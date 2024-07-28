@@ -147,7 +147,7 @@ const InvoicesTab = () => {
 		if (isLoading) return
 		setIsLoading(true)
 		const { data, error } = await supabaseClient.from('invoices').insert({
-			status: 'Sent',
+			status: 'Pending',
 			class_id: selectedClass,
 			student_proxy_id: selectedStudent,
 			amount: invoiceAmount,
