@@ -253,6 +253,7 @@ const InvoicesTab = () => {
 		setIsFetchingStudents(false)
 	}
 
+	const monthStrings = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 	const UserRow = ({ invoiceInfo }) => {
 		const { date, amount, title, status, student_proxies } = invoiceInfo
 		const { first_name, last_name, email } = student_proxies || {}
@@ -265,6 +266,7 @@ const InvoicesTab = () => {
 		}
 
 		const initials = studentName.split(' ').map(n => n[0]).join('').toUpperCase()
+		const invoiceDate = new Date(date)
 
 		return (<TableRow>
 			<TableCell>
@@ -276,7 +278,7 @@ const InvoicesTab = () => {
 				</div>
 			</TableCell>
 			<TableCell>{studentEmail}</TableCell>
-			<TableCell>{new Date(date).toLocaleDateString()}</TableCell>
+			<TableCell>{invoiceDate.getUTCDate()} {monthStrings[invoiceDate.getUTCMonth()]} {invoiceDate.getUTCFullYear()}</TableCell>
 			<TableCell>{title}</TableCell>
 			<TableCell>{amount}</TableCell>
 			<TableCell>{status}</TableCell>
