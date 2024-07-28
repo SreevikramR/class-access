@@ -1,5 +1,5 @@
 "use client"
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from '@/components/page_components/header'
 import Footer from '@/components/page_components/footer'
 import AuthWrapper from '@/components/page_components/authWrapper'
@@ -12,7 +12,7 @@ const Payments = () => {
 
 	return (<AuthWrapper>
 		<div className="flex flex-col min-h-screen">
-			<Header/>
+			<Header />
 			<main className="flex-1 bg-gray-100 p-6 md:p-10 md:pt-8">
 				<Tabs defaultValue="payments">
 					<TabsList>
@@ -27,7 +27,7 @@ const Payments = () => {
 					</TabsContent>
 				</Tabs>
 			</main>
-			<Footer/>
+			<Footer />
 		</div>
 	</AuthWrapper>)
 }
