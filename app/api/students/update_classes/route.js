@@ -1,3 +1,4 @@
+// /api/students/update_proxy
 import verifyJWT from "@/components/util_function/verifyJWT";
 import { createClient } from "@supabase/supabase-js";
 import {NextResponse} from "next/server";
