@@ -276,7 +276,6 @@ const PaymentsTab = () => {
 							<Label htmlFor="amount">Amount</Label>
 							<Input id="amount" type="number" placeholder="Enter amount" value={paymentAmount}
 								onChange={(e) => setPaymentAmount(e.target.value)} />
-
 						</div>
 						<div className="grid gap-2">
 							<Label htmlFor="class">Class</Label>
