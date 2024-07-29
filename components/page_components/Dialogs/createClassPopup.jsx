@@ -30,6 +30,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 	const [newStudentNotes, setNewStudentNotes] = useState('')
 	const [zoomLink, setZoomLink] = useState("")
 	const [tempNewStudents, setTempNewStudents] = useState([]);
+
 	const resetAllStates = () => {
 		setClassName("")
 		setClassDescription("")
@@ -42,8 +43,8 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		setZoomLink('')
 		setClassCreationStep(0)
 		setTempNewStudents([]);
-
 	}
+
 	const updateTeacherClassIds = async (teacherUUID) => {
 		// Fetch all class IDs for the teacher
 		const {data: classData, error: classError} = await supabaseClient
@@ -400,8 +401,10 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 			return;
 		}
 
+		const timeStamp = Date.now();
+
 		const newTempStudent = {
-			id: null, name: newStudentEmail.split('@')[0], email: newStudentEmail, isNew: true, notes: newStudentNotes // Add this line
+			id: timeStamp, name: newStudentEmail.split('@')[0], email: newStudentEmail, isNew: true, notes: newStudentNotes // Add this line
 		};
 
 		setTempNewStudents([...tempNewStudents, newTempStudent]);
@@ -498,8 +501,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 						/>
 					</div>
 					<div className='mt-4 w-full'>
-						<Button type="button" onClick={handleAddStudent} className="gap-2">Add
-								Student<CircleArrowRight className="h-5 w-5"/></Button>
+						<Button type="button" onClick={handleAddStudent} className="gap-2">Add Student<CircleArrowRight className="h-5 w-5"/></Button>
 					</div>
 				</div>
 			</div>
