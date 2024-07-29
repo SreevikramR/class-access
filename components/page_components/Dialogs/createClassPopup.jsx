@@ -321,8 +321,8 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 								<SelectValue placeholder="AM"/>
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="AM">AM</SelectItem>
-								<SelectItem value="PM">PM</SelectItem>
+								<SelectItem className="hover:cursor-pointer hover:bg-gray-200" value="AM">AM</SelectItem>
+								<SelectItem className="hover:cursor-pointer hover:bg-gray-200" value="PM">PM</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
@@ -349,8 +349,8 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 								<SelectValue placeholder="AM"/>
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="AM">AM</SelectItem>
-								<SelectItem value="PM">PM</SelectItem>
+								<SelectItem className="hover:cursor-pointer hover:bg-gray-200" value="AM">AM</SelectItem>
+								<SelectItem className="hover:cursor-pointer hover:bg-gray-200" value="PM">PM</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
