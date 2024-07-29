@@ -12,6 +12,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/c
 import {supabaseClient} from '@/components/util_function/supabaseCilent'
 import {useToast} from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
+import isEmail from 'validator/lib/isEmail'
 
 // import createZoomMeeting from '@/components/util_function/createZoomMeeting'
 
@@ -398,6 +399,10 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 	const handleAddStudent = async () => {
 		if (!newStudentEmail) {
 			toast({title: 'Incomplete Fields', description: 'Student email is required.', variant: "destructive",});
+			return;
+		}
+		if (!isEmail(newStudentEmail)) {
+			toast({title: 'Invalid Email', description: 'Please enter a valid email address', variant: 'destructive'})
 			return;
 		}
 
