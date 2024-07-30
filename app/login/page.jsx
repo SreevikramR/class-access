@@ -7,11 +7,14 @@ import { useState } from "react"
 import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import { useToast } from "@/components/ui/use-toast"
 import LoadingOverlay from "@/components/page_components/loadingOverlay"
+import fetchTimeout from "@/components/util_function/fetch"
 
 export default function LoginPage() {
 	const [email, setEmail] = useState("")
 	const [password, setPassword] = useState("")
 	const [loading, setLoading] = useState(false)
+	const [forgotPassword, setForgotPassword] = useState(true)
+	const [resetEmailSent, setResetEmailSent] = useState(false)
 
 	const { toast } = useToast()
 
@@ -55,8 +58,6 @@ export default function LoginPage() {
 		}
 	}
 
-
-
 	return (
 		<div className="w-full h-screen lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
 			{loading && <LoadingOverlay/>}
@@ -65,49 +66,109 @@ export default function LoginPage() {
 				</div>
 			</div>
 			<div className="flex items-center justify-center py-12">
-				<div className="mx-auto grid w-[350px] gap-6">
-					<div className="grid gap-2 text-center">
-						<h1 className="text-3xl font-bold">Login</h1>
-						<p className="text-balance text-muted-foreground">
-                            Enter your email below to login to your account
-						</p>
-					</div>
-					<form onSubmit={handleLogin} className="grid gap-4">
-						<div className="grid gap-2">
-							<Label htmlFor="email">Email</Label>
-							<Input
-								id="email"
-								type="email"
-								value={email}
-								placeholder="email@example.com"
-								required
-								onChange={(e) => setEmail(e.target.value)}
-							/>
-						</div>
-						<div className="grid gap-2">
-							<div className="flex items-center">
-								<Label htmlFor="password">Password</Label>
-								<Link
-									href="/forgot-password"
-									className="ml-auto inline-block text-sm underline"
-								>
-                                    Forgot your password?
-								</Link>
+				{forgotPassword && (
+					<>
+						{resetEmailSent && (
+							<div className="mx-auto grid w-[350px] gap-6">
+								<div className="grid gap-2 text-center">
+									<h1 className="text-3xl font-bold">Email Sent</h1>
+									<p className="text-balance text-muted-foreground">An email has been sent to {email}. Click the link in the email to reset your password.</p>
+								</div>
 							</div>
-							<Input
-								id="password"
-								placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"
-								type="password"
-								required
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-
-							/>
+						)}
+						{!resetEmailSent && (
+							<div className="mx-auto grid w-[350px] gap-6">
+								<div className="grid gap-2 text-center">
+									<h1 className="text-3xl font-bold">Forgot Password</h1>
+									<p className="text-balance text-muted-foreground">Enter your email below to reset your password</p>
+								</div>
+								<form onSubmit={async (e) => {
+									e.preventDefault()
+									setLoading(true)
+									const signal = new AbortController().signal
+									const response = await fetchTimeout(`/api/users/forgot_password`, 5500, {
+										signal,
+										method: 'POST',
+										headers: {
+											'Content-Type': 'application/json',
+											"email": email
+										},
+									});
+									if (response.status !== 200) {
+										toast({
+											title: 'Unable to Reset Password',
+											description: await response.json().error,
+											variant: "destructive"
+										})
+									} else {
+										setResetEmailSent(true)
+									}
+									setLoading(false)
+								}}
+								className="grid gap-4">
+									<div className="grid gap-2">
+										<Label htmlFor="email">Email</Label>
+										<Input
+											id="email"
+											type="email"
+											value={email}
+											placeholder=""
+											required
+											onChange={(e) => setEmail(e.target.value)}
+										/>
+									</div>
+									<Button type="submit" className="w-full">Reset Password</Button>
+								</form>
+								<div className="mt-4 text-center text-sm">Remember your password?{" "}
+									<Link href="/login" className="underline">Login </Link>
+								</div>
+							</div>
+						)}
+					</>
+				)}
+				{!forgotPassword && (
+					<div className="mx-auto grid w-[350px] gap-6">
+						<div className="grid gap-2 text-center">
+							<h1 className="text-3xl font-bold">Login</h1>
+							<p className="text-balance text-muted-foreground">
+                            Enter your email below to login to your account
+							</p>
 						</div>
-						<Button type="submit" className="w-full">
+						<form onSubmit={handleLogin} className="grid gap-4">
+							<div className="grid gap-2">
+								<Label htmlFor="email">Email</Label>
+								<Input
+									id="email"
+									type="email"
+									value={email}
+									placeholder="email@example.com"
+									required
+									onChange={(e) => setEmail(e.target.value)}
+								/>
+							</div>
+							<div className="grid gap-2">
+								<div className="flex items-center">
+									<Label htmlFor="password">Password</Label>
+									<Link
+										href="/forgot-password"
+										className="ml-auto inline-block text-sm underline"
+									>
+                                    Forgot your password?
+									</Link>
+								</div>
+								<Input
+									id="password"
+									placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"
+									type="password"
+									required
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+								/>
+							</div>
+							<Button type="submit" className="w-full">
                             Login
-						</Button>
-						{/* <div className="flex items-center my-2">
+							</Button>
+							{/* <div className="flex items-center my-2">
                             <hr className="flex-grow border-t border-gray-300" />
                             <span className="mx-2 text-gray-500 text-xs">OR CONTINUE WITH</span>
                             <hr className="flex-grow border-t border-gray-300" />
@@ -115,14 +176,15 @@ export default function LoginPage() {
                         <Button type="button" variant="outline" className="w-full" onClick={handleGoogleLogin}>
                             Google
                         </Button> */}
-					</form>
-					<div className="mt-4 text-center text-sm">
+						</form>
+						<div className="mt-4 text-center text-sm">
                         Don&apos;t have an account?{" "}
-						<Link href="/signup" className="underline">
+							<Link href="/signup" className="underline">
                             Sign up
-						</Link>
+							</Link>
+						</div>
 					</div>
-				</div>
+				)}
 			</div>
 		</div>
 	)
