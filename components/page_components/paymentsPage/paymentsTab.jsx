@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast";
+import fetchTimeout from '@/components/util_function/fetch'
 
 const PaymentsTab = () => {
 	const [students, setStudents] = useState([])
@@ -23,6 +24,7 @@ const PaymentsTab = () => {
 	const [selectedClass, setSelectedClass] = useState("")
 	const [filteredStudents, setFilteredStudents] = useState([])
 
+	const [classesToAdd, setClassesToAdd] = useState(8)
 	const [paymentDate, setPaymentDate] = useState("")
 	const [paymentAmount, setPaymentAmount] = useState("")
 	const [paymentMethod, setPaymentMethod] = useState("")
@@ -76,6 +78,7 @@ const PaymentsTab = () => {
 
 	useEffect(() => {
 		if (teacherID) {
+			fetchClasses()
 			fetchPayments()
 		}
 	}, [teacherID])
@@ -125,11 +128,6 @@ const PaymentsTab = () => {
 	}
 
 	useEffect(() => {
-		if (teacherID) {
-			fetchClasses()
-		}
-	}, [teacherID])
-	useEffect(() => {
 		if (selectedClass) {
 			const selectedClassData = classes.find(c => c.id === selectedClass)
 			setFilteredStudents(selectedClassData ? selectedClassData.students : [])
@@ -139,7 +137,10 @@ const PaymentsTab = () => {
 	}, [selectedClass, classes])
 
 	async function handleSavePayment() {
-		console.log('selectedClass:', selectedClass);
+		if (isLoading) {
+			return
+		}
+		setIsLoading(true)
 		if (!selectedClass || !selectedStudent || !paymentDate || !paymentAmount || !paymentMethod) {
 			toast({
 				variant: "destructive", title: "Error", description: "Please fill all required fields",
@@ -160,6 +161,30 @@ const PaymentsTab = () => {
 				notes: notes
 			})
 
+		const {data: studentData, error: studentError} = await supabaseClient.from('student_proxies').select('classes_left').eq('id', selectedStudent)
+		const controller = new AbortController()
+		const { signal } = controller
+		const url = `${window.location.origin}/api/students/update_classes`
+		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
+		const response = await fetchTimeout(url, 5000, {
+			method: 'PUT',
+			headers: {
+				'jwt': jwt,
+				'student_proxy_id': selectedStudent,
+				'class_id': selectedClass,
+				'classes_left': parseInt(studentData[0].classes_left[selectedClass]) + parseInt(classesToAdd)
+			},
+			signal
+		})
+
+		if (response.status !== 200) {
+			console.error('Error updating classes:', response.statusText)
+			toast({ variant: "destructive", title: "Error", description: "Error saving payment. Please try again." })
+			console.log('Not saving')
+			setIsLoading(false)
+			return
+		}
+
 		if (error) {
 			console.error('Error saving payment:', error)
 			toast({
@@ -170,14 +195,12 @@ const PaymentsTab = () => {
 				title: "Success", description: "Payment saved successfully!",
 			})
 			setIsAddDialogOpen(false)
-			// Reset form fields
 			resetForm()
-			// Refresh payment data
-			await fetchClasses()
-			await fetchPayments()
+			fetchClasses()
+			fetchPayments()
 		}
+		setIsLoading(false)
 	}
-
 
 	useEffect(() => {
 		handleStudentFetch()
@@ -273,10 +296,18 @@ const PaymentsTab = () => {
 								onChange={(e) => setPaymentDate(e.target.value)} />
 						</div>
 						<div className="grid gap-2">
-							<Label htmlFor="amount">Amount</Label>
-							<Input id="amount" type="number" placeholder="Enter amount" value={paymentAmount}
-								onChange={(e) => setPaymentAmount(e.target.value)} />
-
+							<div className='flex flex-row w-full'>
+								<div className='flex-col w-1/2 pr-2'>
+									<Label htmlFor="amount">Amount</Label>
+									<Input id="amount" type="number" placeholder="Enter amount" value={paymentAmount}
+										onChange={(e) => setPaymentAmount(e.target.value)} />
+								</div>
+								<div className='flex-col w-1/2 pl-2'>
+									<Label htmlFor="amount">Add Classes</Label>
+									<Input id="amount" type="number" placeholder="Add Classes to Student" value={classesToAdd}
+										onChange={(e) => setClassesToAdd(e.target.value)} />
+								</div>
+							</div>
 						</div>
 						<div className="grid gap-2">
 							<Label htmlFor="class">Class</Label>
@@ -310,15 +341,15 @@ const PaymentsTab = () => {
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
-										value="upi">UPI</SelectItem>
+										value="UPI">UPI</SelectItem>
 									<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
-										value="bank-transfer">Bank Transfer</SelectItem>
+										value="Bank Transfer">Bank Transfer</SelectItem>
 									<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
-										value="cash">Cash</SelectItem>
+										value="Cash">Cash</SelectItem>
 									<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
-										value="credit-ard">Credit Card</SelectItem>
+										value="Credit Card">Credit Card</SelectItem>
 									<SelectItem className="hover:cursor-pointer hover:bg-slate-100"
-										value="other">Other</SelectItem>
+										value="Other">Other</SelectItem>
 								</SelectContent>
 							</Select>
 						</div>
@@ -331,12 +362,11 @@ const PaymentsTab = () => {
 							<Label htmlFor="notes">Notes</Label>
 							<Textarea id="notes" placeholder="Add any notes" value={notes}
 								onChange={(e) => setNotes(e.target.value)} />
-
 						</div>
 					</div>
 					<DialogFooter>
 						<div>
-							<Button onClick={handleSavePayment}>Save Payment</Button></div>
+							<Button className={(isLoading) ? "cursor-progress" : ""} onClick={handleSavePayment}>Save Payment</Button></div>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

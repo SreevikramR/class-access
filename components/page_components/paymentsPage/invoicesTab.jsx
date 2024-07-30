@@ -61,7 +61,6 @@ const InvoicesTab = () => {
 			return
 		}
 
-
 		const studentsMap = new Map(studentsData.map(s => [s.id, s]))
 
 		const invoicesWithStudents = invoicesData.map(invoice => ({
@@ -199,6 +198,7 @@ const InvoicesTab = () => {
 		toast({
 			title: "Success", description: "Invoice created successfully!",
 		})
+		fetchInvoices()
 		resetForm()
 		setIsAddDialogOpen(false)
 		setIsLoading(false)
@@ -268,21 +268,23 @@ const InvoicesTab = () => {
 		const initials = studentName.split(' ').map(n => n[0]).join('').toUpperCase()
 		const invoiceDate = new Date(date)
 
-		return (<TableRow>
-			<TableCell>
-				<div className="flex items-center gap-2">
-					<Avatar className="w-8 h-8">
-						<AvatarFallback>{initials}</AvatarFallback>
-					</Avatar>
-					<div>{studentName}</div>
-				</div>
-			</TableCell>
-			<TableCell>{studentEmail}</TableCell>
-			<TableCell>{invoiceDate.getUTCDate()} {monthStrings[invoiceDate.getUTCMonth()]} {invoiceDate.getUTCFullYear()}</TableCell>
-			<TableCell>{title}</TableCell>
-			<TableCell>{amount}</TableCell>
-			<TableCell>{status}</TableCell>
-		</TableRow>)
+		return (
+			<TableRow>
+				<TableCell>
+					<div className="flex items-center gap-2">
+						<Avatar className="w-8 h-8">
+							<AvatarFallback>{initials}</AvatarFallback>
+						</Avatar>
+						<div>{studentName}</div>
+					</div>
+				</TableCell>
+				<TableCell>{studentEmail}</TableCell>
+				<TableCell>{invoiceDate.getUTCDate()} {monthStrings[invoiceDate.getUTCMonth()]} {invoiceDate.getUTCFullYear()}</TableCell>
+				<TableCell>{title}</TableCell>
+				<TableCell>{amount}</TableCell>
+				<TableCell>{status}</TableCell>
+			</TableRow>
+		)
 	}
 
 	return (<>
