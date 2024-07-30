@@ -13,7 +13,7 @@ export default function LoginPage() {
 	const [email, setEmail] = useState("")
 	const [password, setPassword] = useState("")
 	const [loading, setLoading] = useState(false)
-	const [forgotPassword, setForgotPassword] = useState(true)
+	const [forgotPassword, setForgotPassword] = useState(false)
 	const [resetEmailSent, setResetEmailSent] = useState(false)
 
 	const { toast } = useToast()
@@ -120,7 +120,7 @@ export default function LoginPage() {
 									<Button type="submit" className="w-full">Reset Password</Button>
 								</form>
 								<div className="mt-4 text-center text-sm">Remember your password?{" "}
-									<Link href="/login" className="underline">Login </Link>
+									<div onClick={() => setForgotPassword(false)} className="underline">Login </div>
 								</div>
 							</div>
 						)}
@@ -149,12 +149,12 @@ export default function LoginPage() {
 							<div className="grid gap-2">
 								<div className="flex items-center">
 									<Label htmlFor="password">Password</Label>
-									<Link
-										href="/forgot-password"
+									<div
+										onClick={() => setForgotPassword(true)}
 										className="ml-auto inline-block text-sm underline"
 									>
                                     Forgot your password?
-									</Link>
+									</div>
 								</div>
 								<Input
 									id="password"
