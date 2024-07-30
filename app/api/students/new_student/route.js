@@ -29,7 +29,7 @@ export async function POST(request) {
 	if (!decodedJWT) {
 		return NextResponse.json({message: "Invalid Token"}, {status: 401});
 	}
-	
+
 	const teacher_name = request.headers.get('teacher_name');
 	const email = request.headers.get('email');
 	const notes = request.headers.get('notes');
@@ -39,7 +39,7 @@ export async function POST(request) {
 	const class_name = request.headers.get('class_name');
 
 	const studentPassword = generateRandomString(10);
-	
+
 	const createStudentData = await createNewStudent(email, studentPassword);
 	if (createStudentData?.error === true) {
 		return NextResponse.json({message: "Error Adding Student"}, {status: 500});
@@ -55,7 +55,7 @@ export async function POST(request) {
 			console.log(studentProxyError);
 			return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 		}
-		
+
 		// Student Proxy Already Exists, need to update the classes_left
 		if (studentProxyData.length > 0) {
 			const classes_left_jb = studentProxyData[0].classes_left;
@@ -76,16 +76,16 @@ export async function POST(request) {
 			if (addStudentProxyToClassStatus === "Error") {
 				return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 			}
-			
+
 			// Send Onboarding Email
 			const onboardingEmailStatus = await sendOnboardingEmail(email, class_code, teacher_name, class_name);
 			if (onboardingEmailStatus === "Email Failed") {
 				return NextResponse.json({message: "Error Sending Email"}, {status: 500});
 			}
-			
+
 			return NextResponse.json({message: "Student Added"}, {status: 200});
 		}
-		
+
 		// Student Proxy Does Not Exist, Need to Create a new proxy
 		const studentInsertProxyData = await addStudentProxy(createStudentData.id, teacherUUID, class_id, classes_left, email, notes, createStudentData.hasJoined);
 		if (studentInsertProxyData === "Error") {
@@ -97,29 +97,29 @@ export async function POST(request) {
 		if (addStudentProxyToClassStatus === "Error") {
 			return NextResponse.json({ message: "Error Adding Student" }, { status: 500 });
 		}
-		
+
 		// Send Onboarding Email
 		const onboardingEmailStatus = await sendOnboardingEmail(email, class_code, teacher_name, class_name);
 		if (onboardingEmailStatus === "Email Failed") {
 			return NextResponse.json({message: "Error Sending Email"}, {status: 500});
 		}
-		
+
 		return NextResponse.json({message: "Student Added"}, {status: 200});
 	}
-	
+
 	// Add Student to Student Table
 	const studentUUID = createStudentData.id;
 	const studentTableData = await addToStudentTable(email, studentUUID);
 	if (studentTableData === "Error") {
 		return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 	}
-	
+
 	// Add Student to Student Proxy Table
 	const studentProxyData = await addStudentProxy(studentUUID, teacherUUID, class_id, classes_left, email, notes, createStudentData.hasJoined);
 	if (studentProxyData === "Error") {
 		return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 	}
-	
+
 	// Send Welcome Email
 	const welcomeEmailStatus = await sendWelcomeEmail(teacher_name, email, studentPassword);
 	if (welcomeEmailStatus === "Email Failed") {
@@ -131,13 +131,13 @@ export async function POST(request) {
 	if (addStudentProxyToClassStatus === "Error") {
 		return NextResponse.json({ message: "Error Adding Student" }, { status: 500 });
 	}
-	
+
 	// Send Onboarding Email
 	const onboardingEmailStatus = await sendOnboardingEmail(email, class_code, teacher_name, class_name);
 	if (onboardingEmailStatus === "Email Failed") {
 		return NextResponse.json({message: "Error Sending Email"}, {status: 500});
 	}
-	
+
 	return NextResponse.json({message: "Student Added"}, {status: 200});
 }
 
@@ -207,7 +207,7 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 		}
 		return data;
 	}
-	
+
 	let classes_left_jb = {}
 	classes_left_jb[class_id] = classes_left;
 	let status_jb = {}
@@ -293,9 +293,20 @@ const addStudentProxyToClass = async (studentProxyID, classID, teacherUUID) => {
 }
 
 // Sends a welcome email to the student
-const sendWelcomeEmail = async (teacherName, email, password) => {
+const sendWelcomeEmail = async (teacherName, email) => {
 	const controller = new AbortController()
 	const { signal } = controller;
+
+	const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+		type: 'recovery',
+		email: email,
+		options: {
+			redirectTo: 'https://classaccess.tech/activate',
+		}
+	})
+	if (linkError) {
+		return "Email Failed"
+	}
 
 	const data = {
 		"sender": {
@@ -305,9 +316,8 @@ const sendWelcomeEmail = async (teacherName, email, password) => {
 		"templateId": 2,
 		"params": {
 			"teacher_name": teacherName,
-			"url": 'https://classaccess.tech/activate',
+			"url": linkData.properties.action_link,
 			"email": email,
-			"password": password
 		},
 		"to": [
 			{
