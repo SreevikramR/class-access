@@ -39,26 +39,26 @@ export default function ManageClass({params}) {
 	const [loading, setLoading] = useState(false);
 	const [teacherData, setTeacherData] = useState(null);
 	const [isEditClassOpen, setIsEditClassOpen] = useState(false);
-	
-	
+
+
 	useEffect(() => {
 		fetchTeacherData();
 		fetchStudents();
 	}, []);
-	
+
 	const resetPopupStates = () => {
 		setEmail("");
 		setNumClasses(0);
 		setNotes("");
 		setSelectedStudents([]);
 	}
-	
+
 	useEffect(() => {
 		if (classCode) {
 			fetchClassData();
 		}
 	}, [classCode, toast]);
-	
+
 	const handleCopyLink = () => {
 		const classLink = `classaccess.tech/join/${classCode}`;
 		navigator.clipboard.writeText(classLink).then(() => {
@@ -72,7 +72,7 @@ export default function ManageClass({params}) {
 			});
 		});
 	};
-	
+
 	const fetchTeacherData = async () => {
 		const {data: {user}} = await supabaseClient.auth.getUser();
 		if (user) {
@@ -88,7 +88,7 @@ export default function ManageClass({params}) {
 			}
 		}
 	};
-	
+
 	async function fetchStudentData(studentUUIDs) {
 		setLoading(true)
 		if (studentUUIDs && studentUUIDs.length > 0) {
@@ -96,7 +96,7 @@ export default function ManageClass({params}) {
 				.from('student_proxies')
 				.select('*')
 				.in('id', studentUUIDs);
-			
+
 			if (error) {
 				console.error('Error fetching students data:', error);
 				toast({
@@ -112,7 +112,7 @@ export default function ManageClass({params}) {
 		}
 		setLoading(false)
 	}
-	
+
 	async function fetchClassData() {
 		setLoading(true)
 		console.log('Fetching class with code:', classCode);
@@ -120,7 +120,7 @@ export default function ManageClass({params}) {
 			.from('classes')
 			.select()
 			.eq('class_code', classCode);
-		
+
 		if (error) {
 			console.error('Error fetching class data:', error);
 			toast({
@@ -132,7 +132,7 @@ export default function ManageClass({params}) {
 		}
 		setLoading(false)
 	}
-	
+
 	const fetchStudents = async () => {
 		setLoading(true)
 		try {
@@ -140,16 +140,16 @@ export default function ManageClass({params}) {
 				.from('student_proxies')
 				.select('*')
 				.eq('teacher_id', (await supabaseClient.auth.getUser()).data.user.id);
-			
+
 			if (error) throw error;
-			
+
 			// Transform the data to match the expected format
 			const formattedStudents = data.map(student => ({
 				id: student.id,
 				name: (student.first_name && student.last_name) ? student.first_name + ' ' + student.last_name : 'Student Invited',
 				email: student.email,
 			}));
-			
+
 			setStudents(formattedStudents);
 			console.log(formattedStudents);
 		} catch (error) {
@@ -163,7 +163,7 @@ export default function ManageClass({params}) {
 		}
 		setLoading(false)
 	};
-	
+
 	const handleAddNewStudent = async () => {
 		if (loading) return;
 		if (!email) {
@@ -172,19 +172,19 @@ export default function ManageClass({params}) {
 			});
 			return;
 		}
-		
+
 		setLoading(true)
-		
-		
+
+
 		// Handle students
 		const {data: teacherData, error: teacherError} = await supabaseClient
 			.from('teachers')
 			.select('first_name, last_name')
 			.eq('id', classData.teacher_id)
 			.single()
-		
+
 		if (teacherError) throw teacherError;
-		
+
 		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
 		try {
 			const headers = {
@@ -197,15 +197,15 @@ export default function ManageClass({params}) {
 				"class_code": classCode,
 				"class_name": classData.name
 			};
-			
+
 			console.log('Sending request with headers:', headers);
-			
+
 			const response = await fetchTimeout(`/api/students/new_student`, 10000, {
 				method: 'POST', headers: headers,
 			});
-			
+
 			if (response.status !== 200) {
-				
+
 				const errorText = await response.text();
 				console.error('Error response:', response.status, errorText);
 				toast({
@@ -215,7 +215,7 @@ export default function ManageClass({params}) {
 					duration: 3000
 				});
 			}
-			
+
 			resetPopupStates();
 			console.log("Class created successfully and students updated!");
 			toast({
@@ -224,8 +224,8 @@ export default function ManageClass({params}) {
 				description: "The new class has been added and students have been updated",
 				duration: 3000
 			});
-			
-			
+
+
 		} catch (error) {
 			console.error("Error updating students", error);
 			toast({
@@ -235,8 +235,9 @@ export default function ManageClass({params}) {
 				duration: 3000
 			});
 		}
+		setLoading(false)
 	};
-	
+
 	const handleAddExistingStudents = async () => {
 		if (loading) return;
 		if (selectedStudents.length === 0) {
@@ -245,12 +246,12 @@ export default function ManageClass({params}) {
 			});
 			return;
 		}
-		
+
 		setLoading(true);
 		try {
 			const currentStudents = classData.students || [];
 			const newStudents = selectedStudents.filter(student => !currentStudents.includes(student.id));
-			
+
 			if (newStudents.length === 0) {
 				toast({
 					title: 'Info', description: 'All selected students are already in the class.',
@@ -260,19 +261,19 @@ export default function ManageClass({params}) {
 				setLoading(false);
 				return;
 			}
-			
+
 			const updatedStudents = [...currentStudents, ...newStudents.map(student => student.id)];
-			
+
 			const {data: teacherData, error: teacherError} = await supabaseClient
 				.from('teachers')
 				.select('first_name, last_name')
 				.eq('id', classData.teacher_id)
 				.single();
-			
+
 			if (teacherError) throw teacherError;
-			
+
 			const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-			
+
 			let addedAllStudents = true;
 			for (const student of newStudents) {
 				const headers = {
@@ -285,13 +286,13 @@ export default function ManageClass({params}) {
 					"class_code": classCode,
 					"class_name": classData.name
 				};
-				
+
 				console.log('Sending request with headers:', headers);
-				
+
 				const response = await fetchTimeout(`/api/students/new_student`, 10000, {
 					method: 'POST', headers: headers,
 				});
-				
+
 				if (response.status !== 200) {
 					addedAllStudents = false;
 					const errorText = await response.text();
@@ -304,7 +305,7 @@ export default function ManageClass({params}) {
 					});
 				}
 			}
-			
+
 			// Update local state
 			setClassData(prevData => ({...prevData, students: updatedStudents}));
 			await fetchStudentData(updatedStudents);
@@ -313,7 +314,7 @@ export default function ManageClass({params}) {
 				title: 'Success',
 				description: `${newStudents.length} new student(s) added successfully and emails sent.`,
 			});
-			
+
 			setIsNewStudentOpen(false);
 			setSelectedStudents([]);
 		} catch (error) {
@@ -326,7 +327,7 @@ export default function ManageClass({params}) {
 		}
 		setLoading(false);
 	};
-	
+
 	const _newOrExisting = () => {
 		return (<>
 			<div className="grid grid-cols-2 gap-4">
@@ -349,19 +350,19 @@ export default function ManageClass({params}) {
 			</div>
 		</>);
 	};
-	
+
 	const handleUpdate = async () => {
 		await fetchClassData();  // This will refresh both class and student data
 	};
-	
+
 	function parseTime(timeString) {
 		const [time, period] = timeString.split(' ');
 		const [hour, minute] = time.split(':');
 		return {hour, minute, ampm: period};
 	}
-	
+
 	const EditClassDialog = ({isOpen, onClose, classData, onUpdate}) => {
-		
+
 		const [name, setName] = useState(classData.name);
 		const [meetingLink, setMeetingLink] = useState(classData.meeting_link || '');
 		const [startTime, setStartTime] = useState(classData.start_time ? parseTime(classData.start_time) : {
@@ -371,24 +372,24 @@ export default function ManageClass({params}) {
 			hour: '', minute: '', ampm: 'AM'
 		});
 		const [selectedDays, setSelectedDays] = useState(classData.days || []);
-		
+
 		const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-		
+
 		const convertTo24HourFormat = (time) => {
 			let hour = parseInt(time.hour, 10);
 			const minute = time.minute.padStart(2, '0');
 			const ampm = time.ampm;
-			
+
 			if (ampm === 'PM' && hour < 12) hour += 12;
 			if (ampm === 'AM' && hour === 12) hour = 0;
-			
+
 			return `${hour.toString().padStart(2, '0')}:${minute}:00`;
 		};
 		const handleDayChange = (day, checked) => {
 			setSelectedDays(prevDays => {
 				// Ensure prevDays is an array
 				const currentDays = Array.isArray(prevDays) ? prevDays : [];
-				
+
 				if (checked) {
 					// Add day if checked and not already in the array
 					if (!currentDays.includes(day)) {
@@ -401,12 +402,12 @@ export default function ManageClass({params}) {
 				return currentDays;
 			});
 		};
-		
-		
+
+
 		const handleSubmit = async () => {
 			const formattedStartTime = convertTo24HourFormat(startTime);
 			const formattedEndTime = convertTo24HourFormat(endTime);
-			
+
 			const {data, error} = await supabaseClient
 				.from('classes')
 				.update({
@@ -417,7 +418,7 @@ export default function ManageClass({params}) {
 					days: selectedDays
 				})
 				.eq('id', classData.id);
-			
+
 			if (error) {
 				console.error('Error updating class:', error);
 				toast({
@@ -434,7 +435,7 @@ export default function ManageClass({params}) {
 				onClose();
 			}
 		};
-		
+
 		return (<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent className="sm:max-w-[425px] lg:max-w-[32vw]">
 				<DialogHeader>
@@ -537,18 +538,18 @@ export default function ManageClass({params}) {
 			</DialogContent>
 		</Dialog>);
 	};
-	
-	
+
+
 	const StudentDetailsPopUp = ({student, classId, onClose, onUpdate}) => {
 		const [classes, setClasses] = useState(0);
 		const {toast} = useToast();
-		
+
 		useEffect(() => {
 			if (student && student.classes_left && student.classes_left[classId]) {
 				setClasses(parseInt(student.classes_left[classId]));
 			}
 		}, [student, classId]);
-		
+
 		const handleIncrement = () => setClasses(prev => prev + 1);
 		const handleDecrement = () => setClasses(prev => Math.max(0, prev - 1));
 		useEffect(() => {
@@ -563,7 +564,7 @@ export default function ManageClass({params}) {
 				console.log("Current student data:", student);
 				console.log("Updating classes for classId:", classId);
 				console.log("New classes value:", classes);
-				
+
 				const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
 				const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token;
 				//app/api/students/update_classes/route.js
@@ -585,24 +586,24 @@ export default function ManageClass({params}) {
 						duration: 3000
 					});
 				}
-				
+
 				toast({
 					title: "Classes Updated", description: "The class count has been updated successfully.",
 				});
-				
+
 				// Fetch the updated student data to confirm the change
 				const {data: updatedStudent, error: fetchError} = await supabaseClient
 					.from('student_proxies')
 					.select('*')
 					.eq('id', student.id)
 					.single();
-				
+
 				if (fetchError) {
 					console.error("Error fetching updated student data:", fetchError);
 				} else {
 					console.log("Updated student data:", updatedStudent);
 				}
-				
+
 				onUpdate();
 				onClose();
 			} catch (error) {
@@ -645,15 +646,15 @@ export default function ManageClass({params}) {
 				</div>
 			</div>
 			<DialogFooter>
-				
+
 				<Button type="button" onClick={handleSave}>Save</Button>
 			</DialogFooter>
 		</DialogContent>);
 	};
-	
+
 	const _studentTileForStudentList = (student) => {
 		const isSelected = selectedStudents.some(s => s.id === student.id);
-		
+
 		return (<div className="flex items-center justify-between">
 			<div className="flex items-center gap-2">
 				<div>
@@ -673,7 +674,7 @@ export default function ManageClass({params}) {
 			/>
 		</div>)
 	}
-	
+
 	const _existingStudent = () => {
 		return (<>
 			<DialogHeader>
@@ -685,7 +686,7 @@ export default function ManageClass({params}) {
 					{students.map(student => _studentTileForStudentList(student))}
 				</div>
 			</div>
-			
+
 			<DialogFooter>
 				<div className='flex justify-between flex-wrap w-full'>
 					<Button className="border-slate-400 hover:border-black" variant="outline" onClick={() => {
@@ -698,7 +699,7 @@ export default function ManageClass({params}) {
 			</DialogFooter>
 		</>)
 	}
-	
+
 	const _newStudent = () => {
 		return (<>
 			<DialogHeader>
@@ -747,7 +748,7 @@ export default function ManageClass({params}) {
 			</form>
 		</>)
 	}
-	
+
 	return (<AuthWrapper>
 		<div className="min-h-screen bg-gray-100">
 			<Header/>
@@ -757,84 +758,84 @@ export default function ManageClass({params}) {
 				classData={classData}
 				onUpdate={fetchClassData}
 			/>)}
-				<Dialog open={isOpenManage} onOpenChange={setIsOpenManage}>
-					{selectedStudent && (<StudentDetailsPopUp
-						student={selectedStudent}
-						classId={classData.id}
-						onClose={() => {
-							setIsOpenManage(false);
-							setSelectedStudent(null);
-						}}
-						onUpdate={handleUpdate} // Refresh student data
-					/>)}
-				</Dialog>
-				<Dialog open={isNewStudentOpen} onOpenChange={setIsNewStudentOpen}>
-					<DialogContent className="max-w-[40vw]">
-						{step === 0 && _newOrExisting()}
-						{step === 1 && _newStudent()}
-						{step === 2 && _existingStudent()}
-					</DialogContent>
-				</Dialog>
-				<div className="w-full grid grid-cols-2">
-					<section className="space-y-1">
-						<div>
-							<h1 className="text-3xl font-bold pb-1">{classData ? classData.name : 'Loading...'}</h1>
-							<Button size="sm" className="h-7 gap-1 flex items-center"
+			<Dialog open={isOpenManage} onOpenChange={setIsOpenManage}>
+				{selectedStudent && (<StudentDetailsPopUp
+					student={selectedStudent}
+					classId={classData.id}
+					onClose={() => {
+						setIsOpenManage(false);
+						setSelectedStudent(null);
+					}}
+					onUpdate={handleUpdate} // Refresh student data
+				/>)}
+			</Dialog>
+			<Dialog open={isNewStudentOpen} onOpenChange={setIsNewStudentOpen}>
+				<DialogContent className="max-w-[40vw]">
+					{step === 0 && _newOrExisting()}
+					{step === 1 && _newStudent()}
+					{step === 2 && _existingStudent()}
+				</DialogContent>
+			</Dialog>
+			<div className="w-full grid grid-cols-2">
+				<section className="space-y-1">
+					<div>
+						<h1 className="text-3xl font-bold pb-1">{classData ? classData.name : 'Loading...'}</h1>
+						<Button size="sm" className="h-7 gap-1 flex items-center"
 							        onClick={() => setIsEditClassOpen(true)}>
-								<EditIcon className="w-3 h-3"/>
-								<span className="py-1">Edit Class</span>
-							</Button></div>
-						<div>
-							<p className="font-medium pt-4">{classData ? classData.description : 'No description available'}</p>
-						</div>
-					</section>
-					<section
-						className="space-y-1 bg-background border-2 p-2 rounded-lg justify-center flex flex-col">
-						<p className="text-gray-600">Please share the class link with your students</p>
-						<p className="font-medium flex flex-row">
-							Class Link: <span
-							className="font-normal pl-1">classaccess.tech/join/{classCode}</span>
-							<Copy className="h-5 w-5 hover:cursor-pointer ml-2" onClick={handleCopyLink}/>
-						</p>
-					</section>
-				</div>
-				<section>
-					<div className="flex items-center justify-between my-2">
-						<h2 className="text-2xl font-semibold px-2">My Students</h2>
-						<Button size="sm" className="h-7 gap-1" onClick={() => setIsNewStudentOpen(true)}>
-							<PlusCircle className="h-3.5 w-3.5"/>
-							<span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-								Add Students
-							</span>
-						</Button>
-					</div>
-					<div className="mt-4 overflow-x-auto bg-background rounded-lg border p-4">
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Name</TableHead>
-									<TableHead>Email</TableHead>
-									<TableHead>Classes Left</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{studentData.length > 0 ? studentData.map(student => (<TableRow
-									key={student.id}
-									className="hover:cursor-pointer"
-									onClick={() => {
-										setSelectedStudent(student);
-										setIsOpenManage(true);
-									}}>
-									<TableCell>{(student.first_name && student.last_name) ? `${student.first_name} ${student.last_name}` : 'Student Invited'}</TableCell>
-									<TableCell>{student.email}</TableCell>
-									<TableCell>{student.classes_left[classData.id]}</TableCell>
-								</TableRow>)) : (<TableRow>
-									<TableCell colSpan={4}>No students data available yet.</TableCell>
-								</TableRow>)}
-							</TableBody>
-						</Table>
+							<EditIcon className="w-3 h-3"/>
+							<span className="py-1">Edit Class</span>
+						</Button></div>
+					<div>
+						<p className="font-medium pt-4">{classData ? classData.description : 'No description available'}</p>
 					</div>
 				</section>
+				<section
+					className="space-y-1 bg-background border-2 p-2 rounded-lg justify-center flex flex-col">
+					<p className="text-gray-600">Please share the class link with your students</p>
+					<p className="font-medium flex flex-row">
+							Class Link: <span
+							className="font-normal pl-1">classaccess.tech/join/{classCode}</span>
+						<Copy className="h-5 w-5 hover:cursor-pointer ml-2" onClick={handleCopyLink}/>
+					</p>
+				</section>
+			</div>
+			<section>
+				<div className="flex items-center justify-between my-2">
+					<h2 className="text-2xl font-semibold px-2">My Students</h2>
+					<Button size="sm" className="h-7 gap-1" onClick={() => setIsNewStudentOpen(true)}>
+						<PlusCircle className="h-3.5 w-3.5"/>
+						<span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+								Add Students
+						</span>
+					</Button>
+				</div>
+				<div className="mt-4 overflow-x-auto bg-background rounded-lg border p-4">
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Name</TableHead>
+								<TableHead>Email</TableHead>
+								<TableHead>Classes Left</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{studentData.length > 0 ? studentData.map(student => (<TableRow
+								key={student.id}
+								className="hover:cursor-pointer"
+								onClick={() => {
+									setSelectedStudent(student);
+									setIsOpenManage(true);
+								}}>
+								<TableCell>{(student.first_name && student.last_name) ? `${student.first_name} ${student.last_name}` : 'Student Invited'}</TableCell>
+								<TableCell>{student.email}</TableCell>
+								<TableCell>{student.classes_left[classData.id]}</TableCell>
+							</TableRow>)) : (<TableRow>
+								<TableCell colSpan={4}>No students data available yet.</TableCell>
+							</TableRow>)}
+						</TableBody>
+					</Table>
+				</div>
+			</section>
 			</main>
 		</div>
 	</AuthWrapper>);
