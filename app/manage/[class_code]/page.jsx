@@ -175,7 +175,6 @@ export default function ManageClass({params}) {
 
 		setLoading(true)
 
-
 		// Handle students
 		const {data: teacherData, error: teacherError} = await supabaseClient
 			.from('teachers')
@@ -216,6 +215,8 @@ export default function ManageClass({params}) {
 				});
 			}
 
+			fetchClassData()
+			fetchStudents()
 			resetPopupStates();
 			console.log("Class created successfully and students updated!");
 			toast({
@@ -224,7 +225,6 @@ export default function ManageClass({params}) {
 				description: "The new class has been added and students have been updated",
 				duration: 3000
 			});
-
 
 		} catch (error) {
 			console.error("Error updating students", error);
