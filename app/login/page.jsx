@@ -120,7 +120,7 @@ export default function LoginPage() {
 									<Button type="submit" className="w-full">Reset Password</Button>
 								</form>
 								<div className="mt-4 text-center text-sm">Remember your password?{" "}
-									<div onClick={() => setForgotPassword(false)} className="underline">Login </div>
+									<div onClick={() => setForgotPassword(false)} className="underline hover:cursor-pointer">Login </div>
 								</div>
 							</div>
 						)}
@@ -151,7 +151,7 @@ export default function LoginPage() {
 									<Label htmlFor="password">Password</Label>
 									<div
 										onClick={() => setForgotPassword(true)}
-										className="ml-auto inline-block text-sm underline"
+										className="ml-auto inline-block text-sm underline hover:cursor-pointer"
 									>
                                     Forgot your password?
 									</div>
