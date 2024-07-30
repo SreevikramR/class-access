@@ -317,7 +317,6 @@ const sendWelcomeEmail = async (teacherName, email) => {
 		"params": {
 			"teacher_name": teacherName,
 			"url": linkData.properties.action_link,
-			"email": email,
 		},
 		"to": [
 			{
