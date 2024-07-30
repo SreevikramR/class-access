@@ -87,7 +87,7 @@ export async function POST(request) {
 		}
 
 		// Student Proxy Does Not Exist, Need to Create a new proxy
-		const studentInsertProxyData = await addStudentProxy(createStudentData.id, teacherUUID, class_id, classes_left, email, notes, createStudentData.hasJoined);
+		const studentInsertProxyData = await addStudentProxy(createStudentData.id, teacherUUID, class_id, classes_left, email, notes);
 		if (studentInsertProxyData === "Error") {
 			return NextResponse.json({message: "Error Adding Student"}, {status: 500});
 		}
@@ -179,7 +179,7 @@ const addToStudentTable = async (studentEmail, studentID) => {
 }
 
 // Adds the student to the student proxy table or updates the classes_left if the student proxy row already exists
-const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left, studentEmail, notes, hasJoined) => {
+const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left, studentEmail, notes) => {
 	// Get row from student proxy where student_id = studentUUID and teacher_id = teacherUUID
 	const {
 		data: studentProxyData,
@@ -218,7 +218,6 @@ const addStudentProxy = async (studentUUID, teacherUUID, class_id, classes_left,
 		classes_left: classes_left_jb,
 		email: studentEmail,
 		notes: notes,
-		hasJoined: hasJoined,
 		status: status_jb
 	}]).select()
 

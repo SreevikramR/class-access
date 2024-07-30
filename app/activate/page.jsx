@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowRightCircle, CheckCheckIcon, CheckCircleIcon, CircleCheckIcon } from 'lucide-react'
 import { PhoneInput, getPhoneData } from '@/components/ui/phoneInputComponents'
 import { toast } from "@/components/ui/use-toast"
+import fetchTimeout from '@/components/util_function/fetch'
 import LoadingOverlay from '@/components/page_components/loadingOverlay'
 
 const ActivationPage = () => {
@@ -107,26 +108,25 @@ const ActivationPage = () => {
 				last_name: lastName,
 				phone: phoneData.phoneNumber
 			};
-			console.log("Data to be updated:", studentData);
 
-			console.log("user:", user);
-
-			console.log("Existing row found. Attempting to update.");
-			const { data: fetchData, error: fetchError } = await supabaseClient
-				.from('students')
-				.select()
-				.eq('id', user.data.user.id);
-			console.log("fetch", fetchData);
-			console.log("error", fetchError);
 			const { data: updateData, error: updateError } = await supabaseClient
 				.from('students')
 				.update(studentData)
 				.eq('id', user.data.user.id)
 				.select();
 
-			console.log("Update data:", updateData);
-			console.log("Update error:", updateError);
-			if (updateError) {
+			const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+			const signal = new AbortController().signal;
+			const response = await fetchTimeout('/api/students/update_has_joined', 2000, {
+				signal,
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+					'jwt': jwt
+				}
+			});
+
+			if (updateError || response.status !== 200) {
 				console.error("Error updating data:", updateError);
 				toast({
 					variant: 'destructive',
@@ -138,12 +138,9 @@ const ActivationPage = () => {
 				throw updateError;
 			}
 
-			console.log("Update result:", updateData);
-
 			const { data1, error2 } = await supabaseClient.auth.updateUser({
 				password: password
 			})
-			console.log(data1);
 
 			if (error2) throw error2;
 
