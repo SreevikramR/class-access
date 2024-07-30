@@ -143,8 +143,7 @@ export default function StudentClassOnboardingPopup({ isOpen, setIsOpen }) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    "email": "sreevikram.r@tamu.edu"
-                },
+                    "email": email
             });
             if (response.status !== 200) {
                 toast({
@@ -184,7 +183,7 @@ export default function StudentClassOnboardingPopup({ isOpen, setIsOpen }) {
                                 onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
-                        
+
                         <Button type="submit" onClick={handlePasswordReset} className={"w-full" + (loading ? " cursor-wait" : "")}>
                             Send Link
                         </Button>
