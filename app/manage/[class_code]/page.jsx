@@ -7,14 +7,7 @@ import {Button} from "@/components/ui/button";
 import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {Checkbox} from "@/components/ui/checkbox";
 import Header from "@/components/page_components/header";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
@@ -39,7 +32,6 @@ export default function ManageClass({params}) {
 	const [loading, setLoading] = useState(false);
 	const [teacherData, setTeacherData] = useState(null);
 	const [isEditClassOpen, setIsEditClassOpen] = useState(false);
-
 
 	useEffect(() => {
 		fetchTeacherData();
@@ -539,9 +531,9 @@ export default function ManageClass({params}) {
 		</Dialog>);
 	};
 
-
 	const StudentDetailsPopUp = ({student, classId, onClose, onUpdate}) => {
 		const [classes, setClasses] = useState(0);
+		const [isProcessing, setIsProcessing] = useState(false)
 		const {toast} = useToast();
 
 		useEffect(() => {
@@ -559,17 +551,15 @@ export default function ManageClass({params}) {
 				setClasses(0);
 			}
 		}, [student, classId]);
-		const handleSave = async () => {
-			try {
-				console.log("Current student data:", student);
-				console.log("Updating classes for classId:", classId);
-				console.log("New classes value:", classes);
 
+		const handleSave = async () => {
+			if (isProcessing) return
+			setIsProcessing(true)
+			try {
+				const signal = new AbortController().signal;
 				const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
-				const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token;
-				//app/api/students/update_classes/route.js
 				const response = await fetchTimeout('/api/students/update_classes', 10000, {
-					method: 'PUT', headers: {
+					signal, method: 'PUT', headers: {
 						'jwt': jwt,
 						'student_proxy_id': student.id,
 						'class_id': classId,
@@ -586,7 +576,6 @@ export default function ManageClass({params}) {
 						duration: 3000
 					});
 				}
-
 				toast({
 					title: "Classes Updated", description: "The class count has been updated successfully.",
 				});
@@ -603,7 +592,6 @@ export default function ManageClass({params}) {
 				} else {
 					console.log("Updated student data:", updatedStudent);
 				}
-
 				onUpdate();
 				onClose();
 			} catch (error) {
@@ -612,44 +600,97 @@ export default function ManageClass({params}) {
 					variant: 'destructive', title: "Failed to update classes", description: "Please try again.",
 				});
 			}
+			setIsProcessing(false)
 		};
-		return (<DialogContent className="sm:max-w-[425px]">
-			<DialogHeader>
-				<DialogTitle>Student Details</DialogTitle>
-			</DialogHeader>
-			<div className="grid gap-4 py-4">
-				<div className="grid items-center grid-cols-4 gap-4">
-					<Label htmlFor="name" className="text-right">
+
+		const handleActivationResend = async () => {
+			if (isProcessing) return
+			setIsProcessing(true);
+			try {
+				const signal = new AbortController().signal;
+				const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+				const response = await fetchTimeout('/api/emails/resend_activation', 2500, {
+					signal, method: 'POST', headers: {
+						'jwt': jwt,
+						'email': student.email,
+						'teacherName': `${teacherData.first_name} ${teacherData.last_name}`,
+					}
+				});
+				if (response.status !== 200) {
+					const errorText = await response.text();
+					console.error('Error response:', response.status, errorText);
+					toast({
+						variant: 'destructive',
+						title: "Failed to send Email",
+						description: `Unable to send email, please tru again later`,
+						duration: 3000
+					});
+				} else {
+					toast({
+						title: "Email Resent", description: "Student account activation email successfully resent",
+					});
+				}
+			} catch (error) {
+				console.error("Error sending email:", error);
+				toast({
+					variant: 'destructive', title: "Failed to send email", description: "Please try again later.",
+				});
+			}
+			setIsProcessing(false);
+		}
+
+		let displayName = ""
+		if (student.first_name) {
+			displayName = student.first_name + " " + student.last_name
+		} else {
+			displayName = "Student Invited"
+		}
+
+		return (
+			<DialogContent className="sm:max-w-[425px]">
+				<DialogHeader>
+					<DialogTitle>Student Details</DialogTitle>
+				</DialogHeader>
+				<div className="grid gap-4 py-4">
+					<div className="grid items-center grid-cols-4 gap-4">
+						<Label htmlFor="name" className="text-right">
 						Name
-					</Label>
-					<div className="col-span-3">{student.first_name} {student.last_name}</div>
-				</div>
-				<div className="grid items-center grid-cols-4 gap-4">
-					<Label htmlFor="email" className="text-right">
+						</Label>
+						<div className="col-span-3">{displayName}</div>
+					</div>
+					<div className="grid items-center grid-cols-4 gap-4">
+						<Label htmlFor="email" className="text-right">
 						Email
-					</Label>
-					<div className="col-span-3">{student.email}</div>
-				</div>
-				<div className="grid items-center grid-cols-4 gap-4">
-					<Label htmlFor="classes" className="text-right">
+						</Label>
+						<div className="col-span-3">{student.email}</div>
+					</div>
+					<div className="grid items-center grid-cols-4 gap-4">
+						<Label htmlFor="classes" className="text-right">
 						Classes
-					</Label>
-					<div className="col-span-3 flex items-center gap-2">
-						<Button variant="outline" onClick={handleDecrement}>
+						</Label>
+						<div className="col-span-3 flex items-center gap-2">
+							<Button variant="outline" onClick={handleDecrement}>
 							-
-						</Button>
-						<div>{classes}</div>
-						<Button variant="outline" onClick={handleIncrement}>
+							</Button>
+							<div>{classes}</div>
+							<Button variant="outline" onClick={handleIncrement}>
 							+
-						</Button>
+							</Button>
+						</div>
 					</div>
 				</div>
-			</div>
-			<DialogFooter>
-
-				<Button type="button" onClick={handleSave}>Save</Button>
-			</DialogFooter>
-		</DialogContent>);
+				<DialogFooter>
+					{!student.hasJoined && (
+						<div className="w-full flex flex-wrap justify-between">
+							<Button type="button" className={(isProcessing) ? "cursor-progress" : ""} onClick={handleActivationResend}>Resend Activation Email</Button>
+							<Button type="button" className={(isProcessing) ? "cursor-progress" : ""} onClick={handleSave}>Save</Button>
+						</div>
+					)}
+					{student.hasJoined && (
+						<Button type="button" className={(isProcessing) ? "cursor-progress" : ""} onClick={handleSave}>Save</Button>
+					)}
+				</DialogFooter>
+			</DialogContent>);
 	};
 
 	const _studentTileForStudentList = (student) => {

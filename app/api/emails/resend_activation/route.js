@@ -3,6 +3,11 @@
 import { NextResponse } from 'next/server';
 import fetchTimeout from '@/components/util_function/fetch';
 import verifyJWT from '@/components/util_function/verifyJWT';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(request) {
 	const token = request.headers.get("jwt");
@@ -43,6 +48,7 @@ export async function POST(request) {
 		],
 	}
 
+	const signal = new AbortController().signal;
 	const response = await fetchTimeout(`https://api.brevo.com/v3/smtp/email`, 2000, {
 		signal,
 		method: 'POST',
