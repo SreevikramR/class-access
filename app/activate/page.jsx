@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { ArrowRightCircle, CheckCheckIcon, CheckCircleIcon, CircleCheckIcon } from 'lucide-react'
+import { ArrowRightCircle, CircleX, CheckCircleIcon, CircleCheckIcon } from 'lucide-react'
 import { PhoneInput, getPhoneData } from '@/components/ui/phoneInputComponents'
 import { toast } from "@/components/ui/use-toast"
 import fetchTimeout from '@/components/util_function/fetch'
@@ -172,9 +172,9 @@ const ActivationPage = () => {
 					{error && (
 						<>
 							<CardHeader className="space-y-2 text-center flex flex-col flex-wrap items-center">
-								<CircleCheckIcon className="text-green-500 size-12" />
+								<CircleX className="text-red-500 size-12" />
 								<CardTitle className="sm:text-2xl text-xl font-bold">Unable to Activate Account!</CardTitle>
-								<CardDescription className="text-pretty">Your activation link may have expired or be invalid. Please contact your instructor to get a new link.</CardDescription>
+								<CardDescription className="text-pretty">Your activation link may h	ave expired or be invalid. Please contact your instructor to get a new link.</CardDescription>
 							</CardHeader>
 						</>
 					)}
@@ -186,7 +186,6 @@ const ActivationPage = () => {
 							)}
 							{isLoggedIn && (
 								<>
-
 									{step === 0 && (
 										<>
 											<CardHeader className="space-y-2 text-center">
