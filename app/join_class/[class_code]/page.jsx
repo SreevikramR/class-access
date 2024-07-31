@@ -28,6 +28,7 @@ export default function Component({ params: { class_code } }) {
 	}, [])
 
 	const handlePasswordLogin = async () => {
+		if (loading) return;
 		if (!email || !loginPassword) {
 			toast({
 				title: 'Error',
@@ -37,6 +38,7 @@ export default function Component({ params: { class_code } }) {
 			return;
 		}
 
+		setLoading(true)
 		const { data, error } = await supabaseClient.auth.signInWithPassword({
 			email: email,
 			password: loginPassword,
@@ -55,6 +57,7 @@ export default function Component({ params: { class_code } }) {
 			description: "Logged in successfully",
 			variant: "default"
 		});
+		setLoading(false)
 	};
 
 	const handleGoogleLogin = async () => {
@@ -95,6 +98,7 @@ export default function Component({ params: { class_code } }) {
 					description: "Please try again later",
 					variant: "destructive"
 				});
+				setLoading(dalse)
 				return;
 			}
 			setStep(3)
@@ -109,6 +113,7 @@ export default function Component({ params: { class_code } }) {
 	}
 
 	const fetchUser = async () => {
+		setLoading(true)
 		const user = await supabaseClient.auth.getUser();
 		if (user.data.user != null) {
 			const { data, error } = await supabaseClient.from('students').select('*').eq('id', user.data.user.id);
@@ -133,6 +138,7 @@ export default function Component({ params: { class_code } }) {
 						description: "Please login through the teacher portal",
 						variant: "destructive"
 					})
+					setLoading(false)
 					setTimeout(() => {
 						window.location.href = '/login'
 					}, 5000)
@@ -149,6 +155,7 @@ export default function Component({ params: { class_code } }) {
 							description: "Please Sign Up First",
 							variant: "destructive"
 						})
+						setLoading(false)
 						setTimeout(() => {
 							window.location.reload()
 						}, 5000)
@@ -157,9 +164,11 @@ export default function Component({ params: { class_code } }) {
 			}
 			fetchClassDetails()
 		}
+		setLoading(false)
 	}
 
 	const fetchClassDetails = async () => {
+		setLoading(true)
 		const { data: classData, error: classError } = await supabaseClient
 			.from('classes')
 			.select('*')
@@ -168,6 +177,7 @@ export default function Component({ params: { class_code } }) {
 
 		if (classError) {
 			console.log("Class does not exist")
+			setLoading(false)
 			return
 		}
 		const studentId = (await supabaseClient.auth.getUser()).data.user.id
@@ -178,6 +188,7 @@ export default function Component({ params: { class_code } }) {
 				description: "Please Try Again Later",
 				variant: "destructive"
 			})
+			setLoading(false)
 			return
 		}
 		if (data[0].first_name === null) {
@@ -185,6 +196,7 @@ export default function Component({ params: { class_code } }) {
 		}
 		setClassDetails(classData)
 		if (classData.teacher_id) {
+			console.log("teacher id", classData.teacher_id)
 			const { data: teacherData, error: teacherError } = await supabaseClient
 				.from('teachers')
 				.select('first_name, last_name, id')
@@ -197,12 +209,21 @@ export default function Component({ params: { class_code } }) {
 				setTeacherName(`${teacherData.first_name} ${teacherData.last_name}`)
 			}
 		}
+		setLoading(false)
 	}
 
 	const formatTime = (start, end) => {
 		const formatTimeString = (timeString) => {
-			const date = new Date(`2000-01-01T${timeString}`)
-			return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+			const [time, offset] = timeString.split('+');
+			const date = new Date();
+			const [hours, minutes, seconds] = time.split(':').map(Number);
+			date.setHours(hours, minutes, seconds);
+			const options = {
+				hour: '2-digit',
+				minute: '2-digit',
+				hour12: true // 24-hour time format
+			};
+			return date.toLocaleTimeString('en-US', options);
 		}
 		return `${formatTimeString(start)} - ${formatTimeString(end)}`
 	}
@@ -249,6 +270,8 @@ export default function Component({ params: { class_code } }) {
 	}
 
 	const handleComplete = async () => {
+		if (loading) return
+		setLoading(true)
 		const { data, error } = await supabaseClient.from('student_proxies').select('*').eq('student_id', studentData.id).eq('teacher_id', classDetails.teacher_id)
 		if (data.length === 0) {
 			toast({
@@ -283,6 +306,7 @@ export default function Component({ params: { class_code } }) {
 				variant: "destructive"
 			});
 		}
+		setLoading(false)
 	};
 
 	const _login = () => {
@@ -442,8 +466,12 @@ export default function Component({ params: { class_code } }) {
 								<p className="text-muted-foreground text-xs sm:text-base">
                                     Taught by {teacherName}
 								</p>
+								<p></p>
 								<p className="text-muted-foreground sm:text-base text-xs text-pretty">
-									{formatDays(classDetails.days)}, {formatTime(classDetails.start_time, classDetails.end_time)}
+									{formatDays(classDetails.days)}
+								</p>
+								<p className="text-muted-foreground sm:text-base text-xs text-pretty">
+								 	{formatTime(classDetails.start_time, classDetails.end_time)}
 								</p>
 							</div>
 							<div className="flex gap-2">
