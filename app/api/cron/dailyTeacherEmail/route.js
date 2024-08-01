@@ -2,15 +2,20 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import moment from 'moment-timezone';
 import fetchTimeout from '@/components/util_function/fetch';
+const cronitor = require('cronitor')(process.env.CRONITOR_API_KEY);
+const monitor = new cronitor.Monitor('QDLC6T');
 
 export async function GET(request) {
 	if (request.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
 		return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 	}
+	monitor.ping({state: 'run'});
 	const res = await notifyTeachers()
 	if (res) {
+		monitor.ping({state: 'complete'});
 		return NextResponse.json({ ok: true });
 	} else {
+		monitor.ping({state: 'fail'});
 		return NextResponse.json({ ok: false });
 	}
 }
@@ -149,9 +154,9 @@ const notifyTeachers = async () => {
 		if (result.classes.length > 0) {
 			const res = await sendEmail(result);
 			if (!res) {
+				return false
 				console.error('Error sending email to teacher:', result.teacher_email);
 			}
-			return false
 		}
 	}
 	return true
