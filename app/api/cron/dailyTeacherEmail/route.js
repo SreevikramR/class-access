@@ -3,15 +3,20 @@ import { createClient } from '@supabase/supabase-js';
 import moment from 'moment-timezone';
 import fetchTimeout from '@/components/util_function/fetch';
 
-export async function GET() {
-	await notifyTeachers()
-	return NextResponse.json({ ok: true });
+export async function GET(request) {
+	if (request.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+		return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+	}
+	const res = await notifyTeachers()
+	if (res) {
+		return NextResponse.json({ ok: true });
+	} else {
+		return NextResponse.json({ ok: false });
+	}
 }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
-const brevoApiKey = process.env.EMAIL_TOKEN;
-const brevoApiUrl = 'https://api.brevo.com/v3/smtp/email';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -78,8 +83,10 @@ const sendEmail = async (teacher_data) => {
 
 	if (!response.ok) {
 		console.error('Error sending email:', await response.text());
+		return false;
 	} else {
 		console.log('Email sent successfully');
+		return true
 	}
 };
 
@@ -140,7 +147,12 @@ const notifyTeachers = async () => {
 
 	for (const result of results) {
 		if (result.classes.length > 0) {
-			await sendEmail(result);
+			const res = await sendEmail(result);
+			if (!res) {
+				console.error('Error sending email to teacher:', result.teacher_email);
+			}
+			return false
 		}
 	}
+	return true
 };
