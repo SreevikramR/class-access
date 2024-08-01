@@ -74,10 +74,6 @@ export default function HowToPage() {
 						<li>Once you have accepted your invite to the class, look for a link from your teacher to join the meeting</li>
 						<li>You may reuse this same link for every class. You may have to login before joining your class</li>
 						<li>
-							Complete the enrollment process, which may include making a payment or providing any necessary
-							documentation.
-						</li>
-						<li>
 							Congratulations! You may now start learning with your teacher and classmates. Enjoy your class!
 						</li>
 					</ol>
