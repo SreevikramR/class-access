@@ -1,0 +1,8 @@
+{
+	"crons": [
+		{
+			"path": "/api/cron/dailyTeacherEmail",
+			"schedule": "30 14 * * *"
+		}
+	]
+}
