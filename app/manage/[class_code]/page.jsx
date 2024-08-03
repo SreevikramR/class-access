@@ -119,6 +119,7 @@ export default function ManageClass({params}) {
 				title: 'Error', description: 'Failed to load class data. Please try again.', variant: "destructive"
 			});
 		} else {
+			console.log('Class data:', data[0])
 			setClassData(data[0]);
 			fetchStudentData(data[0].student_proxy_ids);
 		}
@@ -347,14 +348,15 @@ export default function ManageClass({params}) {
 		await fetchClassData();  // This will refresh both class and student data
 	};
 
-	function parseTime(timeString) {
-		const [time, period] = timeString.split(' ');
-		const [hour, minute] = time.split(':');
-		return {hour, minute, ampm: period};
+	function parseTime(time) {
+		const [hours, minutes] = time.split(':');
+		const period = hours >= 12 ? 'PM' : 'AM';
+		const adjustedHours = hours % 12 || 12; // Convert '0' to '12'
+		console.log(adjustedHours, minutes, period)
+		return {hour: adjustedHours, minute: minutes, ampm: period};
 	}
 
 	const EditClassDialog = ({isOpen, onClose, classData, onUpdate}) => {
-
 		const [name, setName] = useState(classData.name);
 		const [meetingLink, setMeetingLink] = useState(classData.meeting_link || '');
 		const [startTime, setStartTime] = useState(classData.start_time ? parseTime(classData.start_time) : {
@@ -363,10 +365,9 @@ export default function ManageClass({params}) {
 		const [endTime, setEndTime] = useState(classData.end_time ? parseTime(classData.end_time) : {
 			hour: '', minute: '', ampm: 'AM'
 		});
+
 		const [selectedDays, setSelectedDays] = useState(classData.days || []);
-
 		const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
 		const convertTo24HourFormat = (time) => {
 			let hour = parseInt(time.hour, 10);
 			const minute = time.minute.padStart(2, '0');
@@ -377,6 +378,7 @@ export default function ManageClass({params}) {
 
 			return `${hour.toString().padStart(2, '0')}:${minute}:00`;
 		};
+
 		const handleDayChange = (day, checked) => {
 			setSelectedDays(prevDays => {
 				// Ensure prevDays is an array
