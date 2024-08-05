@@ -62,6 +62,11 @@ const Page = () => {
 			<p><strong>Social Media Login Data.</strong> We may provide you with the option to register with us using your existing social media account details, like your Facebook, X, or other social media account. If you choose to register in this way, we will collect certain profile information about you from the social media provider, as described in the section called &quot;HOW DO WE HANDLE YOUR SOCIAL LOGINS?&quot; below.</p>
 			<p>All personal information that you provide to us must be true, complete, and accurate, and you must notify us of any changes to such personal information.</p>
 
+			<h2>Google OAuth:</h2>
+			<p>We use Google OAuth to authenticate users on our platform. This allows us to verify your identity and provide secure access to our services. We do not collect, store, or process any additional data from your Google account beyond what is necessary for authentication.</p>
+			<p>We do not share your OAuth data with any third parties. The data collected is solely for the purpose of authentication and will not be used for marketing or shared with other organizations.</p>
+			<p>We implement strict security measures to protect the OAuth authentication data. Your OAuth credentials are encrypted and securely stored to prevent unauthorized access.</p>
+
 			<h3>Information automatically collected</h3>
 			<p><strong>In Short:</strong> Some information — such as your Internet Protocol (IP) address and/or browser and device characteristics — is collected automatically when you visit our Services.</p>
 			<p>We automatically collect certain information when you visit, use, or navigate the Services. This information does not reveal your specific identity (like your name or contact information) but may include device and usage information, such as your IP address, browser and device characteristics, operating system, language preferences, referring URLs, device name, country, location, information about how and when you use our Services, and other technical information. This information is primarily needed to maintain the security and operation of our Services, and for our internal analytics and reporting purposes.</p>
