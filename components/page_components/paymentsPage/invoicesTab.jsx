@@ -19,6 +19,9 @@ const InvoicesTab = () => {
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 	const [selectedStudent, setSelectedStudent] = useState("")
 
+	const [invoiceDetailsOpen, setInvoiceDetailsOpen] = useState(true)
+	const [selectedInvoice, setSelectedInvoice] = useState(null)
+
 	const [classes, setClasses] = useState([])
 	const [selectedClass, setSelectedClass] = useState("")
 	const [filteredStudents, setFilteredStudents] = useState([])
@@ -28,7 +31,6 @@ const InvoicesTab = () => {
 	const [invoiceAmount, setInvoiceAmount] = useState("")
 
 	const [isLoading, setIsLoading] = useState(true)
-
 	const [invoices, setInvoices] = useState([])
 
 	async function fetchInvoices() {
@@ -287,102 +289,174 @@ const InvoicesTab = () => {
 		)
 	}
 
-	return (<>
-		<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} className="bg-white">
-			<DialogContent className="sm:max-w-[500px]">
-				<DialogHeader>
-					<DialogTitle>New Invoice</DialogTitle>
-				</DialogHeader>
-				<div className="space-y-4">
-					<div className="grid gap-2">
-						<Label htmlFor="class">Class</Label>
-						<Select id="class" value={selectedClass} onValueChange={setSelectedClass}>
-							<SelectTrigger>
-								<SelectValue placeholder="Select class" />
-							</SelectTrigger>
-							<SelectContent>
-								{classes.map(c => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
-							</SelectContent>
-						</Select>
+	const _addInvoiceDialog = () => {
+		return (
+			<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} className="bg-white">
+				<DialogContent className="sm:max-w-[500px]">
+					<DialogHeader>
+						<DialogTitle>New Invoice</DialogTitle>
+					</DialogHeader>
+					<div className="space-y-4">
+						<div className="grid gap-2">
+							<Label htmlFor="class">Class</Label>
+							<Select id="class" value={selectedClass} onValueChange={setSelectedClass}>
+								<SelectTrigger>
+									<SelectValue placeholder="Select class" />
+								</SelectTrigger>
+								<SelectContent>
+									{classes.map(c => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="student">Student</Label>
+							<Select id="student" value={selectedStudent} onValueChange={setSelectedStudent}>
+								<SelectTrigger>
+									<SelectValue placeholder="Select student" />
+								</SelectTrigger>
+								<SelectContent>
+									{filteredStudents.map(s => (<SelectItem key={s.id} value={s.id}>
+										{s.first_name && s.last_name ? `${s.first_name} ${s.last_name}` : s.email}
+									</SelectItem>))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="itemTitle">Invoice Item Title</Label>
+							<Input id="itemTitle" placeholder="Classes for Student Name" value={invoiceTitle}
+								onChange={(e) => setInvoiceTitle(e.target.value)} />
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="description">Description</Label>
+							<Input id="description" placeholder="For months ... to ..." value={invoiceDescription}
+								onChange={(e) => setInvoiceDescription(e.target.value)} />
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="classesNumber">Number of Classes</Label>
+							<Input id="classesNumber" type="number" placeholder="Classes" value={invoiceClasses}
+								onChange={(e) => setInvoiceClasses(e.target.value)} />
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="amount">Amount</Label>
+							<Input id="amount" type="number" placeholder="Enter amount" value={invoiceAmount}
+								onChange={(e) => setInvoiceAmount(e.target.value)} />
+						</div>
 					</div>
-					<div className="grid gap-2">
-						<Label htmlFor="student">Student</Label>
-						<Select id="student" value={selectedStudent} onValueChange={setSelectedStudent}>
-							<SelectTrigger>
-								<SelectValue placeholder="Select student" />
-							</SelectTrigger>
-							<SelectContent>
-								{filteredStudents.map(s => (<SelectItem key={s.id} value={s.id}>
-									{s.first_name && s.last_name ? `${s.first_name} ${s.last_name}` : s.email}
-								</SelectItem>))}
-							</SelectContent>
-						</Select>
+					<DialogFooter>
+						<div>
+							<Button onClick={createInvoice} className={(isLoading ? "cursor-progress" : "")}>Create
+								Invoice</Button></div>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		)
+	}
+
+	const _invoiceDetailsDialog = () => {
+		return (
+			<Dialog open={invoiceDetailsOpen} onOpenChange={setInvoiceDetailsOpen} className="bg-white">
+				<DialogContent className="sm:max-w-[500px]">
+					<DialogHeader>
+						<DialogTitle>Invoice Details</DialogTitle>
+					</DialogHeader>
+					<div className="space-y-4">
+						<div className="grid gap-2">
+							<Label htmlFor="class">Class</Label>
+							<Select id="class" value={selectedClass} onValueChange={setSelectedClass}>
+								<SelectTrigger>
+									<SelectValue placeholder="Select class" />
+								</SelectTrigger>
+								<SelectContent>
+									{classes.map(c => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="student">Student</Label>
+							<Select id="student" value={selectedStudent} onValueChange={setSelectedStudent}>
+								<SelectTrigger>
+									<SelectValue placeholder="Select student" />
+								</SelectTrigger>
+								<SelectContent>
+									{filteredStudents.map(s => (<SelectItem key={s.id} value={s.id}>
+										{s.first_name && s.last_name ? `${s.first_name} ${s.last_name}` : s.email}
+									</SelectItem>))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="itemTitle">Invoice Item Title</Label>
+							<Input id="itemTitle" placeholder="Classes for Student Name" value={invoiceTitle}
+								onChange={(e) => setInvoiceTitle(e.target.value)} />
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="description">Description</Label>
+							<Input id="description" placeholder="For months ... to ..." value={invoiceDescription}
+								onChange={(e) => setInvoiceDescription(e.target.value)} />
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="classesNumber">Number of Classes</Label>
+							<Input id="classesNumber" type="number" placeholder="Classes" value={invoiceClasses}
+								onChange={(e) => setInvoiceClasses(e.target.value)} />
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="amount">Amount</Label>
+							<Input id="amount" type="number" placeholder="Enter amount" value={invoiceAmount}
+								onChange={(e) => setInvoiceAmount(e.target.value)} />
+						</div>
 					</div>
-					<div className="grid gap-2">
-						<Label htmlFor="itemTitle">Invoice Item Title</Label>
-						<Input id="itemTitle" placeholder="Classes for Student Name" value={invoiceTitle}
-							onChange={(e) => setInvoiceTitle(e.target.value)} />
-					</div>
-					<div className="grid gap-2">
-						<Label htmlFor="description">Description</Label>
-						<Input id="description" placeholder="For months ... to ..." value={invoiceDescription}
-							onChange={(e) => setInvoiceDescription(e.target.value)} />
-					</div>
-					<div className="grid gap-2">
-						<Label htmlFor="classesNumber">Number of Classes</Label>
-						<Input id="classesNumber" type="number" placeholder="Classes" value={invoiceClasses}
-							onChange={(e) => setInvoiceClasses(e.target.value)} />
-					</div>
-					<div className="grid gap-2">
-						<Label htmlFor="amount">Amount</Label>
-						<Input id="amount" type="number" placeholder="Enter amount" value={invoiceAmount}
-							onChange={(e) => setInvoiceAmount(e.target.value)} />
-					</div>
-				</div>
-				<DialogFooter>
-					<div>
-						<Button onClick={createInvoice} className={(isLoading ? "cursor-progress" : "")}>Create
-							Invoice</Button></div>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
-		<div>
-			<Card>
-				<CardHeader>
-					<CardTitle className="p-3 flex flex-row justify-between flex-wrap">
-						<div>Invoices</div>
-						<Button size="sm" className="h-7 gap-1 hover:bg-zinc-700">
-							<PlusCircle className="h-3.5 w-3.5" />
-							<span className="sr-only sm:not-sr-only sm:whitespace-nowrap"
-								onClick={() => setIsAddDialogOpen(true)}>
+					<DialogFooter>
+						<div>
+							<Button onClick={createInvoice} className={(isLoading ? "cursor-progress" : "")}>Create
+								Invoice</Button></div>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		)
+	}
+
+	return (
+		<>
+			<_addInvoiceDialog />
+			<_invoiceDetailsDialog />
+			<div>
+				<Card>
+					<CardHeader>
+						<CardTitle className="p-3 flex flex-row justify-between flex-wrap">
+							<div>Invoices</div>
+							<Button size="sm" className="h-7 gap-1 hover:bg-zinc-700">
+								<PlusCircle className="h-3.5 w-3.5" />
+								<span className="sr-only sm:not-sr-only sm:whitespace-nowrap"
+									onClick={() => setIsAddDialogOpen(true)}>
 								New Invoice
-							</span>
-						</Button>
-					</CardTitle>
-				</CardHeader>
-				{students.length > 0 && teacherID ? (<CardContent>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Student</TableHead>
-								<TableHead>Email</TableHead>
-								<TableHead>Date</TableHead>
-								<TableHead>Title</TableHead>
-								<TableHead>Amount</TableHead>
-								<TableHead>Status</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{invoices.map((invoice) => (<UserRow key={invoice.id} invoiceInfo={invoice} />))}
-						</TableBody>
-					</Table>
-				</CardContent>) : ((isFetchingStudents) ? (
-					<CardContent className="p-8 pt-0 text-gray-500">Loading Payments...</CardContent>) : (
-					<CardContent className="p-8 pt-0 text-gray-500">Please add payments to view them
+								</span>
+							</Button>
+						</CardTitle>
+					</CardHeader>
+					{students.length > 0 && teacherID ? (<CardContent>
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Student</TableHead>
+									<TableHead>Email</TableHead>
+									<TableHead>Date</TableHead>
+									<TableHead>Title</TableHead>
+									<TableHead>Amount</TableHead>
+									<TableHead>Status</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{invoices.map((invoice) => (<UserRow key={invoice.id} invoiceInfo={invoice} />))}
+							</TableBody>
+						</Table>
+					</CardContent>) : ((isFetchingStudents) ? (
+						<CardContent className="p-8 pt-0 text-gray-500">Loading Payments...</CardContent>) : (
+						<CardContent className="p-8 pt-0 text-gray-500">Please add payments to view them
 						here</CardContent>))}
-			</Card>
-		</div>
-	</>)
+				</Card>
+			</div>
+		</>
+	)
 }
 
 export default InvoicesTab
