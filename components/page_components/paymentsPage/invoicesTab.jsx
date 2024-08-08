@@ -296,6 +296,49 @@ const InvoicesTab = () => {
 		)
 	}
 
+	async function resendInvoice() {
+		if (selectedInvoice == null) {
+			toast({
+				variant: "destructive", title: "Error", description: "Unable to Resent invoice, please try again later",
+			})
+			return
+		}
+		if (isLoading) return
+		setIsLoading(true)
+
+		const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('email, first_name, last_name').eq('id', teacherID)
+		const controller = new AbortController()
+		const { signal } = controller;
+		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
+		const response = await fetchTimeout(`/api/emails/new_invoice`, 5000, {
+			signal, method: 'POST', headers: {
+				'Content-Type': 'application/json',
+				'jwt': jwt,
+				"email": selectedInvoice.student_proxies.email,
+				"teacherName": `${teacherData[0].first_name} ${teacherData[0].last_name}`,
+				"teacherEmail": teacherData[0].email,
+				"invoice_date": new Date(selectedInvoice.date).toLocaleDateString(),
+				"title": selectedInvoice.title,
+				"description": selectedInvoice.description,
+				"amount": selectedInvoice.amount,
+				"classes": selectedInvoice.classes,
+			},
+		});
+
+		if (response.status !== 200) {
+			console.error('Error sending email:', response)
+			toast({
+				variant: "destructive", title: "Error", description: "Error sending email. Please try again later.",
+			})
+		} else {
+			toast({
+				variant: "success", title: "Success", description: "Invoice resent successfully!",
+			})
+		}
+		setInvoiceDetailsOpen(false)
+		setIsLoading(false)
+	}
+
 	return (
 		<>
 			<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} className="bg-white">
@@ -389,7 +432,7 @@ const InvoicesTab = () => {
 					</div>
 					<DialogFooter>
 						<div>
-							<Button onClick={createInvoice} className={(isLoading ? "cursor-progress" : "")}>Create Invoice</Button></div>
+							<Button onClick={resendInvoice} className={(isLoading ? "cursor-progress" : "")}>Resend Invoice</Button></div>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
