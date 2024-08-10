@@ -210,6 +210,49 @@ const InvoicesTab = () => {
 		handleStudentFetch()
 	}, [])
 
+	async function handleSavePaymentAndClasses() {
+		const { data, error } = await supabaseClient
+			.from('payments')
+			.insert({
+				teacher_id: teacherID,
+				class_id: selectedInvoice.class_id,
+				student_proxy_id: selectedInvoice.student_proxy_id,
+				date: new Date().toDateString(),
+				amount: parseFloat(selectedInvoice.amount),
+				type: "UPI",
+				notes: `${selectedInvoice.title}: ${selectedInvoice.description}`
+			})
+
+		const {data: studentData, error: studentError} = await supabaseClient.from('student_proxies').select('classes_left').eq('id', selectedInvoice.student_proxy_id)
+		const controller = new AbortController()
+		const { signal } = controller
+		const url = `${window.location.origin}/api/students/update_classes`
+		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
+		const response = await fetchTimeout(url, 5000, {
+			method: 'PUT',
+			headers: {
+				'jwt': jwt,
+				'student_proxy_id': selectedInvoice.student_proxy_id,
+				'class_id': selectedInvoice.class_id,
+				'classes_left': parseInt(studentData[0].classes_left[selectedInvoice.class_id]) + selectedInvoice.classes
+			},
+			signal
+		})
+
+		if (response.status !== 200) {
+			console.error('Error updating classes:', response.statusText)
+			toast({ variant: "destructive", title: "Error", description: "Error saving payment. Please try again." })
+			console.log('Not saving')
+		}
+		if (error) {
+			console.error('Error saving payment:', error)
+			toast({
+				variant: "destructive", title: "Error", description: "Error saving payment. Please try again.",
+			})
+		}
+		return true
+	}
+
 	async function handleStudentFetch() {
 		if (isFetchingStudents) {
 			return
@@ -339,6 +382,18 @@ const InvoicesTab = () => {
 		setIsLoading(false)
 	}
 
+	async function handleMarkPaid() {
+		setIsLoading(true)
+		const  {data, error} = await supabaseClient.from('invoices').update({ status: 'Paid' }).eq('id', selectedInvoice.id).select()
+		const result = await handleSavePaymentAndClasses()
+		if (result) {
+			toast({
+				className:"bg-green-500", title: "Success", description: "Marked Invoice as Paid and added Payment and Classes",
+			})
+		}
+		setIsLoading(false)
+	}
+
 	return (
 		<>
 			<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} className="bg-white">
@@ -394,8 +449,7 @@ const InvoicesTab = () => {
 					</div>
 					<DialogFooter>
 						<div>
-							<Button onClick={createInvoice} className={(isLoading ? "cursor-progress" : "")}>Create
-								Invoice</Button></div>
+							<Button onClick={createInvoice} className={(isLoading ? "cursor-progress" : "")}>Create Invoice</Button></div>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
@@ -430,10 +484,14 @@ const InvoicesTab = () => {
 							<div><span className="font-medium">Classes to Add:</span> { selectedInvoice !== null && selectedInvoice.classes}</div>
 						</div>
 					</div>
-					<DialogFooter>
-						<div>
-							<Button onClick={resendInvoice} className={(isLoading ? "cursor-progress" : "")}>Resend Invoice</Button></div>
-					</DialogFooter>
+					{ selectedInvoice !== null && selectedInvoice.status == "Pending" &&
+						<DialogFooter>
+							<div className="flex justify-between flex-wrap w-full">
+								<Button onClick={handleMarkPaid} className={"bg-green-600 hover:bg-green-800" + (isLoading ? "cursor-progress" : "")}>Mark Received</Button>
+								<Button onClick={resendInvoice} className={(isLoading ? "cursor-progress" : "")}>Resend Invoice</Button>
+							</div>
+						</DialogFooter>
+					}
 				</DialogContent>
 			</Dialog>
 			<div>
