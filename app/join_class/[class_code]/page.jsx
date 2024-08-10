@@ -57,7 +57,6 @@ export default function Component({ params: { class_code } }) {
 			description: "Logged in successfully",
 			variant: "default"
 		});
-		setLoading(false)
 	};
 
 	const handleGoogleLogin = async () => {
@@ -163,12 +162,12 @@ export default function Component({ params: { class_code } }) {
 				}
 			}
 			fetchClassDetails()
+		} else {
+			setLoading(false)
 		}
-		setLoading(false)
 	}
 
 	const fetchClassDetails = async () => {
-		setLoading(true)
 		const { data: classData, error: classError } = await supabaseClient
 			.from('classes')
 			.select('*')
