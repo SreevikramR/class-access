@@ -339,7 +339,10 @@ const InvoicesTab = () => {
 		setIsLoading(false)
 	}
 
-	async function triggerToast() {
+	async function handleMarkPaid() {
+		const  {data, error} = await supabaseClient.from('invoices').update({ status: 'Paid' }).eq('id', selectedInvoice.id).select()
+		console.log(data)
+		console.log(error)
 		toast({
 			className:"bg-green-500", title: "Error", description: "Unable to Resent invoice, please try again later",
 		})
@@ -435,12 +438,14 @@ const InvoicesTab = () => {
 							<div><span className="font-medium">Classes to Add:</span> { selectedInvoice !== null && selectedInvoice.classes}</div>
 						</div>
 					</div>
-					<DialogFooter>
-						<div className="flex justify-between flex-wrap w-full">
-							<Button onClick={triggerToast} className={"bg-green-600 hover:bg-green-800" + (isLoading ? "cursor-progress" : "")}>Mark Received</Button>
-							<Button onClick={resendInvoice} className={(isLoading ? "cursor-progress" : "")}>Resend Invoice</Button>
-						</div>
-					</DialogFooter>
+					{ selectedInvoice !== null && selectedInvoice.status == "Pending" &&
+						<DialogFooter>
+							<div className="flex justify-between flex-wrap w-full">
+								<Button onClick={handleMarkPaid} className={"bg-green-600 hover:bg-green-800" + (isLoading ? "cursor-progress" : "")}>Mark Received</Button>
+								<Button onClick={resendInvoice} className={(isLoading ? "cursor-progress" : "")}>Resend Invoice</Button>
+							</div>
+						</DialogFooter>
+					}
 				</DialogContent>
 			</Dialog>
 			<div>
