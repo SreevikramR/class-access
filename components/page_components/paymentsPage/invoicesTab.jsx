@@ -339,6 +339,12 @@ const InvoicesTab = () => {
 		setIsLoading(false)
 	}
 
+	async function triggerToast() {
+		toast({
+			className:"bg-green-500", title: "Error", description: "Unable to Resent invoice, please try again later",
+		})
+	}
+
 	return (
 		<>
 			<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} className="bg-white">
@@ -394,8 +400,7 @@ const InvoicesTab = () => {
 					</div>
 					<DialogFooter>
 						<div>
-							<Button onClick={createInvoice} className={(isLoading ? "cursor-progress" : "")}>Create
-								Invoice</Button></div>
+							<Button onClick={createInvoice} className={(isLoading ? "cursor-progress" : "")}>Create Invoice</Button></div>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
@@ -431,8 +436,10 @@ const InvoicesTab = () => {
 						</div>
 					</div>
 					<DialogFooter>
-						<div>
-							<Button onClick={resendInvoice} className={(isLoading ? "cursor-progress" : "")}>Resend Invoice</Button></div>
+						<div className="flex justify-between flex-wrap w-full">
+							<Button onClick={triggerToast} className={"bg-green-600 hover:bg-green-800" + (isLoading ? "cursor-progress" : "")}>Mark Received</Button>
+							<Button onClick={resendInvoice} className={(isLoading ? "cursor-progress" : "")}>Resend Invoice</Button>
+						</div>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
