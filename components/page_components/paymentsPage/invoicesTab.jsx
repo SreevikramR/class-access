@@ -391,6 +391,7 @@ const InvoicesTab = () => {
 				className:"bg-green-500", title: "Success", description: "Marked Invoice as Paid and added Payment and Classes",
 			})
 		}
+		setIsLoading(false)
 	}
 
 	return (
