@@ -406,6 +406,19 @@ const InvoicesTab = () => {
 		setIsLoading(false)
 	}
 
+	async function handleNotReceived() {
+		setIsLoading(true)
+		const  {data, error} = await supabaseClient.from('invoices').update({ status: 'Pending' }).eq('id', selectedInvoice.id).select()
+		if (data) {
+			toast({
+				className:"bg-green-500", title: "Success", description: "Marked Invoice as Pending",
+			})
+		}
+		fetchInvoices()
+		setInvoiceDetailsOpen(false)
+		setIsLoading(false)
+	}
+
 	return (
 		<>
 			<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} className="bg-white">
@@ -508,6 +521,7 @@ const InvoicesTab = () => {
 						<DialogFooter>
 							<div className="flex justify-between flex-wrap w-full">
 								<Button onClick={handleMarkConfirmed} className={"bg-green-600 hover:bg-green-800" + (isLoading ? " cursor-progress" : "")}>Mark Confirmed</Button>
+								<Button onClick={handleNotReceived} className={"bg-red-500 hover:bg-red-700" + (isLoading ? " cursor-progress" : "")}>Did Not Receive</Button>
 							</div>
 						</DialogFooter>
 					}
