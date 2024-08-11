@@ -30,9 +30,8 @@ const Payments = () => {
 	const [hasPaid, setHasPaid] = useState(false);
 	const [hasConfirmed, setHasConfirmed] = useState(false);
 	const [noUPI, setNoUPI] = useState(false);
+	const [invoiceId, setInvoiceId] = useState(null);
 
-	const urlParams = new URLSearchParams(window.location.search);
-	const invoiceId = urlParams.get('invoice_id');
 	const [date, setDate] = useState(null);
 	const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
@@ -67,10 +66,11 @@ const Payments = () => {
 		setLoading(false)
 	}
 
-	const fetchInvoiceDetails = async ({email}) => {
+	const fetchInvoiceDetails = async ({email, invoice_id}) => {
+		if (!invoice_id) return
 		setLoading(true)
 		let fetchedTeacherData;
-		const { data, error } = await supabaseClient.from('invoices').select('*').eq('id', invoiceId);
+		const { data, error } = await supabaseClient.from('invoices').select('*').eq('id', invoice_id);
 		if (error) {
 			toast({
 				title: 'Error',
@@ -132,9 +132,11 @@ const Payments = () => {
 
 	const checkLogin = async () => {
 		const user = await supabaseClient.auth.getUser()
+		const urlParams = new URLSearchParams(window.location.search);
+		setInvoiceId(urlParams.get('invoice_id'));
 		if (user.data.user) {
 			setLoggedIn(true);
-			fetchInvoiceDetails({email: user.data.user.email});
+			fetchInvoiceDetails({email: user.data.user.email, invoice_id: urlParams.get('invoice_id')});
 		}
 	}
 
@@ -149,7 +151,7 @@ const Payments = () => {
 				setLoading(false)
 			} else {
 				setLoggedIn(true)
-				fetchInvoiceDetails();
+				fetchInvoiceDetails({ email: email, invoice_id: invoiceId});
 			}
 		} catch (error) {
 			toast({
