@@ -88,7 +88,7 @@ const Payments = () => {
 				setHasPaid(true)
 				setLoading(false)
 				return
-			} else if ( data[0].status === 'Confirmed') {
+			} else if ( data[0].status === 'Paid') {
 				setHasPaid(true)
 				setHasConfirmed(true)
 				setLoading(false)
