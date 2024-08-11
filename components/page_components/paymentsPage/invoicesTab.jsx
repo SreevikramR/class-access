@@ -211,6 +211,8 @@ const InvoicesTab = () => {
 	}, [])
 
 	async function handleSavePaymentAndClasses() {
+		if(isLoading) return
+		setIsLoading(true)
 		const { data, error } = await supabaseClient
 			.from('payments')
 			.insert({
@@ -250,6 +252,9 @@ const InvoicesTab = () => {
 				variant: "destructive", title: "Error", description: "Error saving payment. Please try again.",
 			})
 		}
+		setIsLoading(false)
+		fetchInvoices()
+		setInvoiceDetailsOpen(false)
 		return true
 	}
 
@@ -487,7 +492,7 @@ const InvoicesTab = () => {
 					{ selectedInvoice !== null && selectedInvoice.status == "Pending" &&
 						<DialogFooter>
 							<div className="flex justify-between flex-wrap w-full">
-								<Button onClick={handleMarkPaid} className={"bg-green-600 hover:bg-green-800" + (isLoading ? "cursor-progress" : "")}>Mark Received</Button>
+								<Button onClick={handleMarkPaid} className={"bg-green-600 hover:bg-green-800" + (isLoading ? " cursor-progress" : "")}>Mark Received</Button>
 								<Button onClick={resendInvoice} className={(isLoading ? "cursor-progress" : "")}>Resend Invoice</Button>
 							</div>
 						</DialogFooter>
