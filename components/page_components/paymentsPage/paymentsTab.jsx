@@ -72,7 +72,7 @@ const PaymentsTab = () => {
 		}))
 
 		console.log('Payments with students:', paymentsWithStudents)
-		setPayments(paymentsWithStudents)
+		setPayments(paymentsWithStudents.reverse())
 		setIsLoading(false)
 	}
 
