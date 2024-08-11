@@ -30,6 +30,7 @@ const Payments = () => {
 	const [paymentConfirmActive, setPaymentConfirmActive] = useState(false);
 	const [hasPaid, setHasPaid] = useState(false);
 	const [hasConfirmed, setHasConfirmed] = useState(false);
+	const [noUPI, setNoUPI] = useState(false);
 
 	const searchParams = useSearchParams()
 	const invoiceId = searchParams.get('invoice_id')
@@ -69,7 +70,6 @@ const Payments = () => {
 
 	const fetchInvoiceDetails = async ({email}) => {
 		setLoading(true)
-		let fetchedClassData;
 		let fetchedTeacherData;
 		const { data, error } = await supabaseClient.from('invoices').select('*').eq('id', invoiceId);
 		if (error) {
@@ -108,7 +108,6 @@ const Payments = () => {
 				setLoading(false)
 				return;
 			}
-			fetchedClassData = classData;
 			setClassDetails(classData[0]);
 			const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('*').eq('id', classData[0].teacher_id)
 			if (teacherError || teacherData.length === 0) {
@@ -122,6 +121,9 @@ const Payments = () => {
 				return;
 			}
 			fetchedTeacherData = teacherData;
+			if (teacherData[0].upi_vpa === null) {
+				setNoUPI(true);
+			}
 			setTeacherDetails(teacherData[0]);
 		}
 		setLoading(false);
@@ -234,7 +236,15 @@ const Payments = () => {
 					</div>
 				</Card>
 			)}
-			{loggedIn && !noInvoiceFound && invoice !== null && classDetails !== null && teacherDetails !== null && !hasPaid && (
+			{loggedIn && !noInvoiceFound && noUPI && (
+				<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10 h-fit">
+					<div className="text-center">
+						<h1 className="font-semibold text-md sm:text-lg text-foreground text-pretty">Unable to Make Payment</h1>
+						<p className="text-sm text-gray-500 pt-2">Your instructor has not configured UPI payments. Please contact them for more information on how to pay</p>
+					</div>
+				</Card>
+			)}
+			{loggedIn && !noInvoiceFound && invoice !== null && classDetails !== null && teacherDetails !== null && !hasPaid && !noUPI && (
 				<>
 					<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 border-black h-fit">
 						<CardHeader className="bg-primary text-primary-foreground p-6 flex justify-between items-center text-center">
@@ -262,7 +272,7 @@ const Payments = () => {
 					<div className="text-center text-muted-foreground pt-2">After paying, return to this link and click on the button above</div>
 				</>
 			)}
-			{loggedIn && hasPaid && !hasConfirmed && (
+			{loggedIn && hasPaid && !noUPI && !hasConfirmed && (
 				<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10 h-fit">
 					<div className="text-center">
 						<h1 className="font-semibold text-md sm:text-lg text-foreground text-pretty">Payment Complete!</h1>
@@ -270,7 +280,7 @@ const Payments = () => {
 					</div>
 				</Card>
 			)}
-			{loggedIn && hasPaid && hasConfirmed && (
+			{loggedIn && hasPaid && hasConfirmed && !noUPI && (
 				<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10 h-fit">
 					<div className="text-center">
 						<h1 className="font-semibold text-md sm:text-lg text-foreground text-pretty">Payment Complete!</h1>
