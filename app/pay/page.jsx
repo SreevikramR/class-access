@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import LoadingOverlay from '@/components/page_components/loadingOverlay';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,17 @@ import Link from 'next/link';
 import { supabaseClient } from '@/components/util_function/supabaseCilent';
 import { useToast } from '@/components/ui/use-toast';
 import { useSearchParams } from 'next/navigation';
+import { QRCodeSVG } from 'qrcode.react';
+import { Separator } from '@/components/ui/separator';
 
 const Payments = () => {
 	const [loggedIn, setLoggedIn] = useState(false);
 	const [invoice, setInvoice] = useState(null);
 	const [loading, setLoading] = useState(false);
+	const [user, setUser] = useState(null);
+	const [link, setLink] = useState('');
 	const { toast } = useToast();
+
 
 	// Login States
 	const [email, setEmail] = useState('');
@@ -26,13 +31,18 @@ const Payments = () => {
 
 	const searchParams = useSearchParams()
 	const invoiceId = searchParams.get('invoice_id')
+	const [date, setDate] = useState(null);
+
+	const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 	useEffect(() => {
 		checkLogin();
 	}, [])
 
-	const fetchInvoiceDetails = async () => {
+	const fetchInvoiceDetails = async ({email}) => {
 		setLoading(true)
+		let fetchedClassData;
+		let fetchedTeacherData;
 		const { data, error } = await supabaseClient.from('invoices').select('*').eq('id', invoiceId);
 		if (error) {
 			toast({
@@ -46,6 +56,8 @@ const Payments = () => {
 				setLoading(false)
 				return;
 			}
+			const invoiceDate = new Date(data[0].date);
+			setDate(`${invoiceDate.getDate()} ${months[invoiceDate.getMonth()]} ${invoiceDate.getFullYear()}`);
 			setInvoice(data[0]);
 			const { data: classData, error: classError } = await supabaseClient.from('classes').select('*').eq('id', data[0].class_id)
 			if (classError || classData.length === 0) {
@@ -58,6 +70,7 @@ const Payments = () => {
 				setLoading(false)
 				return;
 			}
+			fetchedClassData = classData;
 			setClassDetails(classData[0]);
 			const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('*').eq('id', classData[0].teacher_id)
 			if (teacherError || teacherData.length === 0) {
@@ -70,16 +83,19 @@ const Payments = () => {
 				setLoading(false)
 				return;
 			}
+			fetchedTeacherData = teacherData;
 			setTeacherDetails(teacherData[0]);
 		}
 		setLoading(false);
+		setLink(`upi://pay?pa=${fetchedTeacherData[0].upi_vpa}&pn=${fetchedTeacherData[0].upi_name}&cu=INR&am=${data[0].amount}&tn=Payment from ${email}`)
 	}
 
 	const checkLogin = async () => {
 		const user = await supabaseClient.auth.getUser()
 		if (user.data.user) {
 			setLoggedIn(true);
-			fetchInvoiceDetails();
+			fetchInvoiceDetails({email: user.data.user.email});
+			setUser(user);
 		}
 	}
 
@@ -105,14 +121,13 @@ const Payments = () => {
 		}
 	}
 
-
 	return (
-		<>
+		<div className="flex flex-wrap flex-col justify-center h-screen items-center">
 			{loading && <LoadingOverlay />}
 			{!loggedIn && (
 				<>
 					{!noAccount && (
-						<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2">
+						<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 h-fit">
 							<div className="text-center">
 								<h1 className="font-semibold text-md pb-4 lg:text-xl text-foreground pt-6 text-pretty">Please Login to Make Payments</h1>
 							</div>
@@ -165,7 +180,7 @@ const Payments = () => {
 						</Card>
 					)}
 					{noAccount && (
-						<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10">
+						<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10 h-fit">
 							<div className="text-center">
 								<h1 className="font-semibold text-md sm:text-lg text-foreground text-pretty">Please contact your instructor to gain access to the class and payment options</h1>
 							</div>
@@ -174,7 +189,7 @@ const Payments = () => {
 				</>
 			)}
 			{loggedIn && noInvoiceFound && (
-				<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10">
+				<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10 h-fit">
 					<div className="text-center">
 						<h1 className="font-semibold text-md sm:text-lg text-foreground text-pretty">No Invoice Found</h1>
 						<p className="text-sm text-gray-500">Please contact your instructor for more information</p>
@@ -182,21 +197,34 @@ const Payments = () => {
 				</Card>
 			)}
 			{loggedIn && !noInvoiceFound && invoice !== null && classDetails !== null && teacherDetails !== null && (
-				<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2">
-					<div className="text-center">
-						<h1 className="font-semibold text-md sm:text-lg text-foreground text-pretty">Invoice Details</h1>
-					</div>
-					<div className="rounded-lg bg-white p-3 pt-0">
-						<div className="grid gap-4">
-							<div className="grid gap-2">
-								<Label htmlFor="amount">Amount: { invoice.amount }</Label>
-								<Label htmlFor="className">Class: { classDetails.name }</Label>
+				<>
+					<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 border-black h-fit">
+						<CardHeader className="bg-primary text-primary-foreground p-6 flex justify-between items-center text-center">
+							<div className="space-y-1">
+								<div className="font-semibold">{classDetails.name}</div>
+								<div>{teacherDetails.first_name} {teacherDetails.last_name}</div>
 							</div>
-						</div>
-					</div>
-				</Card>
+							<div className="text-4xl font-bold">&#8377;{invoice.amount}</div>
+						</CardHeader>
+						<CardContent className="p-6 grid gap-4">
+							<div className="flex justify-between">
+								<div className="text-muted-foreground">Invoice Date</div>
+								<div>{date}</div>
+							</div>
+							<Separator />
+							<div className="flex justify-center">
+								<Link href={link} className="block" prefetch={false}>
+									<QRCodeSVG value={link}/>
+								</Link>
+							</div>
+							<div className="text-center text-muted-foreground">Scan or click the QR code to make a UPI payment</div>
+						</CardContent>
+					</Card>
+					<Button className="bg-green-600 mt-6 hover:bg-green-700" onClick={() => { }}>I Have Paid!</Button>
+					<div className="text-center text-muted-foreground pt-2">After paying, return to this link and click on the button above</div>
+				</>
 			)}
-		</>
+		</div>
 	)
 }
 
