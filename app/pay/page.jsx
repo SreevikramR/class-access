@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useSearchParams } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import { Separator } from '@/components/ui/separator';
+import fetchTimeout from '@/components/util_function/fetch';
 
 const Payments = () => {
 	const [loggedIn, setLoggedIn] = useState(false);
@@ -27,6 +28,8 @@ const Payments = () => {
 	const [teacherDetails, setTeacherDetails] = useState(null);
 	const [classDetails, setClassDetails] = useState(null);
 	const [paymentConfirmActive, setPaymentConfirmActive] = useState(false);
+	const [hasPaid, setHasPaid] = useState(false);
+	const [hasConfirmed, setHasConfirmed] = useState(false);
 
 	const searchParams = useSearchParams()
 	const invoiceId = searchParams.get('invoice_id')
@@ -36,6 +39,33 @@ const Payments = () => {
 	useEffect(() => {
 		checkLogin();
 	}, [])
+
+	const handlePaid = async () => {
+		if (loading) return
+		setLoading(true)
+		const signal = new AbortController().signal;
+		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
+		const response = await fetchTimeout('/api/students/update_invoice', 7500, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+				'jwt': jwt,
+				'invoice_id': invoiceId
+			},
+			signal
+		})
+		if (response.status === 200) {
+			setHasPaid(true);
+		} else {
+			toast({
+				title: 'An Error Occurred',
+				description: 'You DO NOT need to pay again. Please try clicking on the button in a few minutes',
+				variant: 'destructive'
+			})
+			console.log(await response.json())
+		}
+		setLoading(false)
+	}
 
 	const fetchInvoiceDetails = async ({email}) => {
 		setLoading(true)
@@ -53,6 +83,16 @@ const Payments = () => {
 				setNoInvoiceFound(true);
 				setLoading(false)
 				return;
+			}
+			if (data[0].status === 'Unconfirmed') {
+				setHasPaid(true)
+				setLoading(false)
+				return
+			} else if ( data[0].status === 'Confirmed') {
+				setHasPaid(true)
+				setHasConfirmed(true)
+				setLoading(false)
+				return
 			}
 			const invoiceDate = new Date(data[0].date);
 			setDate(`${invoiceDate.getDate()} ${months[invoiceDate.getMonth()]} ${invoiceDate.getFullYear()}`);
@@ -86,6 +126,7 @@ const Payments = () => {
 		}
 		setLoading(false);
 		setLink(`upi://pay?pa=${fetchedTeacherData[0].upi_vpa}&pn=${fetchedTeacherData[0].upi_name}&cu=INR&am=${data[0].amount}&tn=Payment from ${email}`)
+		setTimeout(() => {setPaymentConfirmActive(true)}, 15000)
 	}
 
 	const checkLogin = async () => {
@@ -193,7 +234,7 @@ const Payments = () => {
 					</div>
 				</Card>
 			)}
-			{loggedIn && !noInvoiceFound && invoice !== null && classDetails !== null && teacherDetails !== null && (
+			{loggedIn && !noInvoiceFound && invoice !== null && classDetails !== null && teacherDetails !== null && !hasPaid && (
 				<>
 					<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 border-black h-fit">
 						<CardHeader className="bg-primary text-primary-foreground p-6 flex justify-between items-center text-center">
@@ -217,9 +258,25 @@ const Payments = () => {
 							<div className="text-center text-muted-foreground">Scan or click the QR code to make a UPI payment</div>
 						</CardContent>
 					</Card>
-					<Button className="bg-green-600 mt-6 hover:bg-green-700" onClick={() => { }} disabled={!paymentConfirmActive}>I Have Paid!</Button>
+					<Button className="bg-green-600 mt-6 hover:bg-green-700" onClick={handlePaid} disabled={!paymentConfirmActive}>I Have Paid!</Button>
 					<div className="text-center text-muted-foreground pt-2">After paying, return to this link and click on the button above</div>
 				</>
+			)}
+			{loggedIn && hasPaid && !hasConfirmed && (
+				<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10 h-fit">
+					<div className="text-center">
+						<h1 className="font-semibold text-md sm:text-lg text-foreground text-pretty">Payment Complete!</h1>
+						<p className="text-sm text-gray-500 pt-2">Thank you for paying! We will email you a confirmation once your instructor confirms receiving the payment.</p>
+					</div>
+				</Card>
+			)}
+			{loggedIn && hasPaid && hasConfirmed && (
+				<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10 h-fit">
+					<div className="text-center">
+						<h1 className="font-semibold text-md sm:text-lg text-foreground text-pretty">Payment Complete!</h1>
+						<p className="text-sm text-gray-500 pt-2">Your payment has been confirmed by your instructor. Please look in your email for the confirmation</p>
+					</div>
+				</Card>
 			)}
 		</div>
 	)
