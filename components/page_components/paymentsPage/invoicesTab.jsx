@@ -497,6 +497,13 @@ const InvoicesTab = () => {
 							</div>
 						</DialogFooter>
 					}
+					{ selectedInvoice !== null && selectedInvoice.status == "Unconfirmed" &&
+						<DialogFooter>
+							<div className="flex justify-between flex-wrap w-full">
+								<Button onClick={handleMarkPaid} className={"bg-green-600 hover:bg-green-800" + (isLoading ? " cursor-progress" : "")}>Mark Confirmed</Button>
+							</div>
+						</DialogFooter>
+					}
 				</DialogContent>
 			</Dialog>
 			<div>
