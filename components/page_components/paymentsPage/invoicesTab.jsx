@@ -70,7 +70,8 @@ const InvoicesTab = () => {
 		}))
 
 		console.log('Invoices with students:', invoicesWithStudents)
-		setInvoices(invoicesWithStudents.reverse())
+
+		setInvoices(invoicesWithStudents.sort((a, b) => new Date(b.date) - new Date(a.date)))
 		setIsLoading(false)
 	}
 
