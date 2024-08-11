@@ -16,10 +16,8 @@ const Payments = () => {
 	const [loggedIn, setLoggedIn] = useState(false);
 	const [invoice, setInvoice] = useState(null);
 	const [loading, setLoading] = useState(false);
-	const [user, setUser] = useState(null);
 	const [link, setLink] = useState('');
 	const { toast } = useToast();
-
 
 	// Login States
 	const [email, setEmail] = useState('');
@@ -28,11 +26,11 @@ const Payments = () => {
 	const [noInvoiceFound, setNoInvoiceFound] = useState(false);
 	const [teacherDetails, setTeacherDetails] = useState(null);
 	const [classDetails, setClassDetails] = useState(null);
+	const [paymentConfirmActive, setPaymentConfirmActive] = useState(false);
 
 	const searchParams = useSearchParams()
 	const invoiceId = searchParams.get('invoice_id')
 	const [date, setDate] = useState(null);
-
 	const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 	useEffect(() => {
@@ -95,7 +93,6 @@ const Payments = () => {
 		if (user.data.user) {
 			setLoggedIn(true);
 			fetchInvoiceDetails({email: user.data.user.email});
-			setUser(user);
 		}
 	}
 
@@ -220,7 +217,7 @@ const Payments = () => {
 							<div className="text-center text-muted-foreground">Scan or click the QR code to make a UPI payment</div>
 						</CardContent>
 					</Card>
-					<Button className="bg-green-600 mt-6 hover:bg-green-700" onClick={() => { }}>I Have Paid!</Button>
+					<Button className="bg-green-600 mt-6 hover:bg-green-700" onClick={() => { }} disabled={!paymentConfirmActive}>I Have Paid!</Button>
 					<div className="text-center text-muted-foreground pt-2">After paying, return to this link and click on the button above</div>
 				</>
 			)}
