@@ -70,7 +70,7 @@ const InvoicesTab = () => {
 		}))
 
 		console.log('Invoices with students:', invoicesWithStudents)
-		setInvoices(invoicesWithStudents)
+		setInvoices(invoicesWithStudents.reverse())
 		setIsLoading(false)
 	}
 
