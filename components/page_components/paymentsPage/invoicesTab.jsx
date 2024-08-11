@@ -387,6 +387,13 @@ const InvoicesTab = () => {
 		setIsLoading(false)
 	}
 
+	async function handleMarkConfirmed() {
+		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
+		const result = fetch('/api/system/payment_stats', {headers: {'Content-Type': 'application/json', 'jwt': jwt, 'payment_value': selectedInvoice.amount}, method: 'PUT'})
+		// Send confirmation email to students
+		handleMarkPaid()
+	}
+
 	async function handleMarkPaid() {
 		setIsLoading(true)
 		const  {data, error} = await supabaseClient.from('invoices').update({ status: 'Paid' }).eq('id', selectedInvoice.id).select()
@@ -500,7 +507,7 @@ const InvoicesTab = () => {
 					{ selectedInvoice !== null && selectedInvoice.status == "Unconfirmed" &&
 						<DialogFooter>
 							<div className="flex justify-between flex-wrap w-full">
-								<Button onClick={handleMarkPaid} className={"bg-green-600 hover:bg-green-800" + (isLoading ? " cursor-progress" : "")}>Mark Confirmed</Button>
+								<Button onClick={handleMarkConfirmed} className={"bg-green-600 hover:bg-green-800" + (isLoading ? " cursor-progress" : "")}>Mark Confirmed</Button>
 							</div>
 						</DialogFooter>
 					}
