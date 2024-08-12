@@ -70,7 +70,8 @@ const InvoicesTab = () => {
 		}))
 
 		console.log('Invoices with students:', invoicesWithStudents)
-		setInvoices(invoicesWithStudents)
+
+		setInvoices(invoicesWithStudents.sort((a, b) => new Date(b.date) - new Date(a.date)))
 		setIsLoading(false)
 	}
 
@@ -387,6 +388,13 @@ const InvoicesTab = () => {
 		setIsLoading(false)
 	}
 
+	async function handleMarkConfirmed() {
+		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
+		const result = fetch('/api/system/payment_stats', {headers: {'Content-Type': 'application/json', 'jwt': jwt, 'payment_value': selectedInvoice.amount}, method: 'PUT'})
+		// Send confirmation email to students
+		handleMarkPaid()
+	}
+
 	async function handleMarkPaid() {
 		setIsLoading(true)
 		const  {data, error} = await supabaseClient.from('invoices').update({ status: 'Paid' }).eq('id', selectedInvoice.id).select()
@@ -396,6 +404,19 @@ const InvoicesTab = () => {
 				className:"bg-green-500", title: "Success", description: "Marked Invoice as Paid and added Payment and Classes",
 			})
 		}
+		setIsLoading(false)
+	}
+
+	async function handleNotReceived() {
+		setIsLoading(true)
+		const  {data, error} = await supabaseClient.from('invoices').update({ status: 'Pending' }).eq('id', selectedInvoice.id).select()
+		if (data) {
+			toast({
+				className:"bg-green-500", title: "Success", description: "Marked Invoice as Pending",
+			})
+		}
+		fetchInvoices()
+		setInvoiceDetailsOpen(false)
 		setIsLoading(false)
 	}
 
@@ -494,6 +515,14 @@ const InvoicesTab = () => {
 							<div className="flex justify-between flex-wrap w-full">
 								<Button onClick={handleMarkPaid} className={"bg-green-600 hover:bg-green-800" + (isLoading ? " cursor-progress" : "")}>Mark Received</Button>
 								<Button onClick={resendInvoice} className={(isLoading ? "cursor-progress" : "")}>Resend Invoice</Button>
+							</div>
+						</DialogFooter>
+					}
+					{ selectedInvoice !== null && selectedInvoice.status == "Unconfirmed" &&
+						<DialogFooter>
+							<div className="flex justify-between flex-wrap w-full">
+								<Button onClick={handleMarkConfirmed} className={"bg-green-600 hover:bg-green-800" + (isLoading ? " cursor-progress" : "")}>Mark Confirmed</Button>
+								<Button onClick={handleNotReceived} className={"bg-red-500 hover:bg-red-700" + (isLoading ? " cursor-progress" : "")}>Did Not Receive</Button>
 							</div>
 						</DialogFooter>
 					}

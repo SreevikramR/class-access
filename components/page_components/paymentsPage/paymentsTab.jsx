@@ -72,7 +72,7 @@ const PaymentsTab = () => {
 		}))
 
 		console.log('Payments with students:', paymentsWithStudents)
-		setPayments(paymentsWithStudents.reverse())
+		setPayments(paymentsWithStudents.sort((a, b) => new Date(b.date) - new Date(a.date)))
 		setIsLoading(false)
 	}
 
