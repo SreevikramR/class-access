@@ -47,6 +47,7 @@ export default function LoginPage() {
 				provider: 'google',
 				options: {
 					redirectTo: `${window.location.origin}/oauth/google/teacher_login`,
+					scopes: 'https://www.googleapis.com/auth/meetings.space.readonly https://www.googleapis.com/auth/meetings.space.created'
 				},
 			})
 		} catch (error) {
