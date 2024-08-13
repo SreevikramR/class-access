@@ -224,7 +224,7 @@ export default function Component({ params: { class_code } }) {
 			};
 			return date.toLocaleTimeString('en-US', options);
 		}
-		return `${formatTimeString(start)} - ${formatTimeString(end)}`
+		return `${formatTimeString(start)} IST - ${formatTimeString(end)} IST`
 	}
 
 	const formatDays = (days) => {
