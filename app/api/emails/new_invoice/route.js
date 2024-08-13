@@ -19,6 +19,8 @@ export async function POST(request) {
 	const title = request.headers.get('title');
 	const description = request.headers.get('description');
 	const classes = request.headers.get('classes');
+	const invoice_id = request.headers.get('invoiceId');
+	const paymentLink = `https://classaccess.tech/pay?invoice_id=${invoice_id}`;
 
 	const controller = new AbortController()
 	const { signal } = controller;
@@ -36,7 +38,8 @@ export async function POST(request) {
 			"description": description,
 			"amount": amount,
 			"qty": classes,
-			"total": amount
+			"total": amount,
+			"paymentLink": paymentLink
 		},
 		"to": [
 			{

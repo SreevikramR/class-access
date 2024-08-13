@@ -98,15 +98,7 @@ const MarkAttendance = () => {
 		}
 
 		Promise.all([fetchStudentProxies(), fetchAttendanceRecords()]).then(([studentsData, attendanceData]) => {
-			console.log(studentsData, attendanceData);
-			console.log('keys', Object.keys(attendanceData));
-			for (const student of studentsData) {
-				if (!Object.keys(attendanceData).includes(student.id)) {
-					attendanceData[student.id] = false;
-				}
-			}
 			setAttendance(attendanceData);
-			console.log('attendance', attendanceData);
 		});
 	}
 
@@ -116,10 +108,15 @@ const MarkAttendance = () => {
 		setClassSelectOpen(false);
 	};
 
-	const handleAttendanceChange = (studentId, checked) => {
-		setAttendance((prev) => ({
-			...prev, [studentId]: checked,
-		}));
+	const handleAttendanceChange = (studentId, isPresent, isAbsent) => {
+		let newAttendanceList = { ...attendance };
+		if(attendance[studentId] !== 'undefined' && !isPresent && !isAbsent) delete newAttendanceList[studentId]
+		if (isPresent) {
+			newAttendanceList[studentId] = true;
+		} else if (isAbsent) {
+			newAttendanceList[studentId] = false;
+		}
+		setAttendance(newAttendanceList);
 		console.log(attendance);
 	};
 
@@ -190,16 +187,10 @@ const MarkAttendance = () => {
 		let studentLastName = last_name;
 		let studentEmail = email;
 
-
 		if (studentFirstName == null) {
 			studentFirstName = "Student";
 			studentLastName = "Invited";
 		}
-
-		let studentName = studentFirstName + " " + studentLastName;
-		const words = studentName.split(' ');
-		const firstLetters = words.map(word => word.charAt(0));
-		const initials = firstLetters.join('');
 
 		let classesNumber = classes_left[selectedClassId];
 		let classesLeftElement;
@@ -209,20 +200,31 @@ const MarkAttendance = () => {
 			classesLeftElement = <span>{classesNumber}</span>
 		}
 
-		return (<TableRow className="cursor-pointer">
-			<TableCell>
-				<div className="flex items-center gap-2">
-					<div>{studentFirstName} {studentLastName}</div>
-				</div>
-			</TableCell>
-			<TableCell>{studentEmail}</TableCell>
-			<TableCell>{classesLeftElement}</TableCell>
-			<TableCell className="text-center">
-				<Checkbox
-					checked={attendance[id] || false}
-					onCheckedChange={(checked) => handleAttendanceChange(id, checked)}
-				/> </TableCell>
-		</TableRow>);
+		let isAbsent = false;
+		if(!attendance[id] && attendance[id] != null) isAbsent = true
+		if (attendance[id]) isAbsent = false
+
+		return (
+			<TableRow className="cursor-pointer">
+				<TableCell>
+					<div className="flex items-center gap-2">
+						<div>{studentFirstName} {studentLastName}</div>
+					</div>
+				</TableCell>
+				<TableCell>{studentEmail}</TableCell>
+				<TableCell>{classesLeftElement}</TableCell>
+				<TableCell className="text-center">
+					<Checkbox
+						checked={attendance[id] || false}
+						onCheckedChange={(checked) => handleAttendanceChange(id, checked, false)}
+					/> </TableCell>
+				<TableCell className="text-center">
+					<Checkbox
+						checked={isAbsent}
+						onCheckedChange={(checked) => handleAttendanceChange(id, false, checked)}
+					/> </TableCell>
+			</TableRow>
+		);
 	};
 
 	return (<>
@@ -249,24 +251,25 @@ const MarkAttendance = () => {
 			<DatePickerPopup />
 		</Popover>
 		<Card className="mt-4">
-			{students.length > 0 ? (<CardContent>
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Student</TableHead>
-							<TableHead>Email</TableHead>
-							<TableHead>Classes Left</TableHead>
-							<TableHead className="text-center">Attendance</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{studentDataLoaded && students.map((student) => (<UserRow key={student.id} {...student} />))}
-					</TableBody>
-				</Table>
-			</CardContent>) : (isFetchingStudents ? (<CardContent className="p-8 pt-0 text-gray-500">Loading Student
-				Information...</CardContent>) : (
-				<CardContent className="p-8 text-gray-500">Please add students to your class to view them
-					here</CardContent>))}
+			{students.length > 0 ? (
+				<CardContent>
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Student</TableHead>
+								<TableHead>Email</TableHead>
+								<TableHead>Classes Left</TableHead>
+								<TableHead className="text-center">Present</TableHead>
+								<TableHead className="text-center">Absent</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{studentDataLoaded && students.map((student) => (<UserRow key={student.id} {...student} />))}
+						</TableBody>
+					</Table>
+				</CardContent>
+			) : (isFetchingStudents ? (<CardContent className="p-8 pt-0 text-gray-500">Loading Student Information...</CardContent>) :
+				(<CardContent className="p-8 text-gray-500">Please add students to your class to view them here</CardContent>))}
 		</Card>
 		<div className='flex ml-auto justify-end'>
 			<Button className={"mt-4" + (isSavingAttendance ? " cursor-progress" : "")} onClick={saveAttendance}>Save Attendance</Button>

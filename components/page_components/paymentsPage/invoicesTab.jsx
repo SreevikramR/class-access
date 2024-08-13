@@ -43,7 +43,6 @@ const InvoicesTab = () => {
 		// .eq('class_id', teacherID)
 
 		if (invoicesError) {
-			console.error('Error fetching invoices:', invoicesError.message, invoicesError.details, invoicesError.hint)
 			setIsLoading(false)
 			return
 		}
@@ -58,18 +57,14 @@ const InvoicesTab = () => {
 			.in('id', studentIds)
 
 		if (studentsError) {
-			console.error('Error fetching students:', studentsError.message, studentsError.details, studentsError.hint)
 			setIsLoading(false)
 			return
 		}
 
 		const studentsMap = new Map(studentsData.map(s => [s.id, s]))
-
 		const invoicesWithStudents = invoicesData.map(invoice => ({
 			...invoice, student_proxies: studentsMap.get(invoice.student_proxy_id) || null
 		}))
-
-		console.log('Invoices with students:', invoicesWithStudents)
 
 		setInvoices(invoicesWithStudents.sort((a, b) => new Date(b.date) - new Date(a.date)))
 		setIsLoading(false)
@@ -96,13 +91,8 @@ const InvoicesTab = () => {
 			.select('id, class_code, student_proxy_ids,name')
 			.eq('teacher_id', teacherID)
 
-		if (classesError) {
-			console.error('Error fetching classes:', classesError)
-			return
-		}
-
+		if (classesError) return
 		setClasses(classesData)
-
 		const allStudentIds = [...new Set(classesData.flatMap(c => c.student_proxy_ids))]
 
 		const { data: studentsData, error: studentsError } = await supabaseClient
@@ -110,13 +100,8 @@ const InvoicesTab = () => {
 			.select('id, first_name, last_name, email')
 			.in('id', allStudentIds)
 
-		if (studentsError) {
-			console.error('Error fetching students:', studentsError)
-			return
-		}
-
+		if (studentsError) return
 		const studentsMap = new Map(studentsData.map(s => [s.id, s]))
-
 		const classesWithStudents = classesData.map(c => ({
 			...c, students: c.student_proxy_ids.map(id => studentsMap.get(id)).filter(Boolean)
 		}))
@@ -146,6 +131,7 @@ const InvoicesTab = () => {
 			})
 			return
 		}
+
 		if (isLoading) return
 		setIsLoading(true)
 		const { data, error } = await supabaseClient.from('invoices').insert({
@@ -157,10 +143,9 @@ const InvoicesTab = () => {
 			title: invoiceTitle,
 			description: invoiceDescription,
 			classes: invoiceClasses
-		})
+		}).select('id')
 
 		if (error) {
-			console.error('Error creating invoice:', error)
 			toast({
 				variant: "destructive", title: "Error", description: "Error creating invoice. Please try again later.",
 			})
@@ -168,10 +153,7 @@ const InvoicesTab = () => {
 			return
 		}
 
-		const {
-			data: teacherData,
-			error: teacherError
-		} = await supabaseClient.from('teachers').select('email, first_name, last_name').eq('id', teacherID)
+		const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('email, first_name, last_name').eq('id', teacherID)
 		const controller = new AbortController()
 		const { signal } = controller;
 		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
@@ -188,11 +170,11 @@ const InvoicesTab = () => {
 				"description": invoiceDescription,
 				"amount": invoiceAmount,
 				"classes": invoiceClasses,
+				"invoiceId": data[0].id
 			},
 		});
 
 		if (response.status !== 200) {
-			console.error('Error sending email:', response)
 			toast({
 				variant: "destructive", title: "Error", description: "Error sending email. Please try again later.",
 			})
@@ -243,12 +225,9 @@ const InvoicesTab = () => {
 		})
 
 		if (response.status !== 200) {
-			console.error('Error updating classes:', response.statusText)
 			toast({ variant: "destructive", title: "Error", description: "Error saving payment. Please try again." })
-			console.log('Not saving')
 		}
 		if (error) {
-			console.error('Error saving payment:', error)
 			toast({
 				variant: "destructive", title: "Error", description: "Error saving payment. Please try again.",
 			})
@@ -260,9 +239,7 @@ const InvoicesTab = () => {
 	}
 
 	async function handleStudentFetch() {
-		if (isFetchingStudents) {
-			return
-		}
+		if (isFetchingStudents) return
 		setIsFetchingStudents(true)
 		const teacherUUID = (await supabaseClient.auth.getUser()).data.user.id
 		setTeacherID(teacherUUID)
@@ -273,7 +250,6 @@ const InvoicesTab = () => {
 			.eq('teacher_id', teacherUUID)
 
 		if (classesError) {
-			console.error('Error fetching classes data:', classesError)
 			setIsFetchingStudents(false)
 			return
 		}
@@ -286,7 +262,6 @@ const InvoicesTab = () => {
 			.in('id', studentIds)
 
 		if (studentError) {
-			console.error('Error fetching student data:', studentError)
 			setIsFetchingStudents(false)
 			return
 		}
@@ -298,7 +273,8 @@ const InvoicesTab = () => {
 				class_code: c.class_code,
 				has_joined: Boolean(student.hasJoined),
 				classes_left: student.classes_left[c.id]
-			})))
+			}))
+		)
 
 		setStudents(studentsWithClasses)
 		setIsFetchingStudents(false)
@@ -308,7 +284,6 @@ const InvoicesTab = () => {
 	const UserRow = ({ invoiceInfo }) => {
 		const { date, amount, title, status, student_proxies } = invoiceInfo
 		const { first_name, last_name, email } = student_proxies || {}
-
 		let studentName = "Student Invited"
 		let studentEmail = email || "N/A"
 
@@ -323,7 +298,6 @@ const InvoicesTab = () => {
 			setInvoiceDetailsOpen(true)
 			const displayDate = `${invoiceDate.getUTCDate()} ${monthStrings[invoiceDate.getUTCMonth()]} ${invoiceDate.getUTCFullYear()}`
 			setSelectedInvoice({ ...invoiceInfo, "studentDisplayName": studentName, "invoiceDisplayDate": displayDate })
-			console.log(invoiceInfo)
 		}
 
 		return (
@@ -375,7 +349,6 @@ const InvoicesTab = () => {
 		});
 
 		if (response.status !== 200) {
-			console.error('Error sending email:', response)
 			toast({
 				variant: "destructive", title: "Error", description: "Error sending email. Please try again later.",
 			})
@@ -498,7 +471,7 @@ const InvoicesTab = () => {
 							<div><span className="font-medium">Status:</span> { selectedInvoice !== null && selectedInvoice.status}</div>
 						</div>
 						<div className="grid gap-2">
-							<div><span className="font-medium">Amount:</span> { selectedInvoice !== null && selectedInvoice.amount}</div>
+							<div><span className="font-medium">Amount:</span> &#8377;{ selectedInvoice !== null && selectedInvoice.amount}</div>
 						</div>
 						<div className="grid gap-2">
 							<div><span className="font-medium">Title:</span> { selectedInvoice !== null && selectedInvoice.title}</div>
@@ -508,6 +481,9 @@ const InvoicesTab = () => {
 						</div>
 						<div className="grid gap-2">
 							<div><span className="font-medium">Classes to Add:</span> { selectedInvoice !== null && selectedInvoice.classes}</div>
+						</div>
+						<div className="grid gap-2">
+							<div><span className="font-medium">Payment Link:</span> { selectedInvoice !== null && (`classaccess.tech/pay?invoice_id=${selectedInvoice.classes}`)}</div>
 						</div>
 					</div>
 					{ selectedInvoice !== null && selectedInvoice.status == "Pending" &&
