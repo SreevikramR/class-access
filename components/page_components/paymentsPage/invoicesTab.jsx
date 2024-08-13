@@ -157,7 +157,7 @@ const InvoicesTab = () => {
 			title: invoiceTitle,
 			description: invoiceDescription,
 			classes: invoiceClasses
-		})
+		}).select('id')
 
 		if (error) {
 			console.error('Error creating invoice:', error)
@@ -168,10 +168,7 @@ const InvoicesTab = () => {
 			return
 		}
 
-		const {
-			data: teacherData,
-			error: teacherError
-		} = await supabaseClient.from('teachers').select('email, first_name, last_name').eq('id', teacherID)
+		const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('email, first_name, last_name').eq('id', teacherID)
 		const controller = new AbortController()
 		const { signal } = controller;
 		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
@@ -188,6 +185,7 @@ const InvoicesTab = () => {
 				"description": invoiceDescription,
 				"amount": invoiceAmount,
 				"classes": invoiceClasses,
+				"invoiceId": data[0].id
 			},
 		});
 
