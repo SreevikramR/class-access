@@ -153,7 +153,7 @@ const InvoicesTab = () => {
 			class_id: selectedClass,
 			student_proxy_id: selectedStudent,
 			amount: invoiceAmount,
-			date: new Date().toLocaleDateString(),
+			date: new Date().toISOString(),
 			title: invoiceTitle,
 			description: invoiceDescription,
 			classes: invoiceClasses
