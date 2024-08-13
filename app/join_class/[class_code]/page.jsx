@@ -97,7 +97,7 @@ export default function Component({ params: { class_code } }) {
 					description: "Please try again later",
 					variant: "destructive"
 				});
-				setLoading(dalse)
+				setLoading(false)
 				return;
 			}
 			setStep(3)
