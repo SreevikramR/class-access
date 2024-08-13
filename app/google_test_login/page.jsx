@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import { useToast } from "@/components/ui/use-toast"
 import LoadingOverlay from "@/components/page_components/loadingOverlay"
@@ -15,6 +15,15 @@ export default function LoginPage() {
 	const [loading, setLoading] = useState(false)
 	const [forgotPassword, setForgotPassword] = useState(false)
 	const [resetEmailSent, setResetEmailSent] = useState(false)
+
+	useEffect(() => {
+		testFunction()
+	}, [])
+
+	const testFunction = async () => {
+		const { data } = await supabaseClient.auth.getSession()
+		console.log(data)
+	}
 
 	const { toast } = useToast()
 
@@ -47,7 +56,8 @@ export default function LoginPage() {
 				provider: 'google',
 				options: {
 					redirectTo: `${window.location.origin}/oauth/google/teacher_login`,
-					scopes: 'https://www.googleapis.com/auth/meetings.space.readonly https://www.googleapis.com/auth/meetings.space.created'
+					scopes: 'https://www.googleapis.com/auth/meetings.space.readonly https://www.googleapis.com/auth/meetings.space.created',
+					queryParams: { access_type: 'offline' }
 				},
 			})
 		} catch (error) {
