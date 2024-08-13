@@ -22,7 +22,18 @@ export default function LoginPage() {
 
 	const testFunction = async () => {
 		const { data } = await supabaseClient.auth.getSession()
-		console.log(data)
+		console.log(data.session.access_token)
+		const signal = new AbortController().signal
+		const response = await fetchTimeout("/api/meetings/create/gmeet", 5000, {
+			signal,
+			"method": "POST",
+			"headers": {
+				"Content-Type": "application/json",
+				"jwt": data.session.access_token,
+				"provider_access_token": "",
+				"provider_refresh_token": ""
+			},
+		})
 	}
 
 	const { toast } = useToast()
