@@ -23,6 +23,7 @@ const Payments = () => {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [noAccount, setNoAccount] = useState(false);
+	const [forgotPassword, setForgotPassword] = useState(false);
 	const [noInvoiceFound, setNoInvoiceFound] = useState(false);
 	const [teacherDetails, setTeacherDetails] = useState(null);
 	const [classDetails, setClassDetails] = useState(null);
@@ -66,8 +67,52 @@ const Payments = () => {
 		setLoading(false)
 	}
 
+	const handlePasswordReset = async () => {
+		if (loading) return;
+		setLoading(true)
+		const controller = new AbortController()
+		const { signal } = controller;
+
+		try {
+			const response = await fetchTimeout(`/api/users/forgot_password`, 5500, {
+				signal,
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					"email": email
+				},
+			});
+			if (response.status !== 200) {
+				toast({
+					title: 'Password Reset Failed',
+					description: "Please try again later",
+					variant: "destructive"
+				});
+				setLoading(false)
+				return;
+			}
+			toast({
+				title: 'Password Reset',
+				description: "Please check your email for the password reset link",
+				variant: "success"
+			})
+			setForgotPassword(false)
+		} catch (error) {
+			toast({
+				title: 'Password Reset Failed',
+				description: error.message,
+				variant: "destructive"
+			});
+		}
+		setLoading(false)
+	}
+
 	const fetchInvoiceDetails = async ({email, invoice_id}) => {
-		if (!invoice_id) return
+		if (!invoice_id) {
+			setNoInvoiceFound(true);
+			setLoading(false)
+			return;
+		}
 		setLoading(true)
 		let fetchedTeacherData;
 		const { data, error } = await supabaseClient.from('invoices').select('*').eq('id', invoice_id);
@@ -167,7 +212,7 @@ const Payments = () => {
 			{loading && <LoadingOverlay />}
 			{!loggedIn && (
 				<>
-					{!noAccount && (
+					{!noAccount && !forgotPassword && (
 						<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 h-fit">
 							<div className="text-center">
 								<h1 className="font-semibold text-md pb-4 lg:text-xl text-foreground pt-6 text-pretty">Please Login to Make Payments</h1>
@@ -188,12 +233,10 @@ const Payments = () => {
 									<div className="grid gap-2">
 										<div className="flex items-center">
 											<Label htmlFor="password">Password</Label>
-											<Link
-												href="/forgot-password"
-												className="ml-auto inline-block text-xs sm:text-sm underline"
-											>
-													Forgot your password?
-											</Link>
+											<span
+												onClick={() => {setForgotPassword(true)}}
+												className="ml-auto inline-block text-xs sm:text-sm underline hover:cursor-pointer"
+											>Forgot your password?</span>
 										</div>
 										<Input
 											id="password"
@@ -219,6 +262,32 @@ const Payments = () => {
 								</div>
 							</div>
 						</Card>
+					)}
+					{!noAccount && forgotPassword && (
+						<>
+							<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10 h-fit">
+								<div className="text-center">
+									<h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Forgot Password</h1>
+								</div>
+								<div className="rounded-lg bg-white p-3 pt-0">
+									<div className="grid gap-4">
+										<div className="grid gap-2">
+											<Label htmlFor="email">Email</Label>
+											<Input
+												id="email"
+												type="email"
+												value={email}
+												placeholder="email@example.com"
+												required
+												onChange={(e) => setEmail(e.target.value)}
+											/>
+										</div>
+										<Button type="submit" onClick={handlePasswordReset} className={"w-full" + (loading ? " cursor-wait" : "")}>Send Link</Button>
+										<div className='sm:text-md text-sm cursor-pointer text-blue-700 underline w-fit' onClick={() => setForgotPassword(false)}>Back to login</div>
+									</div>
+								</div>
+							</Card>
+						</>
 					)}
 					{noAccount && (
 						<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10 h-fit">
