@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@google-apps/meet": "^0.3.0",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-checkbox": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.1",
@@ -32,6 +31,7 @@
     "cmdk": "^1.0.0",
     "cryptr": "^6.3.0",
     "date-fns": "^3.6.0",
+    "googleapis": "^140.0.1",
     "jsonwebtoken": "^9.0.2",
     "libphonenumber-js": "^1.11.4",
     "lucide-react": "^0.394.0",
