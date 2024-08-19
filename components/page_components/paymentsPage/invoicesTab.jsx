@@ -483,7 +483,7 @@ const InvoicesTab = () => {
 							<div><span className="font-medium">Classes to Add:</span> { selectedInvoice !== null && selectedInvoice.classes}</div>
 						</div>
 						<div className="grid gap-2">
-							<div><span className="font-medium">Payment Link:</span> { selectedInvoice !== null && (`classaccess.tech/pay?invoice_id=${selectedInvoice.classes}`)}</div>
+							<div><span className="font-medium">Payment Link:</span> { selectedInvoice !== null && (`classaccess.tech/pay?invoice_id=${selectedInvoice.id}`)}</div>
 						</div>
 					</div>
 					{ selectedInvoice !== null && selectedInvoice.status == "Pending" &&
