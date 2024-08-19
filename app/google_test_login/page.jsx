@@ -22,7 +22,6 @@ export default function LoginPage() {
 
 	const testFunction = async () => {
 		const { data } = await supabaseClient.auth.getSession()
-		console.log(data.session.access_token)
 		const signal = new AbortController().signal
 		const response = await fetchTimeout("/api/meetings/create/gmeet", 5000, {
 			signal,
@@ -30,8 +29,8 @@ export default function LoginPage() {
 			"headers": {
 				"Content-Type": "application/json",
 				"jwt": data.session.access_token,
-				"provider_access_token": "",
-				"provider_refresh_token": ""
+				"provider_access_token": data.session.provider_token,
+				"provider_refresh_token": data.session.provider_refresh_token
 			},
 		})
 	}
@@ -67,7 +66,7 @@ export default function LoginPage() {
 				provider: 'google',
 				options: {
 					redirectTo: `${window.location.origin}/oauth/google/teacher_login`,
-					scopes: 'https://www.googleapis.com/auth/meetings.space.readonly https://www.googleapis.com/auth/meetings.space.created',
+					scopes: 'https://www.googleapis.com/auth/calendar.events',
 					queryParams: { access_type: 'offline' }
 				},
 			})

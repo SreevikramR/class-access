@@ -18,6 +18,9 @@ export async function POST(request) {
 		return NextResponse.json({message: "Invalid Token"}, {status: 401});
 	}
 
+	const accessToken = request.headers.get('provider_access_token');
+	const refreshToken = request.headers.get('provider_refresh_token');
+
 	const { data, error } = await supabase.from('teachers').select('email').eq('id', teacherUUID);
 	if (error) {
 		return NextResponse.json({ error: 'Server Error' }, { status: 500 });
@@ -25,19 +28,19 @@ export async function POST(request) {
 		return NextResponse.json({ error: 'Teacher not found' }, { status: 500 });
 	}
 
-	const oauth2client = new google.auth.OAuth2('clientID', 'clientSecret', 'redirectURI')
-	oauth2client.setCredentials({access_token: 'accessToken', refresh_token: 'refreshToken'})
+	const oauth2client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, 'https://classaccess.tech/')
+	oauth2client.setCredentials({access_token: accessToken, refresh_token: refreshToken})
 	const meet = google.calendar({version: 'v3', auth: oauth2client});
 	const event = {
 		summary: 'Meeting',
 		location: 'Online',
-		description: 'Meeting with student',
+		description: 'Meeting with student name',
 		start: {
-			dateTime: '2022-01-01T09:00:00-07:00',
+			dateTime: '2024-01-01T09:00:00-07:00',
 			timeZone: 'Asia/Kolkata',
 		},
 		end: {
-			dateTime: '2022-01-01T10:00:00-07:00',
+			dateTime: '2024-01-01T10:00:00-07:00',
 			timeZone: 'Asia/Kolkata',
 		}
 	}
@@ -48,7 +51,8 @@ export async function POST(request) {
 			resource: event
 		})
 		console.log(response.data)
-	} catch {
+	} catch (error) {
+		console.log(error)
 		console.log("Error")
 	}
 
