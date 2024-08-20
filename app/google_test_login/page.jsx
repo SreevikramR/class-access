@@ -33,6 +33,8 @@ export default function LoginPage() {
 				"provider_refresh_token": data.session.provider_refresh_token
 			},
 		})
+
+		console.log(await response.json())
 	}
 
 	const { toast } = useToast()

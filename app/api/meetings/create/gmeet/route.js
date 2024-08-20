@@ -42,23 +42,27 @@ export async function POST(request) {
 		end: {
 			dateTime: '2024-01-01T10:00:00-07:00',
 			timeZone: 'Asia/Kolkata',
-		}
+		},
+		conferenceData: {
+			createRequest: {
+				conferenceSolutionKey: {
+					type: "hangoutsMeet"
+				},
+				requestId: "some-random-string"
+			}
+		},
 	}
 
 	try {
 		const response = await meet.events.insert({
 			calendarId: 'primary',
-			resource: event
+			resource: event,
+			conferenceDataVersion: 1
 		})
 		console.log(response.data)
+		return NextResponse.json({ message: response }, { status: 200 });
 	} catch (error) {
 		console.log(error)
 		console.log("Error")
 	}
-
-
-	if (error) {
-		return NextResponse.json({ error: 'Email Failed' }, { status: 500 });
-	}
-	return NextResponse.json({ message: 'Email Sent' }, { status: 200 });
 }
