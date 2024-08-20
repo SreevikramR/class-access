@@ -275,7 +275,7 @@ export default function Component({ params: { class_code } }) {
 		if (data.length === 0) {
 			toast({
 				title: 'Unable to Enroll',
-				description: "Error Enrolling Class, Please try again later",
+				description: "Error Enrolling in Class, Please try again later",
 				variant: "destructive"
 			})
 		}
@@ -312,7 +312,7 @@ export default function Component({ params: { class_code } }) {
 		return (
 			<Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
 				<div className="text-center">
-					<h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Please Login to Enroll to your class</h1>
+					<h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Please Login to Enroll in your class</h1>
 				</div>
 				<div className="rounded-lg bg-white p-3 pt-0">
 					<div className="grid gap-4">
@@ -459,7 +459,7 @@ export default function Component({ params: { class_code } }) {
 						<Card className="w-full p-6 space-y-4">
 							<div className="flex flex-col items-center space-y-2">
 								<div className="inline-block rounded-lg px-3 py-1 text-xs sm:text-sm font-medium text-pretty">
-                                    You have been invited to Enroll
+                                    You have been invited to Enroll in
 								</div>
 								<h2 className="sm:text-2xl text-lg text-center font-bold text-pretty">{classDetails.name}</h2>
 								<p className="text-muted-foreground text-xs sm:text-base">
@@ -477,7 +477,7 @@ export default function Component({ params: { class_code } }) {
 								<Button variant="outline" className="w-full">
                                     Decline
 								</Button>
-								<Button className={"w-full" + (loading ? " cursor-progress" : "")} onClick={handleComplete}>Enroll Class</Button>
+								<Button className={"w-full" + (loading ? " cursor-progress" : "")} onClick={handleComplete}>Enroll in Class</Button>
 							</div>
 						</Card>
 					</div>
