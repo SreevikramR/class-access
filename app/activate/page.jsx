@@ -117,7 +117,7 @@ const ActivationPage = () => {
 
 			const jwt = (await supabaseClient.auth.getSession()).data.session.access_token;
 			const signal = new AbortController().signal;
-			const response = await fetchTimeout('/api/students/update_has_joined', 2000, {
+			const response = await fetchTimeout('/api/students/update_has_enrolled', 2000, {
 				signal,
 				method: 'PUT',
 				headers: {
