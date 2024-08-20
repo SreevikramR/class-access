@@ -12,7 +12,7 @@ export default function HowToPage() {
 				<div className="space-y-4 flex flex-col">
 					<div className="text-center">
 						<h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-							How to Create an Account and Join a Class
+							How to Create an Account and Enroll in a Class
 						</h1>
 						<p className="mt-4 text-muted-foreground">Follow these simple steps to get started.</p>
 					</div>
@@ -31,7 +31,7 @@ export default function HowToPage() {
 							<div>
 								<h3 className="text-lg font-semibold">2. Accept Invite</h3>
 								<p className="text-muted-foreground">
-									Check your inbox for class invite and click the link to join the class.
+									Check your inbox for class invite and click the link to enroll in the class.
 								</p>
 							</div>
 						</Link>
@@ -64,7 +64,7 @@ export default function HowToPage() {
 					<ul className="mt-2 list-disc space-y-2 pl-6">
 						<li>Once you&apos;ve created your account, look for a second email that contians an invite to the class</li>
 						<li>
-							Confirm the details of the class you are trying to join and then accept the invite
+							Confirm the details of the class you are trying to enroll into and then accept the invite
 						</li>
 					</ul>
 				</div>
