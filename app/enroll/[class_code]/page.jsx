@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/use-toast"
 import LoadingOverlay from "@/components/page_components/loadingOverlay"
 
 export default function Component({ params: { class_code } }) {
-	const [joinedClass, setJoinedClass] = useState(false)
+	const [enrolledClass, setEnrolledClass] = useState(false)
 	const [isLoggedIn, setIsLoggedIn] = useState(false)
 	const [classDetails, setClassDetails] = useState(null)
 	const [studentData, setStudentData] = useState(null)
@@ -126,8 +126,8 @@ export default function Component({ params: { class_code } }) {
 					.eq('student_id', user.data.user.id)
 					.eq('teacher_id', classData.teacher_id)
 					.single();
-				if (proxyData && proxyData.status[classData.id] === 'Joined') {
-					setJoinedClass(true)
+				if (proxyData && proxyData.status[classData.id] === 'Enrolled') {
+					setEnrolledClass(true)
 				}
 			} else {
 				const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('*').eq('id', user.data.user.id);
@@ -249,7 +249,7 @@ export default function Component({ params: { class_code } }) {
 		}
 	}
 
-	const _joinedClass = () => {
+	const _EnrolledClass = () => {
 		return (
 			<Card className="flex flex-col items-center justify-center bg-background">
 				<div className="sm:max-w-md max-w-[90vw] p-6 rounded-lg bg-card">
@@ -275,7 +275,7 @@ export default function Component({ params: { class_code } }) {
 		if (data.length === 0) {
 			toast({
 				title: 'Unable to Enroll',
-				description: "Error Joining Class, Please try again later",
+				description: "Error Enrolling Class, Please try again later",
 				variant: "destructive"
 			})
 		}
@@ -293,11 +293,11 @@ export default function Component({ params: { class_code } }) {
 				'last_name': studentData.last_name,
 				'phone': studentData.phone,
 				'class_id': classDetails.id,
-				'class_status': 'Joined'
+				'class_status': 'Enrolled'
 			},
 		});
 		if (response.status === 200) {
-			setJoinedClass(true)
+			setEnrolledClass(true)
 		} else {
 			toast({
 				title: 'Failed to enroll',
@@ -312,7 +312,7 @@ export default function Component({ params: { class_code } }) {
 		return (
 			<Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
 				<div className="text-center">
-					<h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Please Login to Join your class</h1>
+					<h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Please Login to Enroll to your class</h1>
 				</div>
 				<div className="rounded-lg bg-white p-3 pt-0">
 					<div className="grid gap-4">
@@ -441,7 +441,7 @@ export default function Component({ params: { class_code } }) {
 			}
 			{isLoggedIn && <>
 				{unactivated && _unactivated()}
-				{joinedClass && !unactivated && _joinedClass()}
+				{enrolledClass && !unactivated && _EnrolledClass()}
 				{!classDetails && !unactivated && (
 					<Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
 						<div className="flex flex-col items-center space-y-2">
@@ -454,7 +454,7 @@ export default function Component({ params: { class_code } }) {
 						</div>
 					</Card>
 				)}
-				{!joinedClass && classDetails && !unactivated && (
+				{!enrolledClass && classDetails && !unactivated && (
 					<div className="lg:w-[46vw] sm:w-[60vw] w-[90vw]">
 						<Card className="w-full p-6 space-y-4">
 							<div className="flex flex-col items-center space-y-2">
