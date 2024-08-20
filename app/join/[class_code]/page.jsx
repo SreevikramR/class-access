@@ -21,7 +21,7 @@ export default function Component({ params: { class_code } }) {
 	const [className, setClassName] = useState("Class Name");
 	const [classLink, setClassLink] = useState("")
 	const [loading, setLoading] = useState(true);
-	const [hasJoinedClass, setHasJoinedClass] = useState(false);
+	const [hasEnrolled, setHasEnrolled] = useState(false);
 	const { toast } = useToast()
 
 	useEffect(() => {
@@ -81,8 +81,8 @@ export default function Component({ params: { class_code } }) {
 			if (error) {
 				console.error('Error fetching classes:', error)
 			}
-			if (data[0].status[classData[0].id] === 'Joined') {
-				setHasJoinedClass(true)
+			if (data[0].status[classData[0].id] === 'Enrolled') {
+				setHasEnrolled(true)
 			}
 			setCredits(data[0].classes_left[classData[0].id])
 			if (data[0].classes_left[classData[0].id] > 0) {
@@ -135,14 +135,14 @@ export default function Component({ params: { class_code } }) {
 					{!classDoesNotExist && ( <>
 					{isLoggedIn && (
 						<>
-							{!hasJoinedClass && (
+							{!hasEnrolled && (
 								<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2">
 									<div className="text-center">
 										<h1 className="font-bold text-foreground text-lg sm:text-xl pt-6 text-pretty pb-6">Please check you email for a class invite. Return to this link after accepting the invite</h1>
 									</div>
 								</Card>
 							)}
-							{hasJoinedClass && (
+							{hasEnrolled && (
 								<div className="w-full flex justify-center items-center">
 									{credits == 0 && (
 											<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2">
