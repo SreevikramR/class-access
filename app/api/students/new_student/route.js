@@ -346,7 +346,7 @@ const sendWelcomeEmail = async (teacherName, email) => {
 
 // Sends an onboarding email to the student
 const sendOnboardingEmail = async (email, classCode, teacherName, className) => {
-	const link = `https://classaccess.tech/join_class/${classCode}`;
+	const link = `https://classaccess.tech/enroll/${classCode}`;
 	const controller = new AbortController()
 	const { signal } = controller;
 

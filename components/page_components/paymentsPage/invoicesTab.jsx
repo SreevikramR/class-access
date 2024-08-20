@@ -345,6 +345,7 @@ const InvoicesTab = () => {
 				"description": selectedInvoice.description,
 				"amount": selectedInvoice.amount,
 				"classes": selectedInvoice.classes,
+				"invoice_id": selectedInvoice.id,
 			},
 		});
 

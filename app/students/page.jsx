@@ -77,7 +77,7 @@ const Students = () => {
 		let studentLastName = last_name
 		let studentEmail = email
 		let statusClassName = ""
-		let studentStatus = "Joined"
+		let studentStatus = "Enrolled"
 
 		if (studentFirstName === null) {
 			studentFirstName = "Student"
