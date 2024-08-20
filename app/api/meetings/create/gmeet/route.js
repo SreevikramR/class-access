@@ -36,11 +36,11 @@ export async function POST(request) {
 		location: 'Online',
 		description: 'Meeting with student name',
 		start: {
-			dateTime: '2024-01-01T09:00:00-07:00',
+			dateTime: '2005-06-25T15:00:00-07:00',
 			timeZone: 'Asia/Kolkata',
 		},
 		end: {
-			dateTime: '2024-01-01T10:00:00-07:00',
+			dateTime: '2005-06-25T16:00:00-07:00',
 			timeZone: 'Asia/Kolkata',
 		},
 		conferenceData: {
@@ -48,7 +48,7 @@ export async function POST(request) {
 				conferenceSolutionKey: {
 					type: "hangoutsMeet"
 				},
-				requestId: "some-random-string"
+				requestId: Date.now().toString()
 			}
 		},
 	}
@@ -59,10 +59,18 @@ export async function POST(request) {
 			resource: event,
 			conferenceDataVersion: 1
 		})
-		console.log(response.data)
-		return NextResponse.json({ message: response }, { status: 200 });
+		if (!response.data.hangoutLink) {
+			return NextResponse.json({ error: 'Server Error1' }, { status: 500 });
+		}
+		const meetingID = response.data.id;
+		const meetingLink = response.data.hangoutLink;
+		// Delete the event
+		const response2 = await meet.events.delete({
+			calendarId: 'primary',
+			eventId: meetingID
+		})
+		return NextResponse.json({"meetingLink": meetingLink}, { status: 200 });
 	} catch (error) {
-		console.log(error)
-		console.log("Error")
+		return NextResponse.json({ error: 'Server Error2' }, { status: 500 });
 	}
 }
