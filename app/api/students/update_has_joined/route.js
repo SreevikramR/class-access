@@ -1,4 +1,4 @@
-// /api/students/update_has_enrolled
+// /api/students/update_has_joined
 import { SupabaseClient } from "@supabase/supabase-js";
 import verifyJWT from "@/components/util_function/verifyJWT";
 import { NextResponse } from "next/server";
@@ -30,7 +30,7 @@ export async function PUT(request) {
 	let req = [];
 	for (let i = 0; i < studentProxyIDs.length; i++) {
 		req.push(supabase.from('student_proxies').update({
-			hasEnrolled: true,
+			hasJoined: true,
 		}).eq('id', studentProxyIDs[i]));
 	}
 	const { data, error } = await Promise.all(req);
