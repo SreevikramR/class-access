@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 const supabase = new SupabaseClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 // Update invoice status to Unconfirmed
-// PUT /api/students/update_proxy
 // Request Header
 //// jwt: JWT Token
 //// payment_value: value of the payment

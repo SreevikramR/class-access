@@ -6,7 +6,6 @@ import { NextResponse } from "next/server";
 const supabase = new SupabaseClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 // Update student proxy
-// PUT /api/students/update_proxy
 // Request Header
 //// jwt: JWT Token
 //// first_name: First Name
@@ -14,7 +13,7 @@ const supabase = new SupabaseClient(process.env.SUPABASE_URL, process.env.SUPABA
 //// phone: Phone
 //// student_proxy_id: Student Proxy ID
 //// class_id: Class ID
-//// class_status: Class Status (Invited/Joined)
+//// class_status: Class Status (Invited/Enrolled)
 
 export async function PUT(request) {
 	const token = request.headers.get('jwt');
