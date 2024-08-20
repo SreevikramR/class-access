@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/use-toast"
 import LoadingOverlay from "@/components/page_components/loadingOverlay"
 
 export default function Component({ params: { class_code } }) {
-	const [joinedClass, setJoinedClass] = useState(false)
+	const [enrolledClass, setEnrolledClass] = useState(false)
 	const [isLoggedIn, setIsLoggedIn] = useState(false)
 	const [classDetails, setClassDetails] = useState(null)
 	const [studentData, setStudentData] = useState(null)
@@ -126,8 +126,8 @@ export default function Component({ params: { class_code } }) {
 					.eq('student_id', user.data.user.id)
 					.eq('teacher_id', classData.teacher_id)
 					.single();
-				if (proxyData && proxyData.status[classData.id] === 'Joined') {
-					setJoinedClass(true)
+				if (proxyData && proxyData.status[classData.id] === 'Enrolled') {
+					setEnrolledClass(true)
 				}
 			} else {
 				const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('*').eq('id', user.data.user.id);
@@ -249,7 +249,7 @@ export default function Component({ params: { class_code } }) {
 		}
 	}
 
-	const _joinedClass = () => {
+	const _EnrolledClass = () => {
 		return (
 			<Card className="flex flex-col items-center justify-center bg-background">
 				<div className="sm:max-w-md max-w-[90vw] p-6 rounded-lg bg-card">
@@ -257,7 +257,7 @@ export default function Component({ params: { class_code } }) {
 						<CircleCheckIcon className="text-green-500 size-12" />
 						<h1 className="sm:text-3xl text-xl font-bold">You&#39;re all set!</h1>
 						<p className="text-muted-foreground text-pretty sm:text-base text-sm">
-                            Great! You&#39;ve successfully joined the class. Be sure to join at the scheduled time to participate.
+                            Great! You&#39;ve successfully enrolled. Be sure to join at the scheduled time to participate.
 						</p>
 						<p className="text-muted-foreground text-pretty sm:text-base text-sm">
                             Look for a link from your instructor to join the class.
@@ -274,8 +274,8 @@ export default function Component({ params: { class_code } }) {
 		const { data, error } = await supabaseClient.from('student_proxies').select('*').eq('student_id', studentData.id).eq('teacher_id', classDetails.teacher_id)
 		if (data.length === 0) {
 			toast({
-				title: 'Unable to Join Class',
-				description: "Error Joining Class, Please try again later",
+				title: 'Unable to Enroll',
+				description: "Error Enrolling in Class, Please try again later",
 				variant: "destructive"
 			})
 		}
@@ -293,14 +293,14 @@ export default function Component({ params: { class_code } }) {
 				'last_name': studentData.last_name,
 				'phone': studentData.phone,
 				'class_id': classDetails.id,
-				'class_status': 'Joined'
+				'class_status': 'Enrolled'
 			},
 		});
 		if (response.status === 200) {
-			setJoinedClass(true)
+			setEnrolledClass(true)
 		} else {
 			toast({
-				title: 'Failed to join class',
+				title: 'Failed to enroll',
 				description: "Please try again later",
 				variant: "destructive"
 			});
@@ -312,7 +312,7 @@ export default function Component({ params: { class_code } }) {
 		return (
 			<Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
 				<div className="text-center">
-					<h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Please Login to Join your class</h1>
+					<h1 className="font-semibold text-lg sm:text-xl text-foreground pt-6 pb-4 text-pretty">Please Login to Enroll in your class</h1>
 				</div>
 				<div className="rounded-lg bg-white p-3 pt-0">
 					<div className="grid gap-4">
@@ -441,7 +441,7 @@ export default function Component({ params: { class_code } }) {
 			}
 			{isLoggedIn && <>
 				{unactivated && _unactivated()}
-				{joinedClass && !unactivated && _joinedClass()}
+				{enrolledClass && !unactivated && _EnrolledClass()}
 				{!classDetails && !unactivated && (
 					<Card className="p-6 space-y-4 lg:w-[36vw] sm:w-[60vw] w-[90vw]">
 						<div className="flex flex-col items-center space-y-2">
@@ -454,12 +454,12 @@ export default function Component({ params: { class_code } }) {
 						</div>
 					</Card>
 				)}
-				{!joinedClass && classDetails && !unactivated && (
+				{!enrolledClass && classDetails && !unactivated && (
 					<div className="lg:w-[46vw] sm:w-[60vw] w-[90vw]">
 						<Card className="w-full p-6 space-y-4">
 							<div className="flex flex-col items-center space-y-2">
 								<div className="inline-block rounded-lg px-3 py-1 text-xs sm:text-sm font-medium text-pretty">
-                                    You have been invited to join
+                                    You have been invited to Enroll in
 								</div>
 								<h2 className="sm:text-2xl text-lg text-center font-bold text-pretty">{classDetails.name}</h2>
 								<p className="text-muted-foreground text-xs sm:text-base">
@@ -477,7 +477,7 @@ export default function Component({ params: { class_code } }) {
 								<Button variant="outline" className="w-full">
                                     Decline
 								</Button>
-								<Button className={"w-full" + (loading ? " cursor-progress" : "")} onClick={handleComplete}>Join Class</Button>
+								<Button className={"w-full" + (loading ? " cursor-progress" : "")} onClick={handleComplete}>Enroll in Class</Button>
 							</div>
 						</Card>
 					</div>
