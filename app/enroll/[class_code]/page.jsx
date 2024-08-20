@@ -257,7 +257,7 @@ export default function Component({ params: { class_code } }) {
 						<CircleCheckIcon className="text-green-500 size-12" />
 						<h1 className="sm:text-3xl text-xl font-bold">You&#39;re all set!</h1>
 						<p className="text-muted-foreground text-pretty sm:text-base text-sm">
-                            Great! You&#39;ve successfully joined the class. Be sure to join at the scheduled time to participate.
+                            Great! You&#39;ve successfully enrolled. Be sure to join at the scheduled time to participate.
 						</p>
 						<p className="text-muted-foreground text-pretty sm:text-base text-sm">
                             Look for a link from your instructor to join the class.
@@ -274,7 +274,7 @@ export default function Component({ params: { class_code } }) {
 		const { data, error } = await supabaseClient.from('student_proxies').select('*').eq('student_id', studentData.id).eq('teacher_id', classDetails.teacher_id)
 		if (data.length === 0) {
 			toast({
-				title: 'Unable to Join Class',
+				title: 'Unable to Enroll',
 				description: "Error Joining Class, Please try again later",
 				variant: "destructive"
 			})
@@ -300,7 +300,7 @@ export default function Component({ params: { class_code } }) {
 			setJoinedClass(true)
 		} else {
 			toast({
-				title: 'Failed to join class',
+				title: 'Failed to enroll',
 				description: "Please try again later",
 				variant: "destructive"
 			});
@@ -459,7 +459,7 @@ export default function Component({ params: { class_code } }) {
 						<Card className="w-full p-6 space-y-4">
 							<div className="flex flex-col items-center space-y-2">
 								<div className="inline-block rounded-lg px-3 py-1 text-xs sm:text-sm font-medium text-pretty">
-                                    You have been invited to join
+                                    You have been invited to Enroll
 								</div>
 								<h2 className="sm:text-2xl text-lg text-center font-bold text-pretty">{classDetails.name}</h2>
 								<p className="text-muted-foreground text-xs sm:text-base">
@@ -477,7 +477,7 @@ export default function Component({ params: { class_code } }) {
 								<Button variant="outline" className="w-full">
                                     Decline
 								</Button>
-								<Button className={"w-full" + (loading ? " cursor-progress" : "")} onClick={handleComplete}>Join Class</Button>
+								<Button className={"w-full" + (loading ? " cursor-progress" : "")} onClick={handleComplete}>Enroll Class</Button>
 							</div>
 						</Card>
 					</div>
