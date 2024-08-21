@@ -10,75 +10,38 @@ const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(request) {
-    const token = request.headers.get('jwt');
-    let teacherUUID = '';
+	const token = request.headers.get('jwt');
+	let teacherUUID = '';
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        teacherUUID = decoded.sub;
-    } catch (err) {
-        return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
-    }
+	try {
+		const decoded = jwt.verify(token, process.env.JWT_SECRET);
+		teacherUUID = decoded.sub;
+	} catch (err) {
+		return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
+	}
 
-    const cryptr = new Cryptr(process.env.ZOOM_ENCRYPTION_SECRET);
+	const cryptr = new Cryptr(process.env.ENCRYPTION_SECRET);
 
-    const access_token = request.headers.get('access_token');
-    const refresh_token = request.headers.get('refresh_token');
-    const supabase_refresh = request.headers.get('supabase_refresh');
-    
-    const enc_access_token = cryptr.encrypt(access_token);
-    const enc_refresh_token = cryptr.encrypt(refresh_token);
+	const access_token = request.headers.get('access_token');
+	const refresh_token = request.headers.get('refresh_token');
+	const supabase_refresh = request.headers.get('supabase_refresh');
 
-    const {authData, authError } = await supabase.auth.setSession({ access_token: token, refresh_token: supabase_refresh })
-    if (authError) {
-        return NextResponse.json({ error: authError.message }, { status: 500 });
-    }
+	const enc_access_token = cryptr.encrypt(access_token);
+	const enc_refresh_token = cryptr.encrypt(refresh_token);
 
-    const { data, error } = await supabase
-        .from('zoom_tokens')
-        .insert([
-            { user_uuid: teacherUUID, access_token: enc_access_token, refresh_token: enc_refresh_token }
-        ]).select();
+	const {authData, authError } = await supabase.auth.setSession({ access_token: token, refresh_token: supabase_refresh })
+	if (authError) {
+		return NextResponse.json({ error: authError.message }, { status: 500 });
+	}
 
-    if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    return NextResponse.json({ status: 200 });
-}
+	const { data, error } = await supabase
+		.from('zoom_tokens')
+		.insert([
+			{ user_uuid: teacherUUID, access_token: enc_access_token, refresh_token: enc_refresh_token }
+		]).select();
 
-export async function PUT(request) {
-    const token = request.headers.get('jwt');
-    let teacherUUID = '';
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        teacherUUID = decoded.sub;
-    } catch (err) {
-        return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
-    }
-
-    const cryptr = new Cryptr(process.env.ZOOM_ENCRYPTION_SECRET);
-
-    const access_token = request.headers.get('access_token');
-    const refresh_token = request.headers.get('refresh_token');
-    const supabase_refresh = request.headers.get('supabase_refresh');
-
-    const enc_access_token = cryptr.encrypt(access_token);
-    const enc_refresh_token = cryptr.encrypt(refresh_token);
-
-    const { authData, authError } = await supabase.auth.setSession({ access_token: token, refresh_token: supabase_refresh })
-    if (authError) {
-        return NextResponse.json({ error: authError.message }, { status: 500 });
-    }
-
-    const { data, error } = await supabase
-        .from('zoom_tokens')
-        .update(
-            { access_token: enc_access_token, refresh_token: enc_refresh_token, last_updated: new Date()}
-        ).eq("user_uuid", teacherUUID);
-
-    if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    return NextResponse.json({ status: 200 });
+	if (error) {
+		return NextResponse.json({ error: error.message }, { status: 500 });
+	}
+	return NextResponse.json({ status: 200 });
 }
