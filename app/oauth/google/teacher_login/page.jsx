@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { supabaseClient } from '@/components/util_function/supabaseCilent';
 import fetchTimeout from '@/components/util_function/fetch';
 
@@ -7,10 +7,14 @@ const Page = () => {
 	const [status, setStatus] = React.useState('Loading...')
 
 	useEffect(() => {
-		checkUserExists()
+		const fragment = window.location.href.split('#')[1];
+		const searchParams = new URLSearchParams(fragment)
+		const accessToken = searchParams.get('provider_token')
+		const refreshToken = searchParams.get('provider_refresh_token')
+		checkUserExists(accessToken, refreshToken)
 	}, [])
 
-	const checkUserExists = async () => {
+	const checkUserExists = async (providerAccessToken, providerRefreshToken) => {
 		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
 		const email = (await supabaseClient.auth.getUser()).data.user.email
 		const controller = new AbortController()
@@ -25,13 +29,25 @@ const Page = () => {
 				const response = await fetchTimeout(url, 5500, { signal, headers: { 'jwt': jwt } });
 				console.log(response)
 				if (response.status === 200) {
-					// setStatus('Please Sign Up First. Redirecting to Sign Up Page in 5 seconds...')
-					// setTimeout(() => {
-					//     window.location.href = '/signup'
-					// }, 5000)
+					setStatus('Please Sign Up First. Redirecting to Sign Up Page in 5 seconds...')
+					setTimeout(() => {
+					    window.location.href = '/signup'
+					}, 5000)
 				}
 			}
 		} else {
+			console.log(providerAccessToken, providerRefreshToken)
+			if (providerRefreshToken) {
+				const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token
+				const url = new URL(`${window.location.origin}/api/google/save_tokens`)
+				const response = await fetchTimeout(url, 5500, { signal, method: 'POST', headers: { 'jwt': jwt, 'refresh_token': providerRefreshToken, 'access_token': providerAccessToken, 'supabase_refresh': refreshToken } });
+				if (response.status !== 200) {
+					setStatus('Unable to log in, please try again later')
+					setTimeout(() => {
+						window.location.href = '/login'
+					}, 5000)
+				}
+			}
 			window.location.href = '/dashboard'
 		}
 		if (error) {

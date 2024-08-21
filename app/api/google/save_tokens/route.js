@@ -36,7 +36,7 @@ export async function POST(request) {
 
 	const { data, error } = await supabase
 		.from('google_tokens')
-		.insert([
+		.upsert([
 			{ user_id: teacherUUID, access_token: enc_access_token, refresh_token: enc_refresh_token }
 		]).select();
 
