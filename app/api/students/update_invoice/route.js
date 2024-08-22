@@ -4,7 +4,7 @@ import verifyJWT from "@/components/util_function/verifyJWT";
 import { NextResponse } from "next/server";
 const supabase = new SupabaseClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
-// Update invoice status to Unconfirmed
+// Update invoice status to Student Confirmed
 // Request Header
 //// jwt: JWT Token
 //// invoice_id: Invoice ID
@@ -39,7 +39,7 @@ export async function PUT(request) {
 	}
 
 	if (invoiceData[0].status == "Pending"){
-		const {data, error} = await supabase.from('invoices').update({ status: 'Unconfirmed' }).eq('id', invoiceID);
+		const {data, error} = await supabase.from('invoices').update({ status: 'Student Confirmed' }).eq('id', invoiceID);
 		if (error) {
 			return NextResponse.json({ message: "Failed to update invoice status" }, { status: 500 });
 		}
