@@ -27,7 +27,6 @@ const Page = () => {
 			} else {
 				const url = new URL(`${window.location.origin}/api/users/delete_user`)
 				const response = await fetchTimeout(url, 5500, { signal, headers: { 'jwt': jwt } });
-				console.log(response)
 				if (response.status === 200) {
 					setStatus('Please Sign Up First. Redirecting to Sign Up Page in 5 seconds...')
 					setTimeout(() => {
@@ -36,7 +35,6 @@ const Page = () => {
 				}
 			}
 		} else {
-			console.log(providerAccessToken, providerRefreshToken)
 			if (providerRefreshToken) {
 				const refreshToken = (await supabaseClient.auth.getSession()).data.session.refresh_token
 				const url = new URL(`${window.location.origin}/api/google/save_tokens`)
