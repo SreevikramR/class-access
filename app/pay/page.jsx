@@ -193,6 +193,11 @@ const Payments = () => {
 				password: password,
 			})
 			if (error) {
+				toast({
+					title: 'Unable to Login',
+					description: error.message,
+					variant: "destructive"
+				})
 				setLoading(false)
 			} else {
 				setLoggedIn(true)
