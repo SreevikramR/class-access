@@ -87,12 +87,42 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		return result;
 	}
 
+	function getTimezoneOffset() {
+		const offset = new Date().getTimezoneOffset();
+		const absoluteOffset = Math.abs(offset);
+		const hours = Math.floor(absoluteOffset / 60).toString().padStart(2, '0');
+		const minutes = (absoluteOffset % 60).toString().padStart(2, '0');
+		return `${offset > 0 ? '-' : '+'}${hours}:${minutes}`;
+	}
+
+	function createTimetzString(hours, minutes, ampm) {
+		// Convert hours to 24-hour format
+		let hour24 = parseInt(hours);
+		if (ampm.toLowerCase() === 'pm' && hour24 !== 12) {
+			hour24 += 12;
+		} else if (ampm.toLowerCase() === 'am' && hour24 === 12) {
+			hour24 = 0;
+		}
+
+		// Pad hours and minutes with zeros if needed
+		const paddedHours = hour24.toString().padStart(2, '0');
+		const paddedMinutes = minutes.toString().padStart(2, '0');
+
+		// Get the timezone offset
+		const timezoneOffset = getTimezoneOffset();
+
+		// Create the time string in the format HH:MM:00±HH:MM
+		const timeString = `${paddedHours}:${paddedMinutes}:00${timezoneOffset}`;
+
+		return timeString;
+	}
+
+
 	const handleCreateClass = async () => {
 		if (loading) return;
 		setLoading(true)
 		try {
 			const code = generateRandomString(6);
-
 			const {data: {user}, error: authError} = await supabaseClient.auth.getUser();
 			if (authError || !user) {
 				console.error('Authentication error:', authError);
@@ -106,13 +136,16 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 				return;
 			}
 
+			let startTimeTz = createTimetzString(startTime.hour, startTime.minute, startTime.ampm)
+			let endTimeTz = createTimetzString(endTime.hour, endTime.minute, endTime.ampm)
+
 			const classData = {
 				name: className,
 				description: classDescription,
 				days: selectedDays,
 				teacher_id: user.id,
-				start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
-				end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
+				start_time: `${startTimeTz}`,
+				end_time: `${endTimeTz}`,
 				student_proxy_ids: selectedStudents.filter(s => !s.isNew).map(s => s.id),
 				class_code: code,
 				meeting_link: zoomLink,
@@ -190,6 +223,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 			setLoading(false)
 		} catch (error) {
 			console.error("Error creating class or updating students");
+			console.log(error)
 			toast({
 				variant: 'destructive',
 				title: "Failed to create class or update students",
