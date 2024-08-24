@@ -425,29 +425,31 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 	const _studentTileForStudentList = (student) => {
 		const isSelected = selectedStudents.some(s => s.id === student.id);
 
-		return (<div className="flex items-center justify-between">
-			<div className="flex items-center gap-2">
-				<Avatar>
-					<AvatarFallback className="bg-white">{student.initials}</AvatarFallback>
-				</Avatar>
-				<div>
-					<p className="font-medium">{student.name}</p>
-					<p className="text-muted-foreground text-sm">{student.email}</p>
+		return (
+			<div className="flex items-center justify-between" key={student.id}>
+				<div className="flex items-center gap-2">
+					<Avatar>
+						<AvatarFallback className="bg-white">{student.initials}</AvatarFallback>
+					</Avatar>
+					<div>
+						<p className="font-medium">{student.name}</p>
+						<p className="text-muted-foreground text-sm">{student.email}</p>
+					</div>
 				</div>
+				<Checkbox
+					checked={isSelected}
+					onCheckedChange={(checked) => {
+						if (checked) {
+							setSelectedStudents([...selectedStudents, {
+								id: student.id, email: student.email, name: student.name
+							}]);
+						} else {
+							setSelectedStudents(selectedStudents.filter(s => s.id !== student.id));
+						}
+					}}
+				/>
 			</div>
-			<Checkbox
-				checked={isSelected}
-				onCheckedChange={(checked) => {
-					if (checked) {
-						setSelectedStudents([...selectedStudents, {
-							id: student.id, email: student.email, name: student.name
-						}]);
-					} else {
-						setSelectedStudents(selectedStudents.filter(s => s.id !== student.id));
-					}
-				}}
-			/>
-		</div>)
+		)
 	}
 
 	const handleAddStudent = async () => {
