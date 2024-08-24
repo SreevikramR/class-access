@@ -117,6 +117,19 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		return timeString;
 	}
 
+	const checkClassCode = async (code) => {
+		const {data: classData, error: classError} = await supabaseClient.from('classes').select('id').eq('class_code', code);
+		if (classError) {
+			console.error('Error checking class code:', classError);
+			return false;
+		}
+		if (classData.length === 0){
+			return code;
+		} else {
+			const newCode = generateRandomString(6);
+			return checkClassCode(newCode);
+		}
+	}
 
 	const handleCreateClass = async () => {
 		if (loading) return;
@@ -139,6 +152,13 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 			let startTimeTz = createTimetzString(startTime.hour, startTime.minute, startTime.ampm)
 			let endTimeTz = createTimetzString(endTime.hour, endTime.minute, endTime.ampm)
 
+			// Check if class code is unique
+			const uniqueCode = await checkClassCode(code);
+			if (!uniqueCode) {
+				setLoading(false)
+				return;
+			}
+
 			const classData = {
 				name: className,
 				description: classDescription,
@@ -147,7 +167,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 				start_time: `${startTimeTz}`,
 				end_time: `${endTimeTz}`,
 				student_proxy_ids: selectedStudents.filter(s => !s.isNew).map(s => s.id),
-				class_code: code,
+				class_code: uniqueCode,
 				meeting_link: zoomLink,
 			};
 
@@ -405,29 +425,31 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 	const _studentTileForStudentList = (student) => {
 		const isSelected = selectedStudents.some(s => s.id === student.id);
 
-		return (<div className="flex items-center justify-between">
-			<div className="flex items-center gap-2">
-				<Avatar>
-					<AvatarFallback className="bg-white">{student.initials}</AvatarFallback>
-				</Avatar>
-				<div>
-					<p className="font-medium">{student.name}</p>
-					<p className="text-muted-foreground text-sm">{student.email}</p>
+		return (
+			<div className="flex items-center justify-between" key={student.id}>
+				<div className="flex items-center gap-2">
+					<Avatar>
+						<AvatarFallback className="bg-white">{student.initials}</AvatarFallback>
+					</Avatar>
+					<div>
+						<p className="font-medium">{student.name}</p>
+						<p className="text-muted-foreground text-sm">{student.email}</p>
+					</div>
 				</div>
+				<Checkbox
+					checked={isSelected}
+					onCheckedChange={(checked) => {
+						if (checked) {
+							setSelectedStudents([...selectedStudents, {
+								id: student.id, email: student.email, name: student.name
+							}]);
+						} else {
+							setSelectedStudents(selectedStudents.filter(s => s.id !== student.id));
+						}
+					}}
+				/>
 			</div>
-			<Checkbox
-				checked={isSelected}
-				onCheckedChange={(checked) => {
-					if (checked) {
-						setSelectedStudents([...selectedStudents, {
-							id: student.id, email: student.email, name: student.name
-						}]);
-					} else {
-						setSelectedStudents(selectedStudents.filter(s => s.id !== student.id));
-					}
-				}}
-			/>
-		</div>)
+		)
 	}
 
 	const handleAddStudent = async () => {
