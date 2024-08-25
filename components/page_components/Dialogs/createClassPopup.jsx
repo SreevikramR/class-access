@@ -424,6 +424,12 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 
 	const _studentTileForStudentList = (student) => {
 		const isSelected = selectedStudents.some(s => s.id === student.id);
+		let studentName = student.name;
+		let studentEmail = student.email
+		if (studentName == 'null null') {
+			studentName = student.email;
+			studentEmail = '';
+		}
 
 		return (
 			<div className="flex items-center justify-between" key={student.id}>
@@ -432,8 +438,8 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 						<AvatarFallback className="bg-white">{student.initials}</AvatarFallback>
 					</Avatar>
 					<div>
-						<p className="font-medium">{student.name}</p>
-						<p className="text-muted-foreground text-sm">{student.email}</p>
+						<p className="font-medium">{studentName}</p>
+						<p className="text-muted-foreground text-sm">{studentEmail}</p>
 					</div>
 				</div>
 				<Checkbox
