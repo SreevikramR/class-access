@@ -51,11 +51,11 @@ export default function ManageClass({params}) {
 		}
 	}, [classCode, toast]);
 
-	const handleCopyLink = () => {
-		const classLink = `classaccess.tech/join/${classCode}`;
+	const handleCopyLink = ({ link }) => {
+		const classLink = link
 		navigator.clipboard.writeText(classLink).then(() => {
 			toast({
-				title: "Link copied!", description: "The class link has been copied to your clipboard.",
+				title: "Link copied!", description: "The link has been copied to your clipboard.",
 			});
 		}).catch(err => {
 			console.error('Failed to copy: ', err);
@@ -838,7 +838,12 @@ export default function ManageClass({params}) {
 					<p className="font-medium flex flex-row">
 							Class Link: <span
 							className="font-normal pl-1">classaccess.tech/join/{classCode}</span>
-						<Copy className="h-5 w-5 hover:cursor-pointer ml-2" onClick={handleCopyLink}/>
+						<Copy className="h-5 w-5 hover:cursor-pointer ml-2" onClick={() => {handleCopyLink({link: `classaccess.tech/join/${classCode}`})}}/>
+					</p>
+					<p className="font-medium flex flex-row">
+								Enrollment Invite Link: <span
+							className="font-normal pl-1">classaccess.tech/enroll/{classCode}</span>
+						<Copy className="h-5 w-5 hover:cursor-pointer ml-2" onClick={() => {handleCopyLink({link: `classaccess.tech/enroll/${classCode}`})}}/>
 					</p>
 				</section>
 			</div>
