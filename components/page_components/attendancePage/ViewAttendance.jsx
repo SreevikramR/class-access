@@ -87,7 +87,17 @@ const ViewAttendance = () => {
 			return;
 		}
 
-		setPaymentRecords(data);
+		const updatedDateData = data.map(record => {
+			const date = new Date(record.date);
+			const dayOfWeek = date.toLocaleString('default', { weekday: 'short' });
+			const month = date.toLocaleString('default', { month: 'short' });
+			const day = date.getDate();
+			const year = date.getFullYear();
+			const formattedDate = `${dayOfWeek}, ${day} ${month} ${year}`;
+			return { ...record, date: formattedDate };
+		});
+
+		setPaymentRecords(updatedDateData);
 	};
 	useEffect(() => {
 		if (selectedClassId && selectedStudent) {
@@ -120,12 +130,21 @@ const ViewAttendance = () => {
 		}
 
 		const classesLeft = studentData.classes_left[classId];
-
 		const updatedRecords = data.map(record => ({
 			...record, classes_left: classesLeft
 		}));
 
-		setAttendanceRecords(updatedRecords);
+		const updatedDateData = updatedRecords.map(record => {
+			const date = new Date(record.date);
+			const dayOfWeek = date.toLocaleString('default', {weekday: 'short'});
+			const month = date.toLocaleString('default', {month: 'short'});
+			const day = date.getDate();
+			const year = date.getFullYear();
+			const formattedDate = `${dayOfWeek}, ${day} ${month} ${year}`;
+			return {...record, date: formattedDate};
+		});
+
+		setAttendanceRecords(updatedDateData);
 	};
 
 	const handleClassSelect = (classId, className) => {
