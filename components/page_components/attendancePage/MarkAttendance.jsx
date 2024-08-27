@@ -140,17 +140,6 @@ const MarkAttendance = () => {
 		setIsSavingAttendance(false);
 	};
 
-	function DatePickerPopup() {
-		return (<PopoverContent className="w-[auto] p-0">
-			<Calendar
-				mode="single"
-				selected={date}
-				onSelect={setDate}
-				initialFocus
-			/>
-		</PopoverContent>);
-	}
-
 	function ClassSelectionCombobox() {
 		return (<PopoverContent className="w-[250px] p-0">
 			<Command>
@@ -239,7 +228,13 @@ const MarkAttendance = () => {
 					{date ? format(date, "PPP") : <span>Pick a date</span>}
 				</Button>
 			</PopoverTrigger>
-			<DatePickerPopup />
+			<PopoverContent className="w-[auto] p-0">
+				<Calendar
+					mode="single"
+					selected={date}
+					onSelect={setDate}
+				/>
+			</PopoverContent>
 		</Popover>
 		<Card className="mt-4">
 			{students.length > 0 ? (
