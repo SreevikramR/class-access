@@ -14,7 +14,6 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 
 
 export async function POST(request) {
-
 	const token = request.headers.get("jwt");
 	const decodedJWT = verifyJWT(token);
 	const teacherUUID = decodedJWT?.sub;
@@ -55,7 +54,15 @@ export async function POST(request) {
 
 		if (existingRecord.length > 0) {
 			// Update existing record
-			if (existingRecord[0].isPresent === attendanceData[studentId]) {
+			if (attendanceData[studentId] == null) {
+				if (existingRecord[0].isPresent) {
+					classesLeftChange[studentId] = -1;
+					const { error: deleteError } = await supabase.from('attendance_records').delete().eq('id', existingRecord[0].id);
+					if (deleteError) {
+						throw new Error("Error deleting attendance record");
+					}
+				}
+			} else if (existingRecord[0].isPresent === attendanceData[studentId]) {
 				classesLeftChange[studentId] = 0;
 				return;
 			} else if (attendanceData[studentId]) {
