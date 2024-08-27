@@ -1,13 +1,12 @@
 "use client"
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Header from '@/components/page_components/header'
 import Footer from '@/components/page_components/footer'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { fetchStudentList, supabaseClient } from '@/components/util_function/supabaseCilent'
+import { supabaseClient } from '@/components/util_function/supabaseCilent'
 import AuthWrapper from '@/components/page_components/authWrapper'
 import ClassesLeftBar from '@/components/page_components/attendancePage/ClassesLeftBar'
 
@@ -63,15 +62,19 @@ const Students = () => {
 				}))
 		)
 
-		setStudents(studentsWithClasses)
+		// Sort students by classes left
+		const sortedStudents = studentsWithClasses.sort((a, b) => {
+			if (a.classes_left < b.classes_left) {
+				return -1
+			}
+		})
+
+		setStudents(sortedStudents)
 		setStudentDataLoaded(true)
 		setIsFetchingStudents(false)
 	}
 
 	const UserRow = ({ studentInfo }) => {
-		console.log('studentInfo:', studentInfo);
-
-		const router = useRouter()
 		const { first_name, last_name, email, class_code, classes_left } = studentInfo
 		let studentFirstName = first_name
 		let studentLastName = last_name
