@@ -97,7 +97,7 @@ const Dashboard = ({ classInfo }) => {
 						<h3 className="font-medium pb-2">{classInfo.name}</h3>
 						<div>
 							<div className="flex items-center justify-center gap-2">
-								{["M", "T", "W", "Th", "F", "Sa", "Su"].map((day) => (
+								{["M", "Tu", "W", "Th", "F", "Sa", "Su"].map((day) => (
 									<span
 										key={day}
 										className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${classInfo.days.includes(day)

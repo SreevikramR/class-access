@@ -19,23 +19,23 @@ const ViewAttendance = () => {
 	const [selectedStudent, setSelectedStudent] = useState(null)
 	const [attendanceRecords, setAttendanceRecords] = useState([])
 	const [paymentRecords, setPaymentRecords] = useState([]);
-	
+
 	useEffect(() => {
 		fetchClasses();
 	}, []);
-	
+
 	useEffect(() => {
 		if (selectedClassId) {
 			fetchStudents(selectedClassId);
 		}
 	}, [selectedClassId]);
-	
+
 	useEffect(() => {
 		if (selectedClassId && selectedStudent) {
 			fetchAttendanceRecords(selectedClassId, selectedStudent.id);
 		}
 	}, [selectedStudent]);
-	
+
 	const fetchClasses = async () => {
 		const {data, error} = await supabaseClient.from('classes').select('id, name');
 		if (error) {
@@ -44,35 +44,35 @@ const ViewAttendance = () => {
 		}
 		setClasses(data);
 	};
-	
+
 	const fetchStudents = async (classId) => {
 		const {data: classInfo, error: classError} = await supabaseClient
 			.from('classes')
 			.select('student_proxy_ids')
 			.eq('id', classId)
 			.single();
-		
+
 		if (classError) {
 			console.error('Error fetching class data:', classError);
 			return;
 		}
-		
+
 		const studentIds = classInfo.student_proxy_ids;
-		
+
 		const {data: studentsData, error: studentsError} = await supabaseClient
 			.from('student_proxies')
 			.select('id, first_name, last_name, email, status')
 			.in('id', studentIds);
-		
+
 		if (studentsError) {
 			console.error('Error fetching students data:', studentsError);
 			return;
 		}
-		
+
 		const updatedStudents = studentsData.map(student => ({
-			...student, first_name: student.first_name || "Student", last_name: student.last_name || "Invited"
+			...student, first_name: student.first_name || student.email, last_name: student.last_name || ""
 		}));
-		
+
 		setStudents(updatedStudents);
 	};
 	const fetchPaymentRecords = async (classId, studentId) => {
@@ -81,12 +81,12 @@ const ViewAttendance = () => {
 			.select('date, amount, notes')
 			.eq('class_id', classId)
 			.eq('student_proxy_id', studentId);
-		
+
 		if (error) {
 			console.error('Error fetching payment records:', error);
 			return;
 		}
-		
+
 		setPaymentRecords(data);
 	};
 	useEffect(() => {
@@ -95,51 +95,51 @@ const ViewAttendance = () => {
 			fetchPaymentRecords(selectedClassId, selectedStudent.id);
 		}
 	}, [selectedStudent]);
-	
+
 	const fetchAttendanceRecords = async (classId, studentId) => {
 		const {data, error} = await supabaseClient
 			.from('attendance_records')
 			.select('date, isPresent')
 			.eq('class_id', classId)
 			.eq('student_proxy_id', studentId);
-		
+
 		if (error) {
 			console.error('Error fetching attendance records:', error);
 			return;
 		}
-		
+
 		const {data: studentData, error: studentError} = await supabaseClient
 			.from('student_proxies')
 			.select('classes_left')
 			.eq('id', studentId)
 			.single();
-		
+
 		if (studentError) {
 			console.error('Error fetching student data:', studentError);
 			return;
 		}
-		
+
 		const classesLeft = studentData.classes_left[classId];
-		
+
 		const updatedRecords = data.map(record => ({
 			...record, classes_left: classesLeft
 		}));
-		
+
 		setAttendanceRecords(updatedRecords);
 	};
-	
+
 	const handleClassSelect = (classId, className) => {
 		setClassSelectValue(className);
 		setSelectedClassId(classId);
 		setSelectedStudent(false)
 		setClassSelectOpen(false);
 	};
-	
-	
+
+
 	const handleStudentSelect = (student) => {
 		setSelectedStudent(student);
 	};
-	
+
 	function ClassSelectionCombobox() {
 		return (<PopoverContent className="w-[250px] p-0">
 			<Command>
@@ -161,7 +161,7 @@ const ViewAttendance = () => {
 			</Command>
 		</PopoverContent>)
 	}
-	
+
 	const _paymentRecordRow = ({date, amount, notes}) => {
 		return (<TableRow className="bg-green-300 hover:bg-green-200">
 			<TableCell>{date}</TableCell>
@@ -175,7 +175,7 @@ const ViewAttendance = () => {
 	})), ...paymentRecords.map(record => ({
 		...record, type: 'payment'
 	}))].sort((a, b) => new Date(b.date) - new Date(a.date));
-	
+
 	return (<Card className="grid w-full min-h-screen grid-cols-[300px_1fr] bg-background text-foreground">
 		<div className="border-r bg-muted/40 p-4">
 			<div className="mb-2 flex items-center justify-between">
