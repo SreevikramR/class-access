@@ -1,15 +1,12 @@
 import Link from "next/link"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { ComputerIcon } from "lucide-react"
-import { LaptopIcon } from "lucide-react"
+import Image from "next/image"
 
 export default function Component() {
 	return (
 		<div className="flex flex-col min-h-[100dvh]">
 			<header className="px-4 lg:px-6 h-14 flex items-center">
 				<Link href="#" className="flex items-center justify-center" prefetch={false}>
-					<LaptopIcon className="h-6 w-6" />
+					<Image src="/logo.png" width={100} height={100} alt="logo" className="pt-10"/>
 					<span className="sr-only">Class Access</span>
 				</Link>
 				<nav className="ml-auto flex gap-4 sm:gap-6">
