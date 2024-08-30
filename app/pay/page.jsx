@@ -129,7 +129,6 @@ const Payments = () => {
 				return;
 			}
 			if (data[0].status === 'Student Confirmed') {
-				setHasPaid(true)
 				setLoading(false)
 				return
 			} else if ( data[0].status === 'Paid') {
