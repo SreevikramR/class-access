@@ -13,17 +13,36 @@ import { Input } from '@/components/ui/input';
 import { toast } from "@/components/ui/use-toast";
 
 
-const convertToLocalTime = (time, timezone) => {
-	const [hours, minutes] = time.split(':');
-	const date = new Date();
-	date.setHours(hours);
-	date.setMinutes(minutes);
-	
-	const options = {
-		hour: 'numeric', minute: 'numeric', hour12: true, timeZone: timezone
-	};
-	
-	return new Intl.DateTimeFormat('en-US', options).format(date);
+const convertToLocalTime = (timeString) => {
+	try {
+		// Parse the time string
+		const [time, offset] = timeString.split(/[+-]/);
+		const [hours, minutes, seconds] = time.split(':').map(Number);
+		const offsetHours = parseInt(offset);
+		
+		// Create a Date object for the current date in UTC
+		const utcDate = new Date();
+		utcDate.setUTCHours(hours, minutes, seconds, 0);
+		
+		// Convert to GMT by adjusting for the input offset
+		utcDate.setUTCHours(utcDate.getUTCHours() + offsetHours);
+		
+		// Convert to local time
+		const localDate = new Date(utcDate.toLocaleString('en-US', {timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone}));
+		
+		// Format the output
+		const options = {
+			hour: 'numeric',
+			minute: 'numeric',
+			hour12: true,
+			timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+		};
+		
+		return new Intl.DateTimeFormat('en-US', options).format(localDate);
+	} catch (error) {
+		console.error('Error converting time:', error);
+		return 'Invalid Time';
+	}
 };
 const Dashboard = ({ classInfo }) => {
 	const [isOpen, setIsOpen] = useState(false)
