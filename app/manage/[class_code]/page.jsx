@@ -387,14 +387,43 @@ export default function ManageClass({params}) {
 		const [endTime, setEndTime] = useState(parseTime(classData.end_time));
 		const [selectedDays, setSelectedDays] = useState(classData.days || []);
 		const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+		const [userTimezone, setUserTimezone] = useState('')
+		useEffect(() => {
+			setUserTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)
+		}, [])
 		
 		function parseTime(timeString) {
 			if (!timeString) return {hour: "05", minute: "00", ampm: "PM"};
+			// Parse the time string
+			const [time, offset] = timeString.split(/[+-]/);
+			const [hours, minutes, seconds] = time.split(':').map(Number);
+			// Parse the offset correctly
+			const [offsetHours, offsetMinutes] = offset.split(':').map(Number);
+			const totalOffsetMinutes = offsetHours * 60 + (offsetMinutes || 0);
+			const offsetSign = timeString.includes('+') ? 1 : -1;
 			
-			const [time, offset] = timeString.split(/([+-])/);
-			const [hours, minutes] = time.split(':');
-			let hour = parseInt(hours, 10);
-			const minute = minutes;
+			// Create a Date object for the current date in UTC
+			const utcDate = new Date();
+			utcDate.setUTCHours(hours, minutes, seconds, 0);
+			
+			// Convert to GMT by adjusting for the input offset
+			utcDate.setUTCMinutes(utcDate.getUTCMinutes() - offsetSign * totalOffsetMinutes);
+			
+			// Convert to local time
+			const localDate = new Date(utcDate.toLocaleString('en-US', {timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone}));
+			
+			// Format the output
+			const options = {
+				hour: 'numeric',
+				minute: 'numeric',
+				hour12: false,
+				timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+			};
+			
+			let localTimeString = Intl.DateTimeFormat('en-US', options).format(localDate);
+			const [hours1, minutes1] = localTimeString.split(':');
+			let hour = parseInt(hours1, 10);
+			const minute = minutes1;
 			let ampm = hour >= 12 ? "PM" : "AM";
 			
 			if (hour > 12) {
