@@ -15,6 +15,8 @@ import fetchTimeout from "@/components/util_function/fetch";
 import AuthWrapper from "@/components/page_components/authWrapper";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 // I am here
+
+
 export default function ManageClass({params}) {
 	const [isOpenManage, setIsOpenManage] = useState(false);
 	const [classData, setClassData] = useState(null);
@@ -32,7 +34,7 @@ export default function ManageClass({params}) {
 	const [loading, setLoading] = useState(false);
 	const [teacherData, setTeacherData] = useState(null);
 	const [isEditClassOpen, setIsEditClassOpen] = useState(false);
-
+	
 	useEffect(() => {
 		fetchTeacherData();
 		fetchStudents();
@@ -381,14 +383,32 @@ export default function ManageClass({params}) {
 	const EditClassDialog = ({isOpen, onClose, classData, onUpdate}) => {
 		const [name, setName] = useState(classData.name);
 		const [meetingLink, setMeetingLink] = useState(classData.meeting_link || '');
-		const [startTime, setStartTime] = useState({hour: "05", minute: "00", ampm: "PM"})
-		const [endTime, setEndTime] = useState({hour: "06", minute: "00", ampm: "PM"})
-
+		const [startTime, setStartTime] = useState(parseTime(classData.start_time));
+		const [endTime, setEndTime] = useState(parseTime(classData.end_time));
 		const [selectedDays, setSelectedDays] = useState(classData.days || []);
 		const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 		
-		
-
+		function parseTime(timeString) {
+			if (!timeString) return {hour: "05", minute: "00", ampm: "PM"};
+			
+			const [time, offset] = timeString.split(/([+-])/);
+			const [hours, minutes] = time.split(':');
+			let hour = parseInt(hours, 10);
+			const minute = minutes;
+			let ampm = hour >= 12 ? "PM" : "AM";
+			
+			if (hour > 12) {
+				hour -= 12;
+			} else if (hour === 0) {
+				hour = 12;
+			}
+			
+			return {
+				hour: hour.toString().padStart(2, '0'),
+				minute: minute,
+				ampm: ampm
+			};
+		}
 		const handleDayChange = (day, checked) => {
 			setSelectedDays(prevDays => {
 				// Ensure prevDays is an array
