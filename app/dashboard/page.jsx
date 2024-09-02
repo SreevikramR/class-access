@@ -12,13 +12,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input';
 import { toast } from "@/components/ui/use-toast";
 
-const convertTo12HourFormat = (time) => {
-	const [hours, minutes] = time.split(':');
-	const period = hours >= 12 ? 'PM' : 'AM';
-	const adjustedHours = hours % 12 || 12; // Convert '0' to '12'
-	return `${adjustedHours}:${minutes} ${period}`;
-};
 
+const convertToLocalTime = (time, timezone) => {
+	const [hours, minutes] = time.split(':');
+	const date = new Date();
+	date.setHours(hours);
+	date.setMinutes(minutes);
+	
+	const options = {
+		hour: 'numeric', minute: 'numeric', hour12: true, timeZone: timezone
+	};
+	
+	return new Intl.DateTimeFormat('en-US', options).format(date);
+};
 const Dashboard = ({ classInfo }) => {
 	const [isOpen, setIsOpen] = useState(false)
 	const [classes, setClasses] = useState([])
@@ -26,9 +32,13 @@ const Dashboard = ({ classInfo }) => {
 	const router = useRouter()
 	const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 	const [copyData, setCopyData] = useState(null)
+	const [userTimezone, setUserTimezone] = useState('')
+
+
 
 	useEffect(() => {
 		fetchClasses()
+		setUserTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)
 	}, [])
 
 	useEffect(() => {
@@ -110,7 +120,7 @@ const Dashboard = ({ classInfo }) => {
 								))}
 							</div>
 							<div className="pt-2">
-								<span> Class Schedule:</span><span className='font-light'> {convertTo12HourFormat(classInfo.start_time)} to {convertTo12HourFormat(classInfo.end_time)}</span>
+								<span> Class Schedule:</span><span className='font-light'> {convertToLocalTime(classInfo.start_time, userTimezone)} to {convertToLocalTime(classInfo.end_time, userTimezone)}</span>
 							</div>
 						</div>
 					</div>
