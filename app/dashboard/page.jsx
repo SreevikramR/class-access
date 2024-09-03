@@ -18,22 +18,22 @@ const convertToLocalTime = (timeString) => {
 		// Parse the time string
 		const [time, offset] = timeString.split(/[+-]/);
 		const [hours, minutes, seconds] = time.split(':').map(Number);
-		
+
 		// Parse the offset correctly
 		const [offsetHours, offsetMinutes] = offset.split(':').map(Number);
 		const totalOffsetMinutes = offsetHours * 60 + (offsetMinutes || 0);
 		const offsetSign = timeString.includes('+') ? 1 : -1;
-		
+
 		// Create a Date object for the current date in UTC
 		const utcDate = new Date();
 		utcDate.setUTCHours(hours, minutes, seconds, 0);
-		
+
 		// Convert to GMT by adjusting for the input offset
 		utcDate.setUTCMinutes(utcDate.getUTCMinutes() - offsetSign * totalOffsetMinutes);
-		
+
 		// Convert to local time
 		const localDate = new Date(utcDate.toLocaleString('en-US', {timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone}));
-		
+
 		// Format the output
 		const options = {
 			hour: 'numeric',
@@ -41,7 +41,7 @@ const convertToLocalTime = (timeString) => {
 			hour12: true,
 			timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
 		};
-		
+
 		return new Intl.DateTimeFormat('en-US', options).format(localDate);
 	} catch (error) {
 		console.error('Error converting time:', error);
@@ -55,27 +55,24 @@ const Dashboard = ({classInfo}) => {
 	const router = useRouter()
 	const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 	const [copyData, setCopyData] = useState(null)
-	const [userTimezone, setUserTimezone] = useState('')
-	
-	
+
 	useEffect(() => {
 		fetchClasses()
-		setUserTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)
 	}, [])
-	
+
 	useEffect(() => {
 		if (!isOpen) {
 			fetchClasses();
 		}
 	}, [isOpen]);
-	
+
 	const fetchClasses = async () => {
 		setLoading(true)
 		const {data, error} = await supabaseClient
 			.from('classes')
 			.select('*')
 			.eq('teacher_id', (await supabaseClient.auth.getUser()).data.user.id)
-		
+
 		if (error) {
 			console.error('Error fetching classes:', error)
 		} else {
@@ -84,7 +81,7 @@ const Dashboard = ({classInfo}) => {
 		console.log(data)
 		setLoading(false)
 	}
-	
+
 	const handleCopyLink = () => {
 		const shareLink = `${window.location.origin}/join/${copyData.class_code}`;
 		navigator.clipboard.writeText(copyData.classLink).then(() => {
@@ -95,21 +92,21 @@ const Dashboard = ({classInfo}) => {
 		});
 		setIsShareDialogOpen(false);
 	};
-	
+
 	const handleShareClick = (classData) => {
 		console.log(classData)
 		setCopyData(classData);
 		setIsShareDialogOpen(true)
 	}
-	
+
 	const _classCard = (classInfo) => {
 		const classCode = classInfo.class_code
 		const classLink = `${window.location.origin}/join/${classCode}`
-		
+
 		let classData = {}
 		classData.classCode = classCode
 		classData.classLink = classLink
-		
+
 		const handleStartClass = () => {
 			if (classInfo.meeting_link) {
 				window.open(classInfo.meeting_link, '_blank');
@@ -121,7 +118,7 @@ const Dashboard = ({classInfo}) => {
 				});
 			}
 		};
-		
+
 		return (
 			<div key={classInfo.id} className="bg-background rounded-lg border p-4 grid gap-2">
 				<div className="flex items-center justify-between">
@@ -143,7 +140,7 @@ const Dashboard = ({classInfo}) => {
 							</div>
 							<div className="pt-2">
 								<span> Class Schedule:</span><span
-								className='font-light'> {convertToLocalTime(classInfo.start_time, userTimezone)} to {convertToLocalTime(classInfo.end_time, userTimezone)}</span>
+									className='font-light'> {convertToLocalTime(classInfo.start_time)} to {convertToLocalTime(classInfo.end_time)}</span>
 							</div>
 						</div>
 					</div>
@@ -168,7 +165,7 @@ const Dashboard = ({classInfo}) => {
 			</div>
 		)
 	}
-	
+
 	return (
 		<AuthWrapper>
 			<div className="flex flex-col min-h-screen">
