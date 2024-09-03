@@ -15,6 +15,8 @@ import fetchTimeout from "@/components/util_function/fetch";
 import AuthWrapper from "@/components/page_components/authWrapper";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 // I am here
+
+
 export default function ManageClass({params}) {
 	const [isOpenManage, setIsOpenManage] = useState(false);
 	const [classData, setClassData] = useState(null);
@@ -32,7 +34,7 @@ export default function ManageClass({params}) {
 	const [loading, setLoading] = useState(false);
 	const [teacherData, setTeacherData] = useState(null);
 	const [isEditClassOpen, setIsEditClassOpen] = useState(false);
-
+	
 	useEffect(() => {
 		fetchTeacherData();
 		fetchStudents();
@@ -348,37 +350,94 @@ export default function ManageClass({params}) {
 		await fetchClassData();  // This will refresh both class and student data
 	};
 
-	function parseTime(time) {
-		const [hours, minutes] = time.split(':');
-		const period = hours >= 12 ? 'PM' : 'AM';
-		const adjustedHours = hours % 12 || 12; // Convert '0' to '12'
-		console.log(adjustedHours, minutes, period)
-		return {hour: adjustedHours, minute: minutes, ampm: period};
+	function getTimezoneOffset() {
+		const offset = new Date().getTimezoneOffset();
+		const absoluteOffset = Math.abs(offset);
+		const hours = Math.floor(absoluteOffset / 60).toString().padStart(2, '0');
+		const minutes = (absoluteOffset % 60).toString().padStart(2, '0');
+		return `${offset > 0 ? '-' : '+'}${hours}:${minutes}`;
+	}
+
+	function createTimetzString(hours, minutes, ampm) {
+		// Convert hours to 24-hour format
+		let hour24 = parseInt(hours);
+		if (ampm.toLowerCase() === 'pm' && hour24 !== 12) {
+			hour24 += 12;
+		} else if (ampm.toLowerCase() === 'am' && hour24 === 12) {
+			hour24 = 0;
+		}
+
+		// Pad hours and minutes with zeros if needed
+		const paddedHours = hour24.toString().padStart(2, '0');
+		const paddedMinutes = minutes.toString().padStart(2, '0');
+
+		// Get the timezone offset
+		const timezoneOffset = getTimezoneOffset();
+
+		// Create the time string in the format HH:MM:00±HH:MM
+		const timeString = `${paddedHours}:${paddedMinutes}:00${timezoneOffset}`;
+
+		return timeString;
 	}
 
 	const EditClassDialog = ({isOpen, onClose, classData, onUpdate}) => {
 		const [name, setName] = useState(classData.name);
 		const [meetingLink, setMeetingLink] = useState(classData.meeting_link || '');
-		const [startTime, setStartTime] = useState(classData.start_time ? parseTime(classData.start_time) : {
-			hour: '', minute: '', ampm: 'AM'
-		});
-		const [endTime, setEndTime] = useState(classData.end_time ? parseTime(classData.end_time) : {
-			hour: '', minute: '', ampm: 'AM'
-		});
-
+		const [startTime, setStartTime] = useState(parseTime(classData.start_time));
+		const [endTime, setEndTime] = useState(parseTime(classData.end_time));
 		const [selectedDays, setSelectedDays] = useState(classData.days || []);
 		const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-		const convertTo24HourFormat = (time) => {
-			let hour = parseInt(time.hour, 10);
-			const minute = time.minute.padStart(2, '0');
-			const ampm = time.ampm;
-
-			if (ampm === 'PM' && hour < 12) hour += 12;
-			if (ampm === 'AM' && hour === 12) hour = 0;
-
-			return `${hour.toString().padStart(2, '0')}:${minute}:00`;
-		};
-
+		const [userTimezone, setUserTimezone] = useState('')
+		useEffect(() => {
+			setUserTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)
+		}, [])
+		
+		function parseTime(timeString) {
+			if (!timeString) return {hour: "05", minute: "00", ampm: "PM"};
+			// Parse the time string
+			const [time, offset] = timeString.split(/[+-]/);
+			const [hours, minutes, seconds] = time.split(':').map(Number);
+			// Parse the offset correctly
+			const [offsetHours, offsetMinutes] = offset.split(':').map(Number);
+			const totalOffsetMinutes = offsetHours * 60 + (offsetMinutes || 0);
+			const offsetSign = timeString.includes('+') ? 1 : -1;
+			
+			// Create a Date object for the current date in UTC
+			const utcDate = new Date();
+			utcDate.setUTCHours(hours, minutes, seconds, 0);
+			
+			// Convert to GMT by adjusting for the input offset
+			utcDate.setUTCMinutes(utcDate.getUTCMinutes() - offsetSign * totalOffsetMinutes);
+			
+			// Convert to local time
+			const localDate = new Date(utcDate.toLocaleString('en-US', {timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone}));
+			
+			// Format the output
+			const options = {
+				hour: 'numeric',
+				minute: 'numeric',
+				hour12: false,
+				timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+			};
+			
+			let localTimeString = Intl.DateTimeFormat('en-US', options).format(localDate);
+			const [hours1, minutes1] = localTimeString.split(':');
+			let hour = parseInt(hours1, 10);
+			const minute = minutes1;
+			let ampm = hour >= 12 ? "PM" : "AM";
+			
+			if (hour > 12) {
+				hour -= 12;
+			} else if (hour === 0) {
+				hour = 12;
+			}
+			
+			return {
+				hour: hour.toString().padStart(2, '0'),
+				minute: minute,
+				ampm: ampm
+			};
+		}
 		const handleDayChange = (day, checked) => {
 			setSelectedDays(prevDays => {
 				// Ensure prevDays is an array
@@ -399,16 +458,16 @@ export default function ManageClass({params}) {
 
 
 		const handleSubmit = async () => {
-			const formattedStartTime = convertTo24HourFormat(startTime);
-			const formattedEndTime = convertTo24HourFormat(endTime);
+			let startTimeTz = createTimetzString(startTime.hour, startTime.minute, startTime.ampm)
+			let endTimeTz = createTimetzString(endTime.hour, endTime.minute, endTime.ampm)
 
 			const {data, error} = await supabaseClient
 				.from('classes')
 				.update({
 					name: name,
 					meeting_link: meetingLink,
-					start_time: formattedStartTime,
-					end_time: formattedEndTime,
+					start_time: startTimeTz,
+					end_time: endTimeTz,
 					days: selectedDays
 				})
 				.eq('id', classData.id);

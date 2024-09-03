@@ -213,16 +213,39 @@ export default function Component({ params: { class_code } }) {
 
 	const formatTime = (start, end) => {
 		const formatTimeString = (timeString) => {
-			const [time, offset] = timeString.split('+');
-			const date = new Date();
-			const [hours, minutes, seconds] = time.split(':').map(Number);
-			date.setHours(hours, minutes, seconds);
-			const options = {
-				hour: '2-digit',
-				minute: '2-digit',
-				hour12: true // 24-hour time format
-			};
-			return date.toLocaleTimeString('en-US', options);
+			try {
+				// Parse the time string
+				const [time, offset] = timeString.split(/[+-]/);
+				const [hours, minutes, seconds] = time.split(':').map(Number);
+
+				// Parse the offset correctly
+				const [offsetHours, offsetMinutes] = offset.split(':').map(Number);
+				const totalOffsetMinutes = offsetHours * 60 + (offsetMinutes || 0);
+				const offsetSign = timeString.includes('+') ? 1 : -1;
+
+				// Create a Date object for the current date in UTC
+				const utcDate = new Date();
+				utcDate.setUTCHours(hours, minutes, seconds, 0);
+
+				// Convert to GMT by adjusting for the input offset
+				utcDate.setUTCMinutes(utcDate.getUTCMinutes() - offsetSign * totalOffsetMinutes);
+
+				// Convert to local time
+				const localDate = new Date(utcDate.toLocaleString('en-US', {timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone}));
+
+				// Format the output
+				const options = {
+					hour: 'numeric',
+					minute: 'numeric',
+					hour12: true,
+					timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+				};
+
+				return new Intl.DateTimeFormat('en-US', options).format(localDate);
+			} catch (error) {
+				console.error('Error converting time:', error);
+				return 'Invalid Time';
+			}
 		}
 		return `${formatTimeString(start)} - ${formatTimeString(end)}`
 	}
