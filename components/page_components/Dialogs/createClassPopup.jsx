@@ -13,8 +13,7 @@ import {supabaseClient} from '@/components/util_function/supabaseCilent'
 import {useToast} from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
 import isEmail from 'validator/lib/isEmail'
-
-// import createZoomMeeting from '@/components/util_function/createZoomMeeting'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 const CreateClassPopup = ({isOpen, setIsOpen}) => {
 	const [classCreationStep, setClassCreationStep] = useState(0)
@@ -31,6 +30,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 	const [newStudentNotes, setNewStudentNotes] = useState('')
 	const [meetingLink, setMeetingLink] = useState("")
 	const [tempNewStudents, setTempNewStudents] = useState([]);
+	const [meetingMedium, setMeetingMedium] = useState('Google Meet')
 
 	const resetAllStates = () => {
 		setClassName("")
@@ -44,7 +44,12 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		setMeetingLink('')
 		setClassCreationStep(0)
 		setTempNewStudents([]);
+		setMeetingMedium('Google Meet')
 	}
+
+	useEffect(() => {
+		console.log(meetingMedium)
+	}, [meetingMedium])
 
 	const updateTeacherClassIds = async (teacherUUID) => {
 		// Fetch all class IDs for the teacher
@@ -205,7 +210,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		return (<div>
 			<DialogHeader>
 				<DialogTitle>Create Class</DialogTitle>
-				<DialogDescription>Enter a name, description, and Zoom link for your class</DialogDescription>
+				<DialogDescription>Enter a name, description, and Meeting Link for your class</DialogDescription>
 			</DialogHeader>
 			<form className="space-y-4 pt-3">
 				<div>
@@ -218,20 +223,55 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 					<Textarea id="description" value={classDescription}
 						          onChange={(e) => setClassDescription(e.target.value)}/>
 				</div>
-				<div>
-					<Label htmlFor="meetingLink">Zoom Link</Label>
+				<RadioGroup defaultValue={meetingMedium} className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+					<div>
+						<RadioGroupItem value="Google Meet" onClick={() => setMeetingMedium('Google Meet')} id="Google Meet" className="peer sr-only" />
+						<Label
+							htmlFor="Google Meet"
+							className="flex flex-col items-center justify-between rounded-md border-2 bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+						>
+							<div className="text-center">
+								<h3 className="font-semibold">Google Meet</h3>
+							</div>
+						</Label>
+					</div>
+					<div>
+						<RadioGroupItem value="Zoom" id="zoom" onClick={() => setMeetingMedium('Zoom')} className="peer sr-only" />
+						<Label
+							htmlFor="zoom"
+							className="flex flex-col items-center justify-between rounded-md border-2 bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+						>
+							<div className="text-center">
+								<h3 className="font-semibold">Zoom</h3>
+							</div>
+						</Label>
+					</div>
+					<div>
+						<RadioGroupItem value="In-Person" id="In-Person" onClick={() => setMeetingMedium('In-Person')} className="peer sr-only" />
+						<Label
+							htmlFor="In-Person"
+							className="flex flex-col items-center justify-between rounded-md border-2 bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+						>
+							<div className="text-center">
+								<h3 className="font-semibold">In-Person</h3>
+							</div>
+						</Label>
+					</div>
+				</RadioGroup>
+				{meetingMedium == "Zoom" && <div>
+					<Label htmlFor="meetingLink">Meeting Link</Label>
 					<Input id="meetingLink" type="url" value={meetingLink} placeholder="https://zoom.us/j/example"
-						       onChange={(e) => setMeetingLink(e.target.value)} required/>
-				</div>
+						onChange={(e) => setMeetingLink(e.target.value)} required />
+				</div>}
 				<DialogFooter>
 					<div className='flex justify-between flex-wrap w-full'>
 						<Button className="border-slate-400 hover:border-black" variant="outline"
 							        onClick={() => setIsOpen(false)}>Cancel</Button>
 						<Button type="button" onClick={() => {
-							if (!className || !meetingLink) {
+							if (!className || (!meetingLink && meetingMedium == "Zoom")) {
 								toast({
 									title: 'Incomplete Fields',
-									description: 'Class name and Zoom link are required.',
+									description: 'Class name and Meeting link are required.',
 									variant: "destructive",
 								})
 								return
@@ -545,8 +585,8 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 					<div>{classData.name}</div>
 				</div>
 				<div className="grid grid-cols-[120px_1fr] items-start gap-4">
-					<Label htmlFor="zoom-link">Zoom Link</Label>
-					<div className="break-all text-pretty">{classData.meetingLink}</div>
+					<Label htmlFor="meeting-link">Meeting Link</Label>
+					<div className="break-all text-pretty">{classData.meetingLink ? classData.meetingLink : meetingMedium}</div>
 				</div>
 				{classDescription && <div className="grid grid-cols-[120px_1fr] items-center gap-4">
 					<Label htmlFor="class-description">Description</Label>
