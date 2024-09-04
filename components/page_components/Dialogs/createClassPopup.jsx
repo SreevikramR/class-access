@@ -29,7 +29,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 	const [students, setStudents] = useState([])
 	const [newStudentEmail, setNewStudentEmail] = useState('')
 	const [newStudentNotes, setNewStudentNotes] = useState('')
-	const [zoomLink, setZoomLink] = useState("")
+	const [meetingLink, setMeetingLink] = useState("")
 	const [tempNewStudents, setTempNewStudents] = useState([]);
 
 	const resetAllStates = () => {
@@ -41,7 +41,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		setSelectedStudents([])
 		setNewStudentEmail('')
 		setNewStudentNotes('')
-		setZoomLink('')
+		setMeetingLink('')
 		setClassCreationStep(0)
 		setTempNewStudents([]);
 	}
@@ -115,7 +115,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 				end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
 				student_proxy_ids: selectedStudents.filter(s => !s.isNew).map(s => s.id),
 				class_code: code,
-				meeting_link: zoomLink,
+				meeting_link: meetingLink,
 			};
 
 			// Insert class data
@@ -219,16 +219,16 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 						          onChange={(e) => setClassDescription(e.target.value)}/>
 				</div>
 				<div>
-					<Label htmlFor="zoomLink">Zoom Link</Label>
-					<Input id="zoomLink" type="url" value={zoomLink} placeholder="https://zoom.us/j/example"
-						       onChange={(e) => setZoomLink(e.target.value)} required/>
+					<Label htmlFor="meetingLink">Zoom Link</Label>
+					<Input id="meetingLink" type="url" value={meetingLink} placeholder="https://zoom.us/j/example"
+						       onChange={(e) => setMeetingLink(e.target.value)} required/>
 				</div>
 				<DialogFooter>
 					<div className='flex justify-between flex-wrap w-full'>
 						<Button className="border-slate-400 hover:border-black" variant="outline"
 							        onClick={() => setIsOpen(false)}>Cancel</Button>
 						<Button type="button" onClick={() => {
-							if (!className || !zoomLink) {
+							if (!className || !meetingLink) {
 								toast({
 									title: 'Incomplete Fields',
 									description: 'Class name and Zoom link are required.',
@@ -531,7 +531,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 			startTime: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
 			endTime: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
 			capacity: selectedStudents.length,
-			zoomLink: zoomLink, // Add this line
+			meetingLink: meetingLink, // Add this line
 		};
 
 		return (<>
@@ -546,7 +546,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 				</div>
 				<div className="grid grid-cols-[120px_1fr] items-start gap-4">
 					<Label htmlFor="zoom-link">Zoom Link</Label>
-					<div className="break-all text-pretty">{classData.zoomLink}</div>
+					<div className="break-all text-pretty">{classData.meetingLink}</div>
 				</div>
 				{classDescription && <div className="grid grid-cols-[120px_1fr] items-center gap-4">
 					<Label htmlFor="class-description">Description</Label>
