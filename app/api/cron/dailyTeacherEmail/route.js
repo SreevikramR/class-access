@@ -99,10 +99,16 @@ const notifyTeachers = async () => {
 	const teachers = await fetchTeachers();
 
 	const parseTime = (timeStr) => {
-		const [hours, minutes, seconds] = timeStr.split(':');
+		const [time, offset] = timeStr.split(/[+-]/);
+		const [hours, minutes, seconds] = time.split(':').map(Number);
+
+		// Parse the offset correctly
+		const [offsetHours, offsetMinutes] = offset.split(':').map(Number);
+		const totalOffsetMinutes = offsetHours * 60 + (offsetMinutes || 0);
+		const offsetSign = timeStr.includes('+') ? 1 : -1;
 		const date = new Date();
-		date.setHours(parseInt(hours, 10));
-		date.setMinutes(parseInt(minutes, 10));
+		date.setUTCHours(hours, minutes, seconds, 0);
+		date.setUTCMinutes(utcDate.getUTCMinutes() - offsetSign * totalOffsetMinutes);
 		date.setSeconds(parseInt(seconds, 10));
 		return date;
 	};
