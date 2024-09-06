@@ -1,4 +1,4 @@
-// app/api/zoom/retrieve_tokens/route.js
+// app/api/google/retrieve_tokens/route.js
 
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
@@ -26,7 +26,7 @@ export async function GET(request) {
 	if (authError) {
 		return NextResponse.json({ error: authError.message }, { status: 401 });
 	}
-	const { data, error } = await supabase.from('zoom_tokens').select("*").eq("user_uuid", teacherUUID)
+	const { data, error } = await supabase.from('google_tokens').select("*").eq("user_id", teacherUUID)
 
 	const cryptr = new Cryptr(process.env.ENCRYPTION_SECRET);
 	const decrypted_access = cryptr.decrypt(data[0].access_token)

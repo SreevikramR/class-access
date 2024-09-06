@@ -16,15 +16,6 @@ export default function LoginPage() {
 	const [forgotPassword, setForgotPassword] = useState(false)
 	const [resetEmailSent, setResetEmailSent] = useState(false)
 
-	useEffect(() => {
-		testFunction()
-	}, [])
-
-	const testFunction = async () => {
-		const { data } = await supabaseClient.auth.getSession()
-		console.log(data)
-	}
-
 	const { toast } = useToast()
 
 	const handleLogin = async (e) => {
@@ -56,7 +47,7 @@ export default function LoginPage() {
 				provider: 'google',
 				options: {
 					redirectTo: `${window.location.origin}/oauth/google/teacher_login`,
-					scopes: 'https://www.googleapis.com/auth/meetings.space.readonly https://www.googleapis.com/auth/meetings.space.created',
+					scopes: 'https://www.googleapis.com/auth/calendar.events',
 					queryParams: { access_type: 'offline' }
 				},
 			})

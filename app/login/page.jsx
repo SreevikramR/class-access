@@ -47,6 +47,8 @@ export default function LoginPage() {
 				provider: 'google',
 				options: {
 					redirectTo: `${window.location.origin}/oauth/google/teacher_login`,
+					scopes: 'https://www.googleapis.com/auth/calendar.events',
+					queryParams: { access_type: 'offline' }
 				},
 			})
 		} catch (error) {
@@ -168,14 +170,12 @@ export default function LoginPage() {
 							<Button type="submit" className="w-full">
                             Login
 							</Button>
-							{/* <div className="flex items-center my-2">
-                            <hr className="flex-grow border-t border-gray-300" />
-                            <span className="mx-2 text-gray-500 text-xs">OR CONTINUE WITH</span>
-                            <hr className="flex-grow border-t border-gray-300" />
-                        </div>
-                        <Button type="button" variant="outline" className="w-full" onClick={handleGoogleLogin}>
-                            Google
-                        </Button> */}
+							<div className="flex items-center my-2">
+								<hr className="flex-grow border-t border-gray-300" />
+								<span className="mx-2 text-gray-500 text-xs">OR CONTINUE WITH</span>
+								<hr className="flex-grow border-t border-gray-300" />
+							</div>
+							<Button type="button" variant="outline" className="w-full" onClick={handleGoogleLogin}>Google</Button>
 						</form>
 						<div className="mt-4 text-center text-sm">
                         Don&apos;t have an account?{" "}
