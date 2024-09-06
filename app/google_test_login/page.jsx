@@ -16,37 +16,6 @@ export default function LoginPage() {
 	const [forgotPassword, setForgotPassword] = useState(false)
 	const [resetEmailSent, setResetEmailSent] = useState(false)
 
-	useEffect(() => {
-		testFunction()
-	}, [])
-
-	const testFunction = async () => {
-		const { data } = await supabaseClient.auth.getSession()
-		const signal2 = new AbortController().signal
-		const response2 = await fetchTimeout("/api/google/retrieve_tokens", 5000, {
-			signal: signal2,
-			"method": "GET",
-			"headers": {
-				"Content-Type": "application/json",
-				"jwt": data.session.access_token,
-				"supabase_refresh": data.session.refresh_token
-			},
-		})
-		const responseJson = await response2.json()
-		const signal = new AbortController().signal
-		const response = await fetchTimeout("/api/meetings/create/gmeet", 5000, {
-			signal,
-			"method": "POST",
-			"headers": {
-				"Content-Type": "application/json",
-				"jwt": data.session.access_token,
-				"provider_access_token": responseJson.data[0].access_token,
-				"provider_refresh_token": responseJson.data[0].refresh_token
-			},
-		})
-		console.log(await response.json())
-	}
-
 	const { toast } = useToast()
 
 	const handleLogin = async (e) => {

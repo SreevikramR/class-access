@@ -92,11 +92,46 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		return result;
 	}
 
+	const createGMeetLink = async () => {
+		const { data } = await supabaseClient.auth.getSession()
+		const signal2 = new AbortController().signal
+		const response2 = await fetchTimeout("/api/google/retrieve_tokens", 5000, {
+			signal: signal2,
+			"method": "GET",
+			"headers": {
+				"Content-Type": "application/json",
+				"jwt": data.session.access_token,
+				"supabase_refresh": data.session.refresh_token
+			},
+		})
+		const responseJson = await response2.json()
+		const signal = new AbortController().signal
+		const response = await fetchTimeout("/api/meetings/create/gmeet", 5000, {
+			signal,
+			"method": "POST",
+			"headers": {
+				"Content-Type": "application/json",
+				"jwt": data.session.access_token,
+				"provider_access_token": responseJson.data[0].access_token,
+				"provider_refresh_token": responseJson.data[0].refresh_token
+			},
+		})
+		const result = await response.json()
+		return result.meetingLink
+	}
+
 	const handleCreateClass = async () => {
 		if (loading) return;
 		setLoading(true)
 		try {
+			let updatedMeetingLink = meetingLink;
 			const code = generateRandomString(6);
+			if(meetingMedium == 'Google Meet'){
+				const gMeetLink = await createGMeetLink()
+				updatedMeetingLink = gMeetLink
+			} else if (meetingMedium == 'In-Person') {
+				updatedMeetingLink = 'In-Person'
+			}
 
 			const {data: {user}, error: authError} = await supabaseClient.auth.getUser();
 			if (authError || !user) {
@@ -120,7 +155,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 				end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
 				student_proxy_ids: selectedStudents.filter(s => !s.isNew).map(s => s.id),
 				class_code: code,
-				meeting_link: meetingLink,
+				meeting_link: updatedMeetingLink,
 			};
 
 			// Insert class data

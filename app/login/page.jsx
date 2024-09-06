@@ -47,6 +47,8 @@ export default function LoginPage() {
 				provider: 'google',
 				options: {
 					redirectTo: `${window.location.origin}/oauth/google/teacher_login`,
+					scopes: 'https://www.googleapis.com/auth/calendar.events',
+					queryParams: { access_type: 'offline' }
 				},
 			})
 		} catch (error) {
