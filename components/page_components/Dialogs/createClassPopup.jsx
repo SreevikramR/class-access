@@ -13,8 +13,7 @@ import {supabaseClient} from '@/components/util_function/supabaseCilent'
 import {useToast} from "@/components/ui/use-toast";
 import fetchTimeout from "@/components/util_function/fetch";
 import isEmail from 'validator/lib/isEmail'
-
-// import createZoomMeeting from '@/components/util_function/createZoomMeeting'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 const CreateClassPopup = ({isOpen, setIsOpen}) => {
 	const [classCreationStep, setClassCreationStep] = useState(0)
@@ -29,8 +28,9 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 	const [students, setStudents] = useState([])
 	const [newStudentEmail, setNewStudentEmail] = useState('')
 	const [newStudentNotes, setNewStudentNotes] = useState('')
-	const [zoomLink, setZoomLink] = useState("")
+	const [meetingLink, setMeetingLink] = useState("")
 	const [tempNewStudents, setTempNewStudents] = useState([]);
+	const [meetingMedium, setMeetingMedium] = useState('Google Meet')
 
 	const resetAllStates = () => {
 		setClassName("")
@@ -41,10 +41,15 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		setSelectedStudents([])
 		setNewStudentEmail('')
 		setNewStudentNotes('')
-		setZoomLink('')
+		setMeetingLink('')
 		setClassCreationStep(0)
 		setTempNewStudents([]);
+		setMeetingMedium('Google Meet')
 	}
+
+	useEffect(() => {
+		console.log(meetingMedium)
+	}, [meetingMedium])
 
 	const updateTeacherClassIds = async (teacherUUID) => {
 		// Fetch all class IDs for the teacher
@@ -85,6 +90,35 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 			result += getRandomCharacter();
 		}
 		return result;
+	}
+
+
+	const createGMeetLink = async () => {
+		const { data } = await supabaseClient.auth.getSession()
+		const signal2 = new AbortController().signal
+		const response2 = await fetchTimeout("/api/google/retrieve_tokens", 5000, {
+			signal: signal2,
+			"method": "GET",
+			"headers": {
+				"Content-Type": "application/json",
+				"jwt": data.session.access_token,
+				"supabase_refresh": data.session.refresh_token
+			},
+		})
+		const responseJson = await response2.json()
+		const signal = new AbortController().signal
+		const response = await fetchTimeout("/api/meetings/create/gmeet", 5000, {
+			signal,
+			"method": "POST",
+			"headers": {
+				"Content-Type": "application/json",
+				"jwt": data.session.access_token,
+				"provider_access_token": responseJson.data[0].access_token,
+				"provider_refresh_token": responseJson.data[0].refresh_token
+			},
+		})
+		const result = await response.json()
+		return result.meetingLink
 	}
 
 	function getTimezoneOffset() {
@@ -135,7 +169,17 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		if (loading) return;
 		setLoading(true)
 		try {
+			let updatedMeetingLink = meetingLink;
 			const code = generateRandomString(6);
+
+			if(meetingMedium == 'Google Meet'){
+				const gMeetLink = await createGMeetLink()
+				updatedMeetingLink = gMeetLink
+			} else if (meetingMedium == 'In-Person') {
+				updatedMeetingLink = 'In-Person'
+			}
+
+
 			const {data: {user}, error: authError} = await supabaseClient.auth.getUser();
 			if (authError || !user) {
 				console.error('Authentication error:', authError);
@@ -167,8 +211,8 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 				start_time: `${startTimeTz}`,
 				end_time: `${endTimeTz}`,
 				student_proxy_ids: selectedStudents.filter(s => !s.isNew).map(s => s.id),
+				meeting_link: updatedMeetingLink,
 				class_code: uniqueCode,
-				meeting_link: zoomLink,
 			};
 
 			// Insert class data
@@ -259,7 +303,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		return (<div>
 			<DialogHeader>
 				<DialogTitle>Create Class</DialogTitle>
-				<DialogDescription>Enter a name, description, and Zoom link for your class</DialogDescription>
+				<DialogDescription>Enter a name, description, and Meeting Link for your class</DialogDescription>
 			</DialogHeader>
 			<form className="space-y-4 pt-3">
 				<div>
@@ -272,20 +316,55 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 					<Textarea id="description" value={classDescription}
 						          onChange={(e) => setClassDescription(e.target.value)}/>
 				</div>
-				<div>
-					<Label htmlFor="zoomLink">Zoom Link</Label>
-					<Input id="zoomLink" type="url" value={zoomLink} placeholder="https://zoom.us/j/example"
-						       onChange={(e) => setZoomLink(e.target.value)} required/>
-				</div>
+				<RadioGroup defaultValue={meetingMedium} className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+					<div>
+						<RadioGroupItem value="Google Meet" onClick={() => setMeetingMedium('Google Meet')} id="Google Meet" className="peer sr-only" />
+						<Label
+							htmlFor="Google Meet"
+							className="flex flex-col items-center justify-between rounded-md border-2 bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+						>
+							<div className="text-center">
+								<h3 className="font-semibold">Google Meet</h3>
+							</div>
+						</Label>
+					</div>
+					<div>
+						<RadioGroupItem value="Zoom" id="zoom" onClick={() => setMeetingMedium('Zoom')} className="peer sr-only" />
+						<Label
+							htmlFor="zoom"
+							className="flex flex-col items-center justify-between rounded-md border-2 bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+						>
+							<div className="text-center">
+								<h3 className="font-semibold">Zoom</h3>
+							</div>
+						</Label>
+					</div>
+					<div>
+						<RadioGroupItem value="In-Person" id="In-Person" onClick={() => setMeetingMedium('In-Person')} className="peer sr-only" />
+						<Label
+							htmlFor="In-Person"
+							className="flex flex-col items-center justify-between rounded-md border-2 bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+						>
+							<div className="text-center">
+								<h3 className="font-semibold">In-Person</h3>
+							</div>
+						</Label>
+					</div>
+				</RadioGroup>
+				{meetingMedium == "Zoom" && <div>
+					<Label htmlFor="meetingLink">Meeting Link</Label>
+					<Input id="meetingLink" type="url" value={meetingLink} placeholder="https://zoom.us/j/example"
+						onChange={(e) => setMeetingLink(e.target.value)} required />
+				</div>}
 				<DialogFooter>
 					<div className='flex justify-between flex-wrap w-full'>
 						<Button className="border-slate-400 hover:border-black" variant="outline"
 							        onClick={() => setIsOpen(false)}>Cancel</Button>
 						<Button type="button" onClick={() => {
-							if (!className || !zoomLink) {
+							if (!className || (!meetingLink && meetingMedium == "Zoom")) {
 								toast({
 									title: 'Incomplete Fields',
-									description: 'Class name and Zoom link are required.',
+									description: 'Class name and Meeting link are required.',
 									variant: "destructive",
 								})
 								return
@@ -593,7 +672,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 			startTime: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
 			endTime: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
 			capacity: selectedStudents.length,
-			zoomLink: zoomLink, // Add this line
+			meetingLink: meetingLink, // Add this line
 		};
 
 		return (<>
@@ -607,8 +686,8 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 					<div>{classData.name}</div>
 				</div>
 				<div className="grid grid-cols-[120px_1fr] items-start gap-4">
-					<Label htmlFor="zoom-link">Zoom Link</Label>
-					<div className="break-all text-pretty">{classData.zoomLink}</div>
+					<Label htmlFor="meeting-link">Meeting Link</Label>
+					<div className="break-all text-pretty">{classData.meetingLink ? classData.meetingLink : meetingMedium}</div>
 				</div>
 				{classDescription && <div className="grid grid-cols-[120px_1fr] items-center gap-4">
 					<Label htmlFor="class-description">Description</Label>

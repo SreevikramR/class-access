@@ -1,4 +1,4 @@
-// app/api/zoom/save_tokens/route.js
+// app/api/google/save_tokens/route.js
 
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
@@ -35,9 +35,9 @@ export async function POST(request) {
 	}
 
 	const { data, error } = await supabase
-		.from('zoom_tokens')
-		.insert([
-			{ user_uuid: teacherUUID, access_token: enc_access_token, refresh_token: enc_refresh_token }
+		.from('google_tokens')
+		.upsert([
+			{ user_id: teacherUUID, access_token: enc_access_token, refresh_token: enc_refresh_token }
 		]).select();
 
 	if (error) {
