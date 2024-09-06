@@ -92,6 +92,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		return result;
 	}
 
+
 	const createGMeetLink = async () => {
 		const { data } = await supabaseClient.auth.getSession()
 		const signal2 = new AbortController().signal
@@ -118,6 +119,49 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		})
 		const result = await response.json()
 		return result.meetingLink
+
+	function getTimezoneOffset() {
+		const offset = new Date().getTimezoneOffset();
+		const absoluteOffset = Math.abs(offset);
+		const hours = Math.floor(absoluteOffset / 60).toString().padStart(2, '0');
+		const minutes = (absoluteOffset % 60).toString().padStart(2, '0');
+		return `${offset > 0 ? '-' : '+'}${hours}:${minutes}`;
+	}
+
+	function createTimetzString(hours, minutes, ampm) {
+		// Convert hours to 24-hour format
+		let hour24 = parseInt(hours);
+		if (ampm.toLowerCase() === 'pm' && hour24 !== 12) {
+			hour24 += 12;
+		} else if (ampm.toLowerCase() === 'am' && hour24 === 12) {
+			hour24 = 0;
+		}
+
+		// Pad hours and minutes with zeros if needed
+		const paddedHours = hour24.toString().padStart(2, '0');
+		const paddedMinutes = minutes.toString().padStart(2, '0');
+
+		// Get the timezone offset
+		const timezoneOffset = getTimezoneOffset();
+
+		// Create the time string in the format HH:MM:00±HH:MM
+		const timeString = `${paddedHours}:${paddedMinutes}:00${timezoneOffset}`;
+
+		return timeString;
+	}
+
+	const checkClassCode = async (code) => {
+		const {data: classData, error: classError} = await supabaseClient.from('classes').select('id').eq('class_code', code);
+		if (classError) {
+			console.error('Error checking class code:', classError);
+			return false;
+		}
+		if (classData.length === 0){
+			return code;
+		} else {
+			const newCode = generateRandomString(6);
+			return checkClassCode(newCode);
+		}
 	}
 
 	const handleCreateClass = async () => {
@@ -126,12 +170,14 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		try {
 			let updatedMeetingLink = meetingLink;
 			const code = generateRandomString(6);
+
 			if(meetingMedium == 'Google Meet'){
 				const gMeetLink = await createGMeetLink()
 				updatedMeetingLink = gMeetLink
 			} else if (meetingMedium == 'In-Person') {
 				updatedMeetingLink = 'In-Person'
 			}
+
 
 			const {data: {user}, error: authError} = await supabaseClient.auth.getUser();
 			if (authError || !user) {
@@ -146,16 +192,26 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 				return;
 			}
 
+			let startTimeTz = createTimetzString(startTime.hour, startTime.minute, startTime.ampm)
+			let endTimeTz = createTimetzString(endTime.hour, endTime.minute, endTime.ampm)
+
+			// Check if class code is unique
+			const uniqueCode = await checkClassCode(code);
+			if (!uniqueCode) {
+				setLoading(false)
+				return;
+			}
+
 			const classData = {
 				name: className,
 				description: classDescription,
 				days: selectedDays,
 				teacher_id: user.id,
-				start_time: `${startTime.hour}:${startTime.minute} ${startTime.ampm}`,
-				end_time: `${endTime.hour}:${endTime.minute} ${endTime.ampm}`,
+				start_time: `${startTimeTz}`,
+				end_time: `${endTimeTz}`,
 				student_proxy_ids: selectedStudents.filter(s => !s.isNew).map(s => s.id),
-				class_code: code,
 				meeting_link: updatedMeetingLink,
+				class_code: uniqueCode,
 			};
 
 			// Insert class data
@@ -230,6 +286,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 			setLoading(false)
 		} catch (error) {
 			console.error("Error creating class or updating students");
+			console.log(error)
 			toast({
 				variant: 'destructive',
 				title: "Failed to create class or update students",
@@ -445,30 +502,38 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 
 	const _studentTileForStudentList = (student) => {
 		const isSelected = selectedStudents.some(s => s.id === student.id);
+		let studentName = student.name;
+		let studentEmail = student.email
+		if (studentName == 'null null') {
+			studentName = student.email;
+			studentEmail = '';
+		}
 
-		return (<div className="flex items-center justify-between">
-			<div className="flex items-center gap-2">
-				<Avatar>
-					<AvatarFallback className="bg-white">{student.initials}</AvatarFallback>
-				</Avatar>
-				<div>
-					<p className="font-medium">{student.name}</p>
-					<p className="text-muted-foreground text-sm">{student.email}</p>
+		return (
+			<div className="flex items-center justify-between" key={student.id}>
+				<div className="flex items-center gap-2">
+					<Avatar>
+						<AvatarFallback className="bg-white">{student.initials}</AvatarFallback>
+					</Avatar>
+					<div>
+						<p className="font-medium">{studentName}</p>
+						<p className="text-muted-foreground text-sm">{studentEmail}</p>
+					</div>
 				</div>
+				<Checkbox
+					checked={isSelected}
+					onCheckedChange={(checked) => {
+						if (checked) {
+							setSelectedStudents([...selectedStudents, {
+								id: student.id, email: student.email, name: student.name
+							}]);
+						} else {
+							setSelectedStudents(selectedStudents.filter(s => s.id !== student.id));
+						}
+					}}
+				/>
 			</div>
-			<Checkbox
-				checked={isSelected}
-				onCheckedChange={(checked) => {
-					if (checked) {
-						setSelectedStudents([...selectedStudents, {
-							id: student.id, email: student.email, name: student.name
-						}]);
-					} else {
-						setSelectedStudents(selectedStudents.filter(s => s.id !== student.id));
-					}
-				}}
-			/>
-		</div>)
+		)
 	}
 
 	const handleAddStudent = async () => {

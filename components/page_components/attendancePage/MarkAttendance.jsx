@@ -110,7 +110,7 @@ const MarkAttendance = () => {
 
 	const handleAttendanceChange = (studentId, isPresent, isAbsent) => {
 		let newAttendanceList = { ...attendance };
-		if(attendance[studentId] !== 'undefined' && !isPresent && !isAbsent) delete newAttendanceList[studentId]
+		if(attendance[studentId] !== 'undefined' && !isPresent && !isAbsent) newAttendanceList[studentId] = null
 		if (isPresent) {
 			newAttendanceList[studentId] = true;
 		} else if (isAbsent) {
@@ -130,35 +130,15 @@ const MarkAttendance = () => {
 		const response = await fetchTimeout(url, 5500, { signal, method: 'POST', headers: { 'jwt': jwt, 'attendance': JSON.stringify(attendance), 'attendance_date': date, 'class_id': selectedClassId } });
 
 		if (response.status === 200) {
+			fetchStudentsAndSetAttendance(selectedClassId, date)
 			toast({
 				title: 'Attendance saved successfully.', className: 'bg-green-500 border-black border-2', duration: 3000
 			});
-			clearStates()
 		} else {
 			toast({ title: 'Failed to save attendance.', variant: 'destructive', duration: 3000 });
 		}
 		setIsSavingAttendance(false);
 	};
-
-	const clearStates = () => {
-		setDate(new Date());
-		setClassSelectValue("Select Class");
-		setSelectedClassId(null);
-		setStudents([]);
-		setAttendance({});
-		setStudentDataLoaded(false);
-	};
-
-	function DatePickerPopup() {
-		return (<PopoverContent className="w-[auto] p-0">
-			<Calendar
-				mode="single"
-				selected={date}
-				onSelect={setDate}
-				initialFocus
-			/>
-		</PopoverContent>);
-	}
 
 	function ClassSelectionCombobox() {
 		return (<PopoverContent className="w-[250px] p-0">
@@ -248,7 +228,13 @@ const MarkAttendance = () => {
 					{date ? format(date, "PPP") : <span>Pick a date</span>}
 				</Button>
 			</PopoverTrigger>
-			<DatePickerPopup />
+			<PopoverContent className="w-[auto] p-0">
+				<Calendar
+					mode="single"
+					selected={date}
+					onSelect={setDate}
+				/>
+			</PopoverContent>
 		</Popover>
 		<Card className="mt-4">
 			{students.length > 0 ? (

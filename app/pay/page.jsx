@@ -128,7 +128,7 @@ const Payments = () => {
 				setLoading(false)
 				return;
 			}
-			if (data[0].status === 'Unconfirmed') {
+			if (data[0].status === 'Student Confirmed') {
 				setHasPaid(true)
 				setLoading(false)
 				return
@@ -193,6 +193,11 @@ const Payments = () => {
 				password: password,
 			})
 			if (error) {
+				toast({
+					title: 'Unable to Login',
+					description: error.message,
+					variant: "destructive"
+				})
 				setLoading(false)
 			} else {
 				setLoggedIn(true)

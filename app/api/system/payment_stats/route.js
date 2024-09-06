@@ -4,8 +4,7 @@ import verifyJWT from "@/components/util_function/verifyJWT";
 import { NextResponse } from "next/server";
 const supabase = new SupabaseClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
-// Update invoice status to Unconfirmed
-// PUT /api/students/update_proxy
+// Update invoice status to Student Confirmed
 // Request Header
 //// jwt: JWT Token
 //// payment_value: value of the payment
