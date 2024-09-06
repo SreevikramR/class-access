@@ -119,6 +119,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 		})
 		const result = await response.json()
 		return result.meetingLink
+	}
 
 	function getTimezoneOffset() {
 		const offset = new Date().getTimezoneOffset();
