@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { QRCodeSVG } from 'qrcode.react';
 import { Separator } from '@/components/ui/separator';
 import fetchTimeout from '@/components/util_function/fetch';
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Payments = () => {
 	const [loggedIn, setLoggedIn] = useState(false);
@@ -311,6 +312,12 @@ const Payments = () => {
 					</div>
 				</Card>
 			)}
+			{loading && (
+				<div className="flex flex-col items-center">
+					<Skeleton className="w-[90vw] h-[200px] lg:w-[36vw] sm:w-[60vw] rounded-md mb-4"/>
+					<Skeleton className="w-[90vw] h-[40px] lg:w-[36vw] sm:w-[60vw] rounded-md"/>
+				</div>
+			)}
 			{loggedIn && !noInvoiceFound && noUPI && (
 				<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10 h-fit">
 					<div className="text-center">
@@ -319,33 +326,39 @@ const Payments = () => {
 					</div>
 				</Card>
 			)}
-			{loggedIn && !noInvoiceFound && invoice !== null && classDetails !== null && teacherDetails !== null && !hasPaid && !noUPI && (
-				<>
-					<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 border-black h-fit">
-						<CardHeader className="bg-primary text-primary-foreground p-6 flex justify-between items-center text-center">
-							<div className="space-y-1">
-								<div className="font-semibold">{classDetails.name}</div>
-								<div>{teacherDetails.first_name} {teacherDetails.last_name}</div>
-							</div>
-							<div className="text-4xl font-bold">&#8377;{invoice.amount}</div>
-						</CardHeader>
-						<CardContent className="p-6 grid gap-4">
-							<div className="flex justify-between">
-								<div className="text-muted-foreground">Invoice Date</div>
-								<div>{date}</div>
-							</div>
-							<Separator />
-							<div className="flex justify-center">
+			{loggedIn && !noInvoiceFound && !hasPaid && !noUPI && (
+				<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 border-black h-fit">
+					<CardHeader
+						className="bg-primary text-primary-foreground p-6 flex justify-between items-center text-center">
+						<div className="space-y-1">
+							<div className="font-semibold">{classDetails ? classDetails.name :
+								<Skeleton className="w-[120px] h-[20px]"/>}</div>
+							<div>{teacherDetails ? `${teacherDetails.first_name} ${teacherDetails.last_name}` :
+								<Skeleton className="w-[120px] h-[20px]"/>}</div>
+						</div>
+						<div className="text-4xl font-bold">&#8377;{invoice ? invoice.amount :
+							<Skeleton className="w-[80px] h-[30px]"/>}</div>
+					</CardHeader>
+					<CardContent className="p-6 grid gap-4">
+						<div className="flex justify-between">
+							<div className="text-muted-foreground">Invoice Date</div>
+							<div>{date || <Skeleton className="w-[120px] h-[20px]"/>}</div>
+						</div>
+						<Separator/>
+						<div className="flex justify-center">
+							{link ? (
 								<Link href={link} className="block" prefetch={false}>
 									<QRCodeSVG value={link}/>
 								</Link>
-							</div>
-							<div className="text-center text-muted-foreground">Scan or click the QR code to make a UPI payment</div>
-						</CardContent>
-					</Card>
-					<Button className="bg-green-600 mt-6 hover:bg-green-700" onClick={handlePaid} disabled={!paymentConfirmActive}>I Have Paid!</Button>
-					<div className="text-center text-muted-foreground pt-2">After paying, return to this link and click on the button above</div>
-				</>
+							) : (
+								<Skeleton className="w-[100px] h-[100px] rounded-md"/>
+							)}
+						</div>
+						<div className="text-center text-muted-foreground">Scan or click the QR code to make a UPI
+							payment
+						</div>
+					</CardContent>
+				</Card>
 			)}
 			{loggedIn && hasPaid && !noUPI && !hasConfirmed && (
 				<Card className="lg:w-[36vw] sm:w-[60vw] w-[90vw] border-2 p-10 h-fit">
