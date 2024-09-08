@@ -9,6 +9,7 @@ import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import fetchTimeout from "@/components/util_function/fetch"
 import { useToast } from "@/components/ui/use-toast"
 import LoadingOverlay from "@/components/page_components/loadingOverlay"
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Component({ params: { class_code } }) {
 	const [enrolledClass, setEnrolledClass] = useState(false)
@@ -453,7 +454,12 @@ export default function Component({ params: { class_code } }) {
 
 	return (
 		<main className="flex flex-col items-center justify-center h-screen">
-			{loading && <LoadingOverlay />}
+			{loading && (
+				<div className="w-full h-full flex items-center justify-center">
+					<Skeleton className="w-96 h-96"/>
+				</div>
+			)}
+			
 			{!isLoggedIn &&
                 <>
                 	{step === 0 && _login()}
@@ -484,16 +490,16 @@ export default function Component({ params: { class_code } }) {
 								<div className="inline-block rounded-lg px-3 py-1 text-xs sm:text-sm font-medium text-pretty">
                                     You have been invited to Enroll in
 								</div>
-								<h2 className="sm:text-2xl text-lg text-center font-bold text-pretty">{classDetails.name}</h2>
+								<h2 className="sm:text-2xl text-lg text-center font-bold text-pretty">{classDetails.name || <Skeleton className="w-48 h-6" />}</h2>
 								<p className="text-muted-foreground text-xs sm:text-base">
-                                    Taught by {teacherName}
+                                    Taught by {teacherName || <Skeleton className="w-24 h-6" />}
 								</p>
 								<p></p>
 								<p className="text-muted-foreground sm:text-base text-xs text-pretty">
-									{formatDays(classDetails.days)}
+									{formatDays(classDetails.days) || <Skeleton className="w-32 h-6" />}
 								</p>
 								<p className="text-muted-foreground sm:text-base text-xs text-pretty">
-								 	{formatTime(classDetails.start_time, classDetails.end_time)}
+								 	{formatTime(classDetails.start_time, classDetails.end_time) || <Skeleton className="w-32 h-6" />}
 								</p>
 							</div>
 							<div className="flex gap-2">
