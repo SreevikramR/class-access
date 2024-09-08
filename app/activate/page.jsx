@@ -10,6 +10,7 @@ import { PhoneInput, getPhoneData } from '@/components/ui/phoneInputComponents'
 import { toast } from "@/components/ui/use-toast"
 import fetchTimeout from '@/components/util_function/fetch'
 import LoadingOverlay from '@/components/page_components/loadingOverlay'
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ActivationPage = () => {
 	const [loading, setLoading] = useState(false)
@@ -180,6 +181,12 @@ const ActivationPage = () => {
 					)}
 					{!error && (
 						<>
+							{!isLoggedIn && (
+								<div className="text-center">
+									<Skeleton className="w-[90vw] h-[100px] lg:w-[36vw] sm:w-[60vw] rounded-md mb-4"/>
+									<Skeleton className="w-[90vw] h-[50px] lg:w-[36vw] sm:w-[60vw] rounded-md"/>
+								</div>
+							)}
 							{!isLoggedIn && (
 								<>
 								</>
