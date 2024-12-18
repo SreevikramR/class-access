@@ -44,9 +44,11 @@ const ViewAttendance = () => {
 		const dateString = today.getDate() + " " + months[today.getMonth()] + " " + today.getFullYear()
 		const recordsInYear = attendanceRecords.filter(record => new Date(record.date).getFullYear() === year)
 		const recordsInMonth = recordsInYear.filter(record => monthsShort[new Date(record.date).getMonth()] === month.substring(0, 3)).reverse()
+		const formattedName = studentName.toLowerCase().replace(/\s+/g, "_");
+		const newName = `${formattedName}_${month.toLowerCase()}_${year}`;
 
 		const pdfBlob = await pdf(
-			<InvoicePDF studentName={studentName} className={classSelectValue} invoiceDate={dateString} reportMonth={month} reportYear={year} teacherName={teacherName} attendanceRecords={recordsInMonth}/>,
+			<InvoicePDF studentName={studentName} className={classSelectValue} invoiceDate={dateString} reportMonth={month} reportYear={year} teacherName={teacherName} attendanceRecords={recordsInMonth} fileName={newName} />,
 		).toBlob();
 
 		// Create a Blob URL for the PDF

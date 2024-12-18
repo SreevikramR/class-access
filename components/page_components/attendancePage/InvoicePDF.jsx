@@ -54,8 +54,8 @@ const styles = StyleSheet.create({
 	},
 });
 
-const InvoicePDF = ({ studentName, className, teacherName, invoiceDate, reportMonth, reportYear, attendanceRecords }) => (
-	<Document>
+const InvoicePDF = ({ studentName, className, teacherName, invoiceDate, reportMonth, reportYear, attendanceRecords, fileName }) => (
+	<Document title={fileName}>
 		<Page style={styles.page}>
 			<View style={styles.header}>
 				<Text style={styles.h1}>Student Attendance Report</Text>
