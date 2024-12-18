@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
 	},
 });
 
-const InvoicePDF = ({ studentName, className, teacherName, invoiceDate, reportMonth, reportYear }) => (
+const InvoicePDF = ({ studentName, className, teacherName, invoiceDate, reportMonth, reportYear, attendanceRecords }) => (
 	<Document>
 		<Page style={styles.page}>
 			<View style={styles.header}>
@@ -94,7 +94,7 @@ const InvoicePDF = ({ studentName, className, teacherName, invoiceDate, reportMo
 			</View>
 
 			<View>
-				<Text style={{ fontWeight: "bold", paddingBottom: 4 }}>
+				<Text style={{ fontWeight: "bold", paddingBottom: 4, marginTop: 20 }}>
 					Attendance Records:
 				</Text>
 				<View style={{ display: "flex", flexDirection: "column" }}>
@@ -113,62 +113,24 @@ const InvoicePDF = ({ studentName, className, teacherName, invoiceDate, reportMo
 						</Text>{" "}
 						<Text style={{ flexBasis: "40%" }}>Status</Text>
 					</View>
-					<View
-						style={{
-							display: "flex",
-							flexDirection: "row",
-							borderBottom: "1px solid #64748B",
-							paddingBottom: "12px",
-							paddingTop: "12px",
-						}}
-					>
-						<Text style={{ flexBasis: "60%", paddingLeft: "8px" }}>
-							Mon, 1 Jul 2024
-						</Text>{" "}
-						<Text style={{ flexBasis: "40%" }}>Present</Text>
-					</View>
-					<View
-						style={{
-							display: "flex",
-							flexDirection: "row",
-							borderBottom: "1px solid #64748B",
-							paddingBottom: "12px",
-							paddingTop: "12px",
-						}}
-					>
-						<Text style={{ flexBasis: "60%", paddingLeft: "8px" }}>
-							Wed, 3 Jul 2024
-						</Text>{" "}
-						<Text style={{ flexBasis: "40%" }}>Present</Text>
-					</View>
-					<View
-						style={{
-							display: "flex",
-							flexDirection: "row",
-							borderBottom: "1px solid #64748B",
-							paddingBottom: "12px",
-							paddingTop: "12px",
-						}}
-					>
-						<Text style={{ flexBasis: "60%", paddingLeft: "8px" }}>
-							Fri, 5 Jul 2024
-						</Text>{" "}
-						<Text style={{ flexBasis: "40%" }}>Present</Text>
-					</View>
-					<View
-						style={{
-							display: "flex",
-							flexDirection: "row",
-							borderBottom: "1px solid #64748B",
-							paddingBottom: "12px",
-							paddingTop: "12px",
-						}}
-					>
-						<Text style={{ flexBasis: "60%", paddingLeft: "8px" }}>
-							Mon, 8 Jul 2024
-						</Text>{" "}
-						<Text style={{ flexBasis: "40%" }}>Present</Text>
-					</View>
+					{attendanceRecords.map((item, index) => (
+				        <View
+				          key={index}
+				          style={{
+				            display: "flex",
+				            flexDirection: "row",
+				            borderBottomWidth: 1,
+				            borderBottomColor: "#64748B",
+				            paddingBottom: 12,
+				            paddingTop: 12,
+				          }}
+				        >
+				          <Text style={{ flexBasis: "60%", paddingLeft: 8 }}>{item.date}</Text>
+				          <Text style={{ flexBasis: "40%" }}>
+				            {item.isPresent ? "Present" : "Absent"}
+				          </Text>
+				        </View>
+				    ))}
 				</View>
 			</View>
 

@@ -21,6 +21,8 @@ const months = [
 	"July", "August", "September", "October", "November", "December"
 ]
 
+const monthsShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
 const ViewAttendance = () => {
 	const [classSelectOpen, setClassSelectOpen] = useState(false)
 	const [classSelectValue, setClassSelectValue] = useState("Select Class")
@@ -40,9 +42,11 @@ const ViewAttendance = () => {
 		const studentName = selectedStudent.first_name + " " + selectedStudent.last_name
 		const today = new Date()
 		const dateString = today.getDate() + " " + months[today.getMonth()] + " " + today.getFullYear()
+		const recordsInYear = attendanceRecords.filter(record => new Date(record.date).getFullYear() === year)
+		const recordsInMonth = recordsInYear.filter(record => monthsShort[new Date(record.date).getMonth()] === month.substring(0, 3)).reverse()
 
 		const pdfBlob = await pdf(
-			<InvoicePDF studentName={studentName} className={classSelectValue} invoiceDate={dateString} reportMonth={month} reportYear={year} teacherName={teacherName} />,
+			<InvoicePDF studentName={studentName} className={classSelectValue} invoiceDate={dateString} reportMonth={month} reportYear={year} teacherName={teacherName} attendanceRecords={recordsInMonth}/>,
 		).toBlob();
 
 		// Create a Blob URL for the PDF
@@ -182,23 +186,7 @@ const ViewAttendance = () => {
 			return;
 		}
 
-		const {data: studentData, error: studentError} = await supabaseClient
-			.from('student_proxies')
-			.select('classes_left')
-			.eq('id', studentId)
-			.single();
-
-		if (studentError) {
-			console.error('Error fetching student data:', studentError);
-			return;
-		}
-
-		const classesLeft = studentData.classes_left[classId];
-		const updatedRecords = data.map(record => ({
-			...record, classes_left: classesLeft
-		}));
-
-		const updatedDateData = updatedRecords.map(record => {
+		const updatedDateData = data.map(record => {
 			const date = new Date(record.date);
 			const dayOfWeek = date.toLocaleString('default', {weekday: 'short'});
 			const month = date.toLocaleString('default', {month: 'short'});
