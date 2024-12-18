@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input';
 import {supabaseClient} from '@/components/util_function/supabaseCilent'
 import { Select, SelectContent, SelectTrigger, SelectItem, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { pdf } from "@react-pdf/renderer";
+import InvoicePDF from "./InvoicePDF";
 
 const months = [
 	"January", "February", "March", "April", "May", "June",
@@ -30,6 +32,49 @@ const ViewAttendance = () => {
 	const [paymentRecords, setPaymentRecords] = useState([]);
 	const [year, setYear] = useState(new Date().getFullYear());
 	const [month, setMonth] = useState(months[new Date().getMonth()]);
+	const [teacherName, setTeacherName] = useState("")
+
+	const generateReport = async () => {
+		// Generate the PDF as a blob
+
+		const studentName = selectedStudent.first_name + " " + selectedStudent.last_name
+		const today = new Date()
+		const dateString = today.getDate() + " " + months[today.getMonth()] + " " + today.getFullYear()
+
+		const pdfBlob = await pdf(
+			<InvoicePDF studentName={studentName} className={classSelectValue} invoiceDate={dateString} reportMonth={month} reportYear={year} teacherName={teacherName} />,
+		).toBlob();
+
+		// Create a Blob URL for the PDF
+		const url = URL.createObjectURL(pdfBlob);
+
+		// Open the PDF in a new tab
+		window.open(url, "_blank");
+
+		// Clean up the Blob URL after use
+		URL.revokeObjectURL(url);
+	};
+
+	async function fetchTeacherName() {
+		try {
+			const {data: {user}} = await supabaseClient.auth.getUser()
+			if (user) {
+				const {data, error} = await supabaseClient
+					.from('teachers')
+					.select('first_name, last_name')
+					.eq('id', user.id)
+					.single()
+
+				if (error) throw error
+
+				if (data) {
+					setTeacherName(`${data.first_name} ${data.last_name}`)
+				}
+			}
+		} catch (error) {
+			console.error('Error fetching teacher name:', error)
+		}
+	}
 
 	useEffect(() => {
 		fetchClasses();
@@ -40,6 +85,7 @@ const ViewAttendance = () => {
 		if (prevMonth == 11) {
 			setYear(year - 1)
 		}
+		fetchTeacherName()
 	}, []);
 
 	useEffect(() => {
@@ -174,6 +220,7 @@ const ViewAttendance = () => {
 
 
 	const handleStudentSelect = (student) => {
+		console.log(student)
 		setSelectedStudent(student);
 	};
 
@@ -256,7 +303,7 @@ const ViewAttendance = () => {
 		<div className="p-4">
 			<div className="mb-4 flex items-center justify-between">
 				<h1 className="text-xl font-bold"> Attendance History {selectedStudent && `: ${selectedStudent.first_name} ${selectedStudent.last_name}`}</h1>
-				<Popover>
+				{selectedStudent && <Popover>
 					<PopoverTrigger asChild>
 						<Button className="bg-transparent border-2 border-black text-black hover:bg-zinc-200 font-medium">Export Report</Button>
 					</PopoverTrigger>
@@ -269,9 +316,9 @@ const ViewAttendance = () => {
 									type="number"
 									placeholder="YYYY"
 									value={year}
-									min={1900}
-									max={9999}
-									onValueChange={setYear}
+									min={0}
+									max={10000}
+									onChange={(event) => setYear(event.value)}
 									className="w-full"
 								/>
 							</div>
@@ -284,18 +331,18 @@ const ViewAttendance = () => {
 									<SelectContent>
 										<ScrollArea className="h-[200px]">
 											{months.map((m) => (
-											    <SelectItem key={m} value={m}>
-											    {m}
-											    </SelectItem>
+												<SelectItem key={m} value={m}>
+													{m}
+												</SelectItem>
 											))}
 										</ScrollArea>
 									</SelectContent>
 								</Select>
 							</div>
-							<Button>Generate Report</Button>
+							<Button onClick={generateReport}>Generate Report</Button>
 						</div>
 					</PopoverContent>
-				</Popover>
+				</Popover>}
 			</div>
 			{selectedStudent ? (<>
 				<div className="overflow-auto">
