@@ -9,12 +9,7 @@ export function Calendar({ studentName, attendanceData, setAttendanceData }) {
 
 	const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 	const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-	const monthName = new Date(currentYear, currentMonth).toLocaleString(
-		"default",
-		{
-			month: "long",
-		},
-	);
+	const monthName = new Date(currentYear, currentMonth).toLocaleString("default", {month: "long"});
 
 	const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 	const previousMonthDays = Array.from(
@@ -41,7 +36,6 @@ export function Calendar({ studentName, attendanceData, setAttendanceData }) {
 
 	const handleDayClick = (day) => {
 		const newStatus = (getAttendanceStatus(day) === "present") ? "absent" : (getAttendanceStatus(day) === "absent")? "not-marked" : "present";
-		console.log(day)
 
 		setAttendanceData(prevData => {
 			const existingRecordIndex = prevData.findIndex(record => record.date === day  && record.month === currentMonth && record.year === currentYear);
@@ -55,7 +49,6 @@ export function Calendar({ studentName, attendanceData, setAttendanceData }) {
 					return updatedData;
 				}
 			} else {
-				// Add new record
 				return [...prevData, { date: day, month: currentMonth, year: currentYear, status: newStatus }];
 			}
 		});
@@ -63,7 +56,7 @@ export function Calendar({ studentName, attendanceData, setAttendanceData }) {
 
 
 	return (
-		<div className="w-full max-w-[60vw] border-2 border-black select-none px-6">
+		<div className="w-full max-w-[60vw] border-2 border-black select-none rounded-lg px-6">
 			<div className={`flex-1 relative ${!studentName ? 'pointer-events-none' : ''}`}>
 				{!studentName && (
 					<div className="absolute inset-0 bg-gray-100/50 backdrop-blur-sm z-10 flex items-center justify-center">
