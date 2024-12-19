@@ -35,7 +35,7 @@ export function Calendar({ studentName, attendanceData, setAttendanceData }) {
 		case "absent":
 			return "bg-red-300 hover:bg-red-500";
 		default:
-			return "bg-white hover:bg-zinc-200";
+			return "bg-white hover:bg-zinc-100";
 		}
 	};
 
@@ -47,10 +47,8 @@ export function Calendar({ studentName, attendanceData, setAttendanceData }) {
 			const existingRecordIndex = prevData.findIndex(record => record.date === day  && record.month === currentMonth && record.year === currentYear);
 
 			if (existingRecordIndex !== -1) {
-				// Update existing record
 				const updatedData = [...prevData];
 				if (newStatus == "not-marked") {
-					// remove record
 					return updatedData.filter((_, index) => index !== existingRecordIndex);
 				} else {
 					updatedData[existingRecordIndex] = {date: day, month: currentMonth, year: currentYear, status: newStatus}
@@ -65,79 +63,86 @@ export function Calendar({ studentName, attendanceData, setAttendanceData }) {
 
 
 	return (
-		<div className="w-full max-w-3xl border-2 border-black">
-			<div className="flex items-center justify-between mb-4">
-				<button
-					onClick={() => {
-						if (currentMonth === 0) {
-							setCurrentMonth(11);
-							setCurrentYear(currentYear - 1);
-						} else {
-							setCurrentMonth(currentMonth - 1);
-						}
-					}}
-					className="p-2 hover:bg-zinc-200 rounded-full"
-				>
-					<ChevronLeft className="w-5 h-5" />
-				</button>
-				<h2 className="text-lg font-medium">
-					{monthName} {currentYear}
-				</h2>
-				<button
-					onClick={() => {
-						if (currentMonth === 11) {
-							setCurrentMonth(0);
-							setCurrentYear(currentYear + 1);
-						} else {
-							setCurrentMonth(currentMonth + 1);
-						}
-					}}
-					className="p-2 hover:bg-zinc-200 rounded-full"
-				>
-					<ChevronRight className="w-5 h-5" />
-				</button>
-			</div>
-
-			<div className="grid grid-cols-7 gap-2 bg-white rounded-lgs overflow-hidden">
-				{["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-					<div
-						key={day}
-						className="bg-white p-4 text-center text-sm font-medium"
-					>
-						{day}
+		<div className="w-full max-w-[60vw] border-2 border-black select-none px-6">
+			<div className={`flex-1 relative ${!studentName ? 'pointer-events-none' : ''}`}>
+				{!studentName && (
+					<div className="absolute inset-0 bg-gray-100/50 backdrop-blur-sm z-10 flex items-center justify-center">
+					    <p className="text-xl font-semibold text-gray-800">Please select a student to view their attendance</p>
 					</div>
-				))}
+				)}
+				<div className="flex items-center justify-between m-4">
+					<button
+						onClick={() => {
+							if (currentMonth === 0) {
+								setCurrentMonth(11);
+								setCurrentYear(currentYear - 1);
+							} else {
+								setCurrentMonth(currentMonth - 1);
+							}
+						}}
+						className="p-2 hover:bg-zinc-200 rounded-full"
+					>
+						<ChevronLeft className="w-5 h-5" />
+					</button>
+					<h2 className="text-lg font-medium">
+						{monthName} {currentYear}
+					</h2>
+					<button
+						onClick={() => {
+							if (currentMonth === 11) {
+								setCurrentMonth(0);
+								setCurrentYear(currentYear + 1);
+							} else {
+								setCurrentMonth(currentMonth + 1);
+							}
+						}}
+						className="p-2 hover:bg-zinc-200 rounded-full"
+					>
+						<ChevronRight className="w-5 h-5" />
+					</button>
+				</div>
 
-				{previousMonthDays.map((_, index) => (
-					<div key={`prev-${index}`} className="bg-white p-4" />
-				))}
-
-				{days.map((day) => {
-					const status = getAttendanceStatus(day);
-					return (
+				<div className="grid grid-cols-7 gap-2 bg-white rounded-lgs overflow-hidden">
+					{["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
 						<div
 							key={day}
-							onClick={handleDayClick.bind(null, day)}
-							className={`p-4 text-center rounded-lg relative cursor-pointer ${getStatusColor(status)}`}
+							className="bg-white p-4 text-center text-sm font-medium"
 						>
 							{day}
 						</div>
-					);
-				})}
-			</div>
+					))}
 
-			<div className="flex gap-6 my-6 justify-center">
-				<div className="flex items-center gap-2">
-					<div className="w-5 h-5 bg-green-300 rounded" />
-					<span className="text-sm">Present</span>
+					{previousMonthDays.map((_, index) => (
+						<div key={`prev-${index}`} className="bg-white p-4" />
+					))}
+
+					{days.map((day) => {
+						const status = getAttendanceStatus(day);
+						return (
+							<div
+								key={day}
+								onClick={handleDayClick.bind(null, day)}
+								className={`p-4 text-center rounded-lg relative cursor-pointer ${getStatusColor(status)}`}
+							>
+								{day}
+							</div>
+						);
+					})}
 				</div>
-				<div className="flex items-center gap-2">
-					<div className="w-5 h-5 bg-red-300 rounded" />
-					<span className="text-sm">Absent</span>
-				</div>
-				<div className="flex items-center gap-2">
-					<div className="w-5 h-5 border border-gray-200 rounded" />
-					<span className="text-sm">Not Marked</span>
+
+				<div className="flex gap-6 my-6 justify-center">
+					<div className="flex items-center gap-2">
+						<div className="w-5 h-5 bg-green-300 rounded" />
+						<span className="text-sm">Present</span>
+					</div>
+					<div className="flex items-center gap-2">
+						<div className="w-5 h-5 bg-red-300 rounded" />
+						<span className="text-sm">Absent</span>
+					</div>
+					<div className="flex items-center gap-2">
+						<div className="w-5 h-5 border border-gray-200 rounded" />
+						<span className="text-sm">Not Marked</span>
+					</div>
 				</div>
 			</div>
 		</div>
