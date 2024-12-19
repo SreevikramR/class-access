@@ -4,14 +4,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Download } from "lucide-react";
 import { PopoverContent, Popover, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandList, CommandItem } from "@/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, ChevronRightIcon } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, setSelectedStudent, onStudentChange, classSelectValue, setClassSelectValue, classes }) {
+export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, setSelectedStudent, onStudentChange, classSelectValue, setClassSelectValue, classes, students }) {
 	const [classSelectOpen, setClassSelectOpen] = useState(false);
 	const buttonRef = useRef(null);
 	const [popoverWidth, setPopoverWidth] = useState("auto");
-
-	const students = ["John Doe", "Jane Smith", "Bob Johnson"];
 
 	const handleClassSelect = (classId, className) => {
 		setClassSelectValue(className);
@@ -67,6 +66,30 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 		)
 	}
 
+	function StudentList() {
+		return (
+			<div className="flex-1 overflow-auto">
+				<div className="space-y-2">
+					{students.map((student) => (<div
+						key={student.id}
+						onClick={() => handleStudentSelect(student)}
+						className={`flex items-center justify-between border-[1px] border-zinc-400 hover:bg-zinc-200 rounded-md px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${selectedStudent && selectedStudent.id === student.id ? 'bg-accent text-accent-foreground' : 'bg-muted'}`}
+					>
+						<div className="flex items-center gap-3">
+							<Avatar className="h-8 w-8 border">
+								<AvatarFallback>{student.first_name.charAt(0)}{student.last_name.charAt(0)}</AvatarFallback>
+							</Avatar>
+							<div>
+								{student.first_name === "Student" && student.last_name === "Invited" ? student.email : `${student.first_name} ${student.last_name}`}
+							</div>
+						</div>
+						<ChevronRightIcon className="h-4 w-4"/>
+					</div>))}
+				</div>
+			</div>
+		)
+	}
+
 	return (
 		<aside className="w-[30vw] bg-white rounded-lg shadow-sm p-6 space-y-6">
 			<div className="space-y-2">
@@ -74,22 +97,8 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 			</div>
 
 			<div className="space-y-2">
-				<h2 className="text-sm font-semibold">Select Student</h2>
-				<div className="space-y-1">
-					{students.map((student) => (
-						<button
-							key={student}
-							onClick={() => onStudentChange(student)}
-							className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors
-                ${
-						selectedStudent === student
-							? "bg-blue-50 text-blue-700"
-							: "hover:bg-gray-100"}`}
-						>
-							{student}
-						</button>
-					))}
-				</div>
+				<h2 className="text-lg font-semibold">Students</h2>
+				<StudentList />
 			</div>
 
 			<div className="pt-4 mt-auto">

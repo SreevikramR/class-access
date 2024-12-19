@@ -13,10 +13,44 @@ const Page = () => {
 	const [attendanceData, setAttendanceData] = useState([]);
 	const [classSelectValue, setClassSelectValue] = useState("Select Class")
 	const [classes, setClasses] = useState([])
+	const [students, setStudents] = useState([])
 
 	useEffect(() => {
 		fetchClasses();
 	}, []);
+
+	useEffect(() => {
+		if (selectedClassId) {
+			fetchStudents(selectedClassId);
+		}
+	}, [selectedClassId]);
+
+	const fetchStudents = async (classId) => {
+		const {data: classInfo, error: classError} = await supabaseClient
+			.from('classes')
+			.select('student_proxy_ids')
+			.eq('id', classId)
+			.single();
+		if (classError) {
+			console.error('Error fetching class data:', classError);
+			return;
+		}
+
+		const studentIds = classInfo.student_proxy_ids;
+		const {data: studentsData, error: studentsError} = await supabaseClient
+			.from('student_proxies')
+			.select('id, first_name, last_name, email, status')
+			.in('id', studentIds);
+
+		if (studentsError) {
+			console.error('Error fetching students data:', studentsError);
+			return;
+		}
+		const updatedStudents = studentsData.map(student => ({
+			...student, first_name: student.first_name || student.email, last_name: student.last_name || ""
+		}));
+		setStudents(updatedStudents);
+	};
 
 	const fetchClasses = async () => {
 		const {data, error} = await supabaseClient.from('classes').select('id, name');
@@ -41,6 +75,7 @@ const Page = () => {
 							classSelectValue={classSelectValue}
 							setClassSelectValue={setClassSelectValue}
 							classes={classes}
+							students={students}
 						/>
 						<main className="flex-1 bg-white rounded-lg shadow-sm p-6">
 							<h1 className="text-xl font-semibold mb-6">
