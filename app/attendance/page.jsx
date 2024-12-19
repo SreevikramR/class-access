@@ -1,38 +1,46 @@
-// Page.js
-
-"use client"
-import React from 'react'
-import Header from '@/components/page_components/header'
-import Footer from '@/components/page_components/footer'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CircleCheckBig, ClipboardList } from 'lucide-react'
-import MarkAttendance from '@/components/page_components/attendancePage/MarkAttendance'
-import AuthWrapper from '@/components/page_components/authWrapper'
-import ViewAttendance from '@/components/page_components/attendancePage/ViewAttendance'
+"use client";
+import React, { useState } from "react";
+import Header from "@/components/page_components/header";
+import Footer from "@/components/page_components/footer";
+import AuthWrapper from "@/components/page_components/authWrapper";
+import { Sidebar } from "@/components/page_components/attendancePage/Sidebar";
+import { Calendar } from "@/components/page_components/attendancePage/Calendar";
 
 const Page = () => {
-    return (
-        <AuthWrapper>
-            <div className="flex flex-col min-h-screen">
-                <Header />
-                <main className='flex-1 bg-gray-100 p-10 pt-8'>
-                    <Tabs defaultValue="mark">
-                        <TabsList>
-                            <TabsTrigger value="mark" className="">Mark Attendance<CircleCheckBig className='ml-2 w-4 h-4' /></TabsTrigger>
-                            <TabsTrigger value="view" className="ml-4">View Attendance<ClipboardList className='ml-2 w-4 h-4'/></TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="mark" className="w-full p-1 pt-2">
-                            <MarkAttendance />
-                        </TabsContent>
-                        <TabsContent value="view" className="w-full p-1 pt-2">
-                            <ViewAttendance />
-                        </TabsContent>
-                    </Tabs>
-                </main>
-                <Footer />
-            </div>
-        </AuthWrapper>
-    )
-}
+	const [selectedClass, setSelectedClass] = useState("");
+	const [selectedStudent, setSelectedStudent] = useState("John Doe");
+	const [attendanceData, setAttendanceData] = useState([]);
 
-export default Page
+	return (
+		<AuthWrapper>
+			<div className="flex flex-col min-h-screen">
+				<Header />
+				<main className="flex-1 min-h-[80vh] bg-gray-100 p-10 pt-8">
+					<div className="flex h-[80vh] gap-6 p-6">
+						<Sidebar
+							selectedClass={selectedClass}
+							selectedStudent={selectedStudent}
+							onClassChange={setSelectedClass}
+							onStudentChange={setSelectedStudent}
+						/>
+						<main className="flex-1 bg-white rounded-lg shadow-sm p-6">
+							<h1 className="text-xl font-semibold mb-6">
+								Attendance for {selectedStudent}
+							</h1>
+							<div className="flex justify-center">
+								<Calendar
+									studentName={selectedStudent}
+									attendanceData={attendanceData}
+									setAttendanceData={setAttendanceData}
+								/>
+							</div>
+						</main>
+					</div>
+				</main>
+				<Footer />
+			</div>
+		</AuthWrapper>
+	);
+};
+
+export default Page;
