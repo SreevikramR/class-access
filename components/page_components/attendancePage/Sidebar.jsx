@@ -7,7 +7,7 @@ import { Command, CommandInput, CommandEmpty, CommandGroup, CommandList, Command
 import { Check, ChevronsUpDown, ChevronRightIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, setSelectedStudent, onStudentChange, classSelectValue, setClassSelectValue, classes, students }) {
+export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, setSelectedStudent, classSelectValue, setClassSelectValue, classes, students }) {
 	const [classSelectOpen, setClassSelectOpen] = useState(false);
 	const buttonRef = useRef(null);
 	const [popoverWidth, setPopoverWidth] = useState("auto");
@@ -17,6 +17,10 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 		setSelectedClassId(classId);
 		setSelectedStudent(false)
 		setClassSelectOpen(false);
+	};
+
+	const handleStudentSelect = (student) => {
+		setSelectedStudent(student);
 	};
 
 	useEffect(() => {
@@ -91,21 +95,23 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 	}
 
 	return (
-		<aside className="w-[30vw] bg-white rounded-lg shadow-sm p-6 space-y-6">
-			<div className="space-y-2">
-				<ClassSelectionCombobox />
-			</div>
+		<aside className="w-[30vw] bg-white rounded-lg shadow-sm p-6 space-y-6 flex flex-col justify-between">
+			<div>
+				<div className="space-y-2">
+					<ClassSelectionCombobox />
+				</div>
 
-			<div className="space-y-2">
-				<h2 className="text-lg font-semibold">Students</h2>
-				<StudentList />
+				<div className="space-y-2">
+					<h2 className="text-lg font-semibold">Students</h2>
+					<StudentList />
+				</div>
 			</div>
 
 			<div className="pt-4 mt-auto">
-				<Button className="w-full" variant="default">
+				{selectedStudent && (<Button className="w-full" variant="default">
 					<Download className="w-4 h-4 mr-2" />
 					Export Attendance
-				</Button>
+				</Button>)}
 			</div>
 		</aside>
 	);

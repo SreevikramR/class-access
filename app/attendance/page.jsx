@@ -9,7 +9,7 @@ import { supabaseClient } from "@/components/util_function/supabaseCilent";
 
 const Page = () => {
 	const [selectedClassId, setSelectedClassId] = useState("");
-	const [selectedStudent, setSelectedStudent] = useState("John Doe");
+	const [selectedStudent, setSelectedStudent] = useState(false);
 	const [attendanceData, setAttendanceData] = useState([]);
 	const [classSelectValue, setClassSelectValue] = useState("Select Class")
 	const [classes, setClasses] = useState([])
@@ -20,10 +20,46 @@ const Page = () => {
 	}, []);
 
 	useEffect(() => {
+		console.log(attendanceData)
+	}, [attendanceData])
+
+	useEffect(() => {
+		if (selectedClassId && selectedStudent) {
+			fetchAttendanceRecords(selectedClassId, selectedStudent.id);
+			// fetchPaymentRecords(selectedClassId, selectedStudent.id);
+		}
+	}, [selectedStudent, selectedClassId]);
+
+	useEffect(() => {
 		if (selectedClassId) {
 			fetchStudents(selectedClassId);
 		}
 	}, [selectedClassId]);
+
+	const fetchAttendanceRecords = async (classId, studentId) => {
+		const {data, error} = await supabaseClient
+			.from('attendance_records')
+			.select('date, isPresent')
+			.eq('class_id', classId)
+			.eq('student_proxy_id', studentId);
+
+		if (error) {
+			console.error('Error fetching attendance records:', error);
+			return;
+		}
+
+		const updatedDateData = data.map(record => {
+			const date = new Date(record.date);
+			// const dayOfWeek = date.toLocaleString('default', {weekday: 'short'});
+			// const month = date.toLocaleString('default', {month: 'short'});
+			// const day = date.getDate();
+			// const year = date.getFullYear();
+			// const formattedDate = `${dayOfWeek}, ${day} ${month} ${year}`;
+			return {...record, date: date};
+		});
+
+		setAttendanceData(updatedDateData);
+	};
 
 	const fetchStudents = async (classId) => {
 		const {data: classInfo, error: classError} = await supabaseClient
@@ -79,7 +115,7 @@ const Page = () => {
 						/>
 						<main className="flex-1 bg-white rounded-lg shadow-sm p-6">
 							<h1 className="text-xl font-semibold mb-6">
-								Attendance for {selectedStudent}
+								Attendance for {selectedStudent.first_name} {selectedStudent.last_name}
 							</h1>
 							<div className="flex justify-center">
 								<Calendar

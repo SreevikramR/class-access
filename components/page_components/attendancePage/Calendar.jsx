@@ -1,7 +1,6 @@
 "use client";
-
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function Calendar({ studentName, attendanceData, setAttendanceData }) {
 	const [currentMonth, setCurrentMonth] = useState(11); // December
@@ -17,6 +16,9 @@ export function Calendar({ studentName, attendanceData, setAttendanceData }) {
 		(_, i) => i + 1,
 	);
 
+	useEffect(() => {
+
+	}, [attendanceData])
 
 	const getAttendanceStatus = (day) => {
 		const record = attendanceData.find((record) => record.date === day && record.month === currentMonth && record.year === currentYear );
