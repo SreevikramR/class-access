@@ -26,7 +26,7 @@ const LandingPage = () => {
 				"Payment history and analytics",
 				"Automatic receipt generation",
 			],
-			image: "/api/placeholder/600/400",
+			image: "/upi.png",
 			icon: <CreditCard className="w-8 h-8" />,
 		},
 		attendance: {
@@ -40,7 +40,7 @@ const LandingPage = () => {
 				"Attendance analytics",
 				"Custom report generation",
 			],
-			image: "/api/placeholder/600/400",
+			image: "/attendance.png",
 			icon: <Calendar className="w-8 h-8" />,
 		},
 		access: {
@@ -54,7 +54,7 @@ const LandingPage = () => {
 				"No awkward conversations for tuition fee collection",
 				"Dynamic and Automated Access Control",
 			],
-			image: "/api/placeholder/600/400",
+			image: "/enrollment.png",
 			icon: <Users className="w-8 h-8" />,
 		},
 		communication: {
@@ -67,7 +67,7 @@ const LandingPage = () => {
 				"Payment reminder notifications",
 				"Next-day schedule reminders for teachers",
 			],
-			image: "/api/placeholder/600/400",
+			image: "/invoice.png",
 			icon: <Mail className="w-8 h-8" />,
 		},
 	};
@@ -84,7 +84,7 @@ const LandingPage = () => {
 				"Comprehensive student profiles",
 				"Enrollment analytics",
 			],
-			image: "/api/placeholder/600/400",
+			image: "/class.png",
 			icon: <BookUser className="w-8 h-8" />,
 		},
 		insights: {
@@ -98,7 +98,7 @@ const LandingPage = () => {
 				"Automated report generation",
 				"Track student payment status",
 			],
-			image: "/api/placeholder/600/400",
+			image: "/batches.png",
 			icon: <BarChart className="w-8 h-8" />,
 		},
 		customize: {
@@ -112,7 +112,7 @@ const LandingPage = () => {
 				"Scalable to any institution size",
 				"Tailored analytics and reporting",
 			],
-			image: "/api/placeholder/600/400",
+			image: "/edit.png",
 			icon: <Settings className="w-8 h-8" />,
 		},
 	};
@@ -156,6 +156,7 @@ const LandingPage = () => {
 							<motion.button
 								whileHover={{ scale: 1.05 }}
 								whileTap={{ scale: 0.95 }}
+								onClick={() => {window.location.href = "/login"}}
 								className="border-2 border-gray-900 px-8 py-3 rounded-lg font-semibold text-sm md:text-lg hover:bg-gray-100 hover:text-[#1a202c] transition-colors"
 							>
 								Login
@@ -612,6 +613,7 @@ const LandingPage = () => {
 						<motion.button
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.95 }}
+							onClick={() => {window.location.href = "/login"}}
 							className="border-2 border-black px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
 						>
 							Login
