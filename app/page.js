@@ -1,167 +1,401 @@
-import Link from "next/link"
-import Image from "next/image"
+"use client";
+import React, { useState, useEffect } from "react";
+import { Music, Calendar, CreditCard, Users, Mail, BarChart, BookUser, Check, MousePointerClick, Settings } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import logo2 from "@/public/logo2.png";
 
-export default function Component() {
+const LandingPage = () => {
+	const [activeFeature, setActiveFeature] = useState("payments");
+	const [hasInteracted, setHasInteracted] = useState(false);
+	const [isVisible, setIsVisible] = useState(false);
+
+	useEffect(() => {
+		setIsVisible(true);
+	}, []);
+
+	const features = {
+		payments: {
+			title: "Smart Payment Management",
+			description:
+				"Seamlessly handle payments with integrated UPI support. Automatically track dues, send reminders, and maintain payment records.",
+			benefits: [
+				"Instant UPI payment collection",
+				"Automated payment tracking",
+				"Professional invoice generation",
+				"Payment history and analytics",
+				"Automatic receipt generation",
+			],
+			image: "/api/placeholder/600/400",
+			icon: <CreditCard className="w-8 h-8" />,
+		},
+		attendance: {
+			title: "Comprehensive Attendance Tracking",
+			description:
+				"Keep detailed records of student attendance, generate reports, and share updates with parents automatically.",
+			benefits: [
+				"Digital attendance marking",
+				"Automated attendance reports",
+				"Parent notification system",
+				"Attendance analytics",
+				"Custom report generation",
+			],
+			image: "/api/placeholder/600/400",
+			icon: <Calendar className="w-8 h-8" />,
+		},
+		access: {
+			title: "Class Access Control and Permissions",
+			description:
+				"Manage student enrollments efficiently and control access to classes based on payment status.",
+			benefits: [
+				"Payment-based access control",
+				"Manage student permissions to join class",
+				"Flexible restrictions by group",
+				"No awkward conversations for tuition fee collection",
+				"Dynamic and Automated Access Control",
+			],
+			image: "/api/placeholder/600/400",
+			icon: <Users className="w-8 h-8" />,
+		},
+		communication: {
+			title: "Automated Communication System",
+			description:
+				"Send invoices, attendance reports, and important updates to students, parents and teachers automatically.",
+			benefits: [
+				"Automated email notifications",
+				"Bulk messaging capability",
+				"Payment reminder notifications",
+				"Next-day schedule reminders for teachers",
+			],
+			image: "/api/placeholder/600/400",
+			icon: <Mail className="w-8 h-8" />,
+		},
+	};
+
+	const features2 = {
+		enrollment: {
+			title: "Student Enrollment Management",
+			description:
+				"Streamline the student enrollment and onboarding process with automated workflows and batch management.",
+			benefits: [
+				"Easy online enrollment process",
+				"Batch and class management",
+				"Payment-linked enrollment status",
+				"Comprehensive student profiles",
+				"Enrollment analytics",
+			],
+			image: "/api/placeholder/600/400",
+			icon: <BookUser className="w-8 h-8" />,
+		},
+		insights: {
+			title: "Centralized Insights & Analytics",
+			description:
+				"Track all critical data in one place to make informed decisions and optimize your operations.",
+			benefits: [
+				"Attendance analysis",
+				"Payment and revenue insights",
+				"Communication engagement tracking",
+				"Automated report generation",
+				"Track student payment status",
+			],
+			image: "/api/placeholder/600/400",
+			icon: <BarChart className="w-8 h-8" />,
+		},
+		customize: {
+			title: "Customizable Features",
+			description:
+				"Adapt the platform to match your requirements and preferences.",
+			benefits: [
+				"Custom class schedules",
+				"Personalized student management",
+				"Flexible student payment deadlines",
+				"Scalable to any institution size",
+				"Tailored analytics and reporting",
+			],
+			image: "/api/placeholder/600/400",
+			icon: <Settings className="w-8 h-8" />,
+		}
+	};
+
 	return (
-		<div className="flex flex-col min-h-[100dvh]">
-			<header className="px-4 lg:px-6 h-14 flex items-center">
-				<Link href="#" className="flex items-center justify-center" prefetch={false}>
-					<Image src="/logo.png" width={100} height={100} alt="logo" className="pt-10"/>
-					<span className="sr-only">Class Access</span>
-				</Link>
-				<nav className="ml-auto flex gap-4 sm:gap-6">
-					<Link href="dashboard" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-						Dashboard
-					</Link>
-				</nav>
-			</header>
-			<main className="flex-1">
-				<section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
-					<div className="container px-4 md:px-6">
-						<div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-							<div className="flex flex-col justify-center space-y-4">
-								<div className="space-y-2">
-									<h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-										Streamline Your Online Classes
-									</h1>
-									<p className="max-w-[600px] text-muted-foreground md:text-xl">
-										Attendance tracking, invoicing, and payment verification made easy for teachers.
-									</p>
-								</div>
-								<div className="flex flex-col gap-2 min-[400px]:flex-row">
-									<Link
-										href="dashboard"
-										className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-										prefetch={false}
-									>
-										Dashboard
-									</Link>
-								</div>
-							</div>
-						</div>
-					</div>
-				</section>
-				<section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
-					<div className="container px-4 md:px-6">
-						<div className="flex flex-col items-center justify-center space-y-4 text-center">
-							<div className="space-y-2">
-								<div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Key Features</div>
-								<h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Simplify Your Online Teaching</h2>
-								<p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-									Attendance tracking, invoicing, and payment verification made easy for teachers. Focus on teaching,
-									not administrative tasks.
-								</p>
-							</div>
-						</div>
-						<div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-2 lg:gap-12">
-							<div className="flex flex-col justify-center space-y-4">
-								<ul className="grid gap-6">
-									<li>
-										<div className="grid gap-1">
-											<h3 className="text-xl font-bold">Attendance Tracking</h3>
-											<p className="text-muted-foreground">Easily track student attendance for your online classes.</p>
-										</div>
-									</li>
-									<li>
-										<div className="grid gap-1">
-											<h3 className="text-xl font-bold">Invoicing</h3>
-											<p className="text-muted-foreground">
-												Generate and send invoices to students with just a few clicks.
-											</p>
-										</div>
-									</li>
-									<li>
-										<div className="grid gap-1">
-											<h3 className="text-xl font-bold">Payment Verification</h3>
-											<p className="text-muted-foreground">
-												Ensure your students have paid before granting access to your classes.
-											</p>
-										</div>
-									</li>
-								</ul>
-							</div>
-						</div>
-					</div>
-				</section>
-				<section className="w-full py-12 md:py-24 lg:py-32">
-					<div className="container grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
-						<div className="space-y-2">
-							<h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">Benefits for Online Teachers</h2>
-							<p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-								Our platform helps you focus on teaching by automating administrative tasks like attendance tracking,
-								invoicing, and payment verification.
-							</p>
-						</div>
-						<div className="flex flex-col gap-2 min-[400px]:flex-row lg:justify-end">
-							<Link
-								href="dashboard"
-								className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-								prefetch={false}
+		<div className="min-h-screen bg-gray-900">
+			{/* Hero Section */}
+			<motion.div
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.8 }}
+				className="bg-white text-black"
+			>
+				<div className="container mx-auto px-6 pt-12 py-24">
+					{/* <Image src={logo} className="mx-auto"/> */}
+					<div className="max-w-4xl mx-auto text-center">
+						<Image src={logo2} alt="logo" className="mx-auto w-[10%]"/>
+						<h1 className="text-3xl font-bold mb-12">
+							Class Access
+						</h1>
+						<h1 className="text-5xl font-bold mb-6">
+							Transform Your Teaching Academy
+						</h1>
+						<p className="text-xl mb-8">
+							The complete digital solution for teaching academies.
+							Manage students, payments, attendance, and
+							communications - all in one place.
+						</p>
+						<div className="flex justify-center space-x-4">
+							<motion.button
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								className="bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-gray-700 transition-colors"
 							>
-								Dashboard
-							</Link>
+								Book Demo
+							</motion.button>
+							<motion.button
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								className="border-2 border-gray-900 px-8 py-3 rounded-lg font-semibold text-lg hover:bg-gray-100 hover:text-[#1a202c] transition-colors"
+							>
+								Login
+							</motion.button>
 						</div>
 					</div>
-				</section>
-				<section className="w-full py-12 md:py-24 lg:py-32 border-t">
-					<div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
-						<div className="space-y-3">
-							<h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">Get Started Today</h2>
-							<p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-								Sign up for our platform and start streamlining your online teaching business.
-							</p>
-						</div>
-						<div className="mx-auto w-full max-w-sm space-y-2">
-							<span>Please Contact us at <u>sreevikram.r@gmail.com</u> or <u>teachers@classaccess.tech</u> to sign up</span>
-						</div>
+				</div>
+			</motion.div>
+
+			{/* Features Deep Dive */}
+			<div className="py-24 bg-gray-900">
+				<div className="container mx-auto px-6">
+					<motion.h2
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.8 }}
+						className="text-3xl font-bold text-center mb-8 text-white"
+					>
+						Powerful Features for Modern Teaching Academies
+					</motion.h2>
+
+					{/* Interactive Hint */}
+					<AnimatePresence>
+						{!hasInteracted && (
+							<motion.div
+								initial={{ opacity: 0, y: -20 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -20 }}
+								transition={{ duration: 0.5 }}
+								className="text-center mb-8 flex items-center justify-center text-white animate-pulse"
+							>
+								<MousePointerClick className="mr-2" />
+								<p>Click on any feature below to learn more</p>
+							</motion.div>
+						)}
+					</AnimatePresence>
+
+					<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+						{Object.keys(features).map((key) => (
+							<motion.button
+								key={key}
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								onClick={() => {
+									setActiveFeature(key);
+									setHasInteracted(true);
+								}}
+								className={`p-6 rounded-lg border-white border-2 text-left transition-all ${
+									activeFeature === key
+										? "bg-gray-800 text-white shadow-lg"
+										: "bg-white text-gray-800 hover:bg-gray-100 shadow-md"
+								}`}
+							>
+								<div className="flex items-center mb-4">
+									<div
+										className={`p-2 rounded-full ${activeFeature === key ? "bg-white" : "bg-[#1a202c]"}`}
+									>
+										{React.cloneElement(
+											features[key].icon,
+											{
+												className: `w-6 h-6 ${activeFeature === key ? "text-[#1a202c]" : "text-white"}`,
+											},
+										)}
+									</div>
+									<h3 className="font-semibold ml-3">
+										{features[key].title}
+									</h3>
+								</div>
+								<p className="text-sm">
+									{features[key].description.split(".")[0]}.
+								</p>
+							</motion.button>
+						))}
 					</div>
-				</section>
-			</main>
-			<footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-				<p className="text-xs text-muted-foreground">&copy; 2024 Class Access. All rights reserved.</p>
-				<a className="text-xs text-muted-foreground" href="/privacypolicy">Privacy Policy</a>
-			</footer>
+
+					<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto mb-12">
+						{Object.keys(features2).map((key) => (
+							<motion.button
+								key={key}
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								onClick={() => {
+									setActiveFeature(key);
+									setHasInteracted(true);
+								}}
+								className={`p-6 rounded-lg border-2 border-white text-left transition-all ${
+									activeFeature === key
+										? "bg-gray-800 text-white shadow-lg"
+										: "bg-white text-gray-800 hover:bg-gray-100 shadow-md"
+								}`}
+							>
+								<div className="flex items-center mb-4">
+									<div
+										className={`p-2 rounded-full ${activeFeature === key ? "bg-white" : "bg-[#1a202c]"}`}
+									>
+										{React.cloneElement(
+											features2[key].icon,
+											{
+												className: `w-6 h-6 ${activeFeature === key ? "text-[#1a202c]" : "text-white"}`,
+											},
+										)}
+									</div>
+									<h3 className="font-semibold ml-3">
+										{features2[key].title}
+									</h3>
+								</div>
+								<p className="text-sm">
+									{features2[key].description.split(".")[0]}.
+								</p>
+							</motion.button>
+						))}
+					</div>
+
+					<AnimatePresence mode="wait">
+						<motion.div
+							key={activeFeature}
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -20 }}
+							transition={{ duration: 0.5 }}
+							className="bg-white rounded-xl shadow-lg p-8 border border-gray-200"
+						>
+							<div className="grid md:grid-cols-2 gap-12 items-center">
+								<div>
+									<h3 className="text-2xl font-bold mb-4">
+										{features[activeFeature] && features[activeFeature].title}
+										{features2[activeFeature] && features2[activeFeature].title}
+									</h3>
+									<p className="text-gray-600 mb-6">
+										{features[activeFeature] && features[activeFeature].description}
+										{features2[activeFeature] && features2[activeFeature].description}
+									</p>
+									<div className="space-y-3">
+										{features[activeFeature] && features[activeFeature].benefits.map(
+											(benefit, index) => (
+												<motion.div
+													key={index}
+													initial={{
+														opacity: 0,
+														x: -20,
+													}}
+													animate={{
+														opacity: 1,
+														x: 0,
+													}}
+													transition={{
+														duration: 0.5,
+														delay: index * 0.1,
+													}}
+													className="flex items-center"
+												>
+													<Check
+														className="text-green-500 mr-2"
+														size={20}
+													/>
+													<span>{benefit}</span>
+												</motion.div>
+											),
+										)}
+										{features2[activeFeature] && features2[activeFeature].benefits.map(
+											(benefit, index) => (
+												<motion.div
+													key={index}
+													initial={{
+														opacity: 0,
+														x: -20,
+													}}
+													animate={{
+														opacity: 1,
+														x: 0,
+													}}
+													transition={{
+														duration: 0.5,
+														delay: index * 0.1,
+													}}
+													className="flex items-center"
+												>
+													<Check
+														className="text-green-500 mr-2"
+														size={20}
+													/>
+													<span>{benefit}</span>
+												</motion.div>
+											),
+										)}
+									</div>
+								</div>
+								<div>
+									{features[activeFeature] && <motion.img
+										initial={{ opacity: 0, scale: 0.8 }}
+										animate={{ opacity: 1, scale: 1 }}
+										transition={{ duration: 0.5 }}
+										src={features[activeFeature].image}
+										alt={features[activeFeature].title}
+										className="rounded-lg shadow-lg"
+									/>}
+									{features2[activeFeature] && <motion.img
+										initial={{ opacity: 0, scale: 0.8 }}
+										animate={{ opacity: 1, scale: 1 }}
+										transition={{ duration: 0.5 }}
+										src={features2[activeFeature].image}
+										alt={features2[activeFeature].title}
+										className="rounded-lg shadow-lg" />}
+								</div>
+							</div>
+						</motion.div>
+					</AnimatePresence>
+				</div>
+			</div>
+
+			{/* CTA */}
+			<motion.div
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ duration: 0.8 }}
+				className="bg-white text-black py-24"
+			>
+				<div className="container mx-auto px-6 text-center">
+					<h2 className="text-3xl font-bold mb-4">
+						Ready to Get Started?
+					</h2>
+					<p className="text-xl mb-8">
+						Streamline your operations and save time today
+					</p>
+					<div className="flex justify-center space-x-4">
+						<motion.button
+							whileHover={{ scale: 1.05 }}
+							whileTap={{ scale: 0.95 }}
+							className="bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+						>
+							Start Free Trial
+						</motion.button>
+						<motion.button
+							whileHover={{ scale: 1.05 }}
+							whileTap={{ scale: 0.95 }}
+							className="border-2 border-black px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+						>
+							Login
+						</motion.button>
+					</div>
+				</div>
+			</motion.div>
 		</div>
-	)
-}
+	);
+};
 
-function PencilIcon(props) {
-	return (
-		<svg
-			{...props}
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		>
-			<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-			<path d="m15 5 4 4" />
-		</svg>
-	)
-}
-
-
-function XIcon(props) {
-	return (
-		<svg
-			{...props}
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		>
-			<path d="M18 6 6 18" />
-			<path d="m6 6 12 12" />
-		</svg>
-	)
-}
+export default LandingPage;
