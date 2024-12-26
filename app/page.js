@@ -1,18 +1,16 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Music, Calendar, CreditCard, Users, Mail, BarChart, BookUser, Check, MousePointerClick, Settings } from "lucide-react";
+import { Calendar, CreditCard, Users, Mail, BarChart, BookUser, Check, MousePointerClick, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import logo2 from "@/public/logo2.png";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const LandingPage = () => {
 	const [activeFeature, setActiveFeature] = useState("payments");
 	const [hasInteracted, setHasInteracted] = useState(false);
-	const [isVisible, setIsVisible] = useState(false);
-
-	useEffect(() => {
-		setIsVisible(true);
-	}, []);
+	const [isOpen, setIsOpen] = useState(false);
 
 	const features = {
 		payments: {
@@ -120,6 +118,68 @@ const LandingPage = () => {
 	return (
 		<div className="min-h-screen bg-gray-900">
 			{/* Hero Section */}
+			<Dialog open={isOpen} onOpenChange={setIsOpen}>
+				<DialogContent className="max-w-[80%] sm:max-w-[40%]">
+					<DialogHeader>
+						<DialogTitle className="text-2xl">
+							Let&apos;s Connect!
+						</DialogTitle>
+						<DialogDescription className="space-y-4 pt-4">
+							<p>
+								We&apos;re thrilled that you&apos;re interested
+								in Class Access, the all-in-one platform for
+								teaching academies. While we currently
+								don&apos;t offer a demo booking feature online,
+								we&apos;d love to connect with you and discuss
+								how we can support your academy&apos;s needs.
+							</p>
+
+							<p>
+								Simply send us an email at{" "}
+								<a
+									href="mailto:email@email.com"
+									className="text-primary font-medium hover:underline inline-flex items-center gap-1"
+								>
+									<Mail className="w-4 h-4" />
+									myclassaccess@gmail.com
+								</a>
+								, and our team will:
+							</p>
+
+							<ul className="list-disc list-inside space-y-2 pl-4">
+								<li>
+									Provide personalized insights into how Class
+									Access works.
+								</li>
+								<li>
+									Share details about features that align with
+									your academy&apos;s goals.
+								</li>
+								<li>
+									Answer any questions you may have about
+									managing payments, attendance,
+									communication, and more.
+								</li>
+							</ul>
+
+							<p>
+								Don&apos;t hesitate to include any specific
+								challenges or goals in your email so we can
+								tailor our response just for you.
+							</p>
+
+							<p className="font-medium">
+								We&apos;re excited to help you take your
+								teaching academy to the next level. Let&apos;s
+								start the conversation – email us today!
+							</p>
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button onClick={() => setIsOpen(false)}>Close</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
@@ -149,6 +209,7 @@ const LandingPage = () => {
 							<motion.button
 								whileHover={{ scale: 1.05 }}
 								whileTap={{ scale: 0.95 }}
+								onClick={() => { setIsOpen(true) }}
 								className="bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold text-sm md:text-lg hover:bg-gray-700 transition-colors"
 							>
 								Book Demo
@@ -156,7 +217,9 @@ const LandingPage = () => {
 							<motion.button
 								whileHover={{ scale: 1.05 }}
 								whileTap={{ scale: 0.95 }}
-								onClick={() => {window.location.href = "/login"}}
+								onClick={() => {
+									window.location.href = "/login";
+								}}
 								className="border-2 border-gray-900 px-8 py-3 rounded-lg font-semibold text-sm md:text-lg hover:bg-gray-100 hover:text-[#1a202c] transition-colors"
 							>
 								Login
@@ -168,7 +231,6 @@ const LandingPage = () => {
 
 			{/* Features Deep Dive */}
 			<div className="py-12 md:py-24 bg-gray-900">
-
 				<div className="md:hidden">
 					<div className="container mx-auto px-6 lg:max-w-6xl">
 						<motion.h2
@@ -337,7 +399,9 @@ const LandingPage = () => {
 													Key Benefits:
 												</h4>
 												<ul className="space-y-2">
-													{features2[key].benefits.map(
+													{features2[
+														key
+													].benefits.map(
 														(benefit, index) => (
 															<motion.li
 																key={index}
@@ -606,6 +670,7 @@ const LandingPage = () => {
 						<motion.button
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.95 }}
+							onClick={() => { setIsOpen(true) }}
 							className="bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors"
 						>
 							Book Demo
@@ -613,7 +678,9 @@ const LandingPage = () => {
 						<motion.button
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.95 }}
-							onClick={() => {window.location.href = "/login"}}
+							onClick={() => {
+								window.location.href = "/login";
+							}}
 							className="border-2 border-black px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
 						>
 							Login
