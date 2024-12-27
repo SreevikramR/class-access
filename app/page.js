@@ -6,11 +6,13 @@ import Image from "next/image";
 import logo2 from "@/public/logo2.png";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { supabaseClient } from "@/components/util_function/supabaseCilent";
 
 const LandingPage = () => {
 	const [activeFeature, setActiveFeature] = useState("payments");
 	const [hasInteracted, setHasInteracted] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
+	const [loggedIn, setLoggedIn] = useState(false);
 
 	const features = {
 		payments: {
@@ -115,6 +117,17 @@ const LandingPage = () => {
 		},
 	};
 
+	useEffect(() => {
+		checkLogin();
+	}, [])
+
+	const checkLogin = async () => {
+		const user = await supabaseClient.auth.getUser()
+		if (user.data.user) {
+			setLoggedIn(true);
+		}
+	}
+
 	return (
 		<div className="min-h-screen bg-gray-900">
 			{/* Hero Section */}
@@ -180,15 +193,16 @@ const LandingPage = () => {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
-			<motion.div
-				initial={{ opacity: 0, y: 20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.8 }}
+			<div
 				className="bg-white text-black"
 			>
 				<div className="container mx-auto px-6 pt-12 py-24">
 					{/* <Image src={logo} className="mx-auto"/> */}
-					<div className="max-w-4xl mx-auto text-center">
+					<motion.div className="max-w-4xl mx-auto text-center"
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.8 }}
+					>
 						<Image
 							src={logo2}
 							alt="logo"
@@ -214,20 +228,32 @@ const LandingPage = () => {
 							>
 								Book Demo
 							</motion.button>
-							<motion.button
-								whileHover={{ scale: 1.05 }}
-								whileTap={{ scale: 0.95 }}
-								onClick={() => {
-									window.location.href = "/login";
-								}}
-								className="border-2 border-gray-900 px-8 py-3 rounded-lg font-semibold text-sm md:text-lg hover:bg-gray-100 hover:text-[#1a202c] transition-colors"
-							>
-								Login
-							</motion.button>
+							{ loggedIn ?
+								<motion.button
+									whileHover={{ scale: 1.05 }}
+									whileTap={{ scale: 0.95 }}
+									onClick={() => {
+										window.location.href = "/dashboard";
+									}}
+									className="border-2 border-gray-900 px-8 py-3 rounded-lg font-semibold text-sm md:text-lg hover:bg-gray-100 hover:text-[#1a202c] transition-colors"
+								>
+									Dashboard
+								</motion.button> :
+								<motion.button
+									whileHover={{ scale: 1.05 }}
+									whileTap={{ scale: 0.95 }}
+									onClick={() => {
+										window.location.href = "/login";
+									}}
+									className="border-2 border-gray-900 px-8 py-3 rounded-lg font-semibold text-sm md:text-lg hover:bg-gray-100 hover:text-[#1a202c] transition-colors"
+								>
+									Login
+								</motion.button>
+							}
 						</div>
-					</div>
+					</motion.div>
 				</div>
-			</motion.div>
+			</div>
 
 			{/* Features Deep Dive */}
 			<div className="py-12 md:py-24 bg-gray-900">
