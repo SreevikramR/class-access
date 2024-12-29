@@ -111,6 +111,7 @@ const Page = () => {
 							setClassSelectValue={setClassSelectValue}
 							classes={classes}
 							students={students}
+							attendanceRecords={attendanceData}
 						/>
 						<main className="flex-1 bg-white rounded-lg shadow-sm p-6">
 							<h1 className="text-xl font-semibold mb-6">
