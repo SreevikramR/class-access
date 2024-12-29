@@ -1,8 +1,9 @@
 "use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
+import { supabaseClient } from "@/components/util_function/supabaseCilent";
 
-export function Calendar({ studentName, attendanceData, setAttendanceData }) {
+export function Calendar({ studentName, attendanceData, setAttendanceData, classId, studentId }) {
 	const [currentMonth, setCurrentMonth] = useState(11); // December
 	const [currentYear, setCurrentYear] = useState(2024);
 
@@ -32,8 +33,21 @@ export function Calendar({ studentName, attendanceData, setAttendanceData }) {
 		}
 	};
 
-	const handleDayClick = (day) => {
+	const handleDayClick = async (day) => {
 		const newStatus = (getAttendanceStatus(day) === "present") ? "absent" : (getAttendanceStatus(day) === "absent")? "not-marked" : "present";
+
+		console.log("in")
+		if (newStatus != "not-marked") {
+			console.log("in2")
+			const {data, error} = await supabaseClient.from('attendance_records')
+				.upsert([{date: `${currentYear}-${currentMonth + 1}-${day + 1}`, isPresent: newStatus === "present", class_id: classId, student_proxy_id: studentId}],
+					{onConflict: ['date', 'class_id', 'student_proxy_id']});
+			console.log(error)
+		} else {
+			const { data, error } = await supabaseClient.from('attendance_records')
+				.delete()
+				.match({ date: `${currentYear}-${currentMonth + 1}-${day + 1}`, class_id: classId, student_proxy_id: studentId })
+		}
 
 		setAttendanceData(prevData => {
 			const existingRecordIndex = prevData.findIndex(record => record.date === day  && record.month === currentMonth && record.year === currentYear);

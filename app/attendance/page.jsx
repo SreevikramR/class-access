@@ -39,7 +39,7 @@ const Page = () => {
 	const fetchAttendanceRecords = async (classId, studentId) => {
 		const {data, error} = await supabaseClient
 			.from('attendance_records')
-			.select('date, isPresent')
+			.select('date, isPresent, id')
 			.eq('class_id', classId)
 			.eq('student_proxy_id', studentId);
 
@@ -50,17 +50,11 @@ const Page = () => {
 
 		const updatedDateData = data.map(record => {
 			const date = new Date(record.date);
-			// const dayOfWeek = date.toLocaleString('default', {weekday: 'short'});
-			// const month = date.toLocaleString('default', {month: 'short'});
-			// const day = date.getDate();
-			// const year = date.getFullYear();
-			// const formattedDate = `${dayOfWeek}, ${day} ${month} ${year}`;
-			//
 			const dateNumber = date.getDate();
 			const month = date.getMonth();
 			const year = date.getFullYear();
 			const isPresent = record.isPresent ? 'present' : 'absent';
-			return {date: dateNumber, month: month, year: year, status: isPresent};
+			return {id: record.id, date: dateNumber, month: month, year: year, status: isPresent};
 		});
 
 		setAttendanceData(updatedDateData);
@@ -127,6 +121,8 @@ const Page = () => {
 									studentName={selectedStudent}
 									attendanceData={attendanceData}
 									setAttendanceData={setAttendanceData}
+									classId={selectedClassId}
+									studentId={selectedStudent.id}
 								/>
 							</div>
 						</main>
