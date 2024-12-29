@@ -55,7 +55,12 @@ const Page = () => {
 			// const day = date.getDate();
 			// const year = date.getFullYear();
 			// const formattedDate = `${dayOfWeek}, ${day} ${month} ${year}`;
-			return {...record, date: date};
+			//
+			const dateNumber = date.getDate();
+			const month = date.getMonth();
+			const year = date.getFullYear();
+			const isPresent = record.isPresent ? 'present' : 'absent';
+			return {date: dateNumber, month: month, year: year, status: isPresent};
 		});
 
 		setAttendanceData(updatedDateData);

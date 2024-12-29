@@ -16,10 +16,6 @@ export function Calendar({ studentName, attendanceData, setAttendanceData }) {
 		(_, i) => i + 1,
 	);
 
-	useEffect(() => {
-
-	}, [attendanceData])
-
 	const getAttendanceStatus = (day) => {
 		const record = attendanceData.find((record) => record.date === day && record.month === currentMonth && record.year === currentYear );
 		return record ? record.status : "not-marked";
