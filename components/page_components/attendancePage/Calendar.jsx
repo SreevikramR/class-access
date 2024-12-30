@@ -18,7 +18,7 @@ export function Calendar({ studentName, attendanceData, setAttendanceData, class
 	);
 
 	const getAttendanceStatus = (day) => {
-		const record = attendanceData.find((record) => record.date === day && record.month === currentMonth && record.year === currentYear );
+		const record = attendanceData.find((record) => record.date === day - 1 && record.month === currentMonth && record.year === currentYear );
 		return record ? record.status : "not-marked";
 	};
 
@@ -40,28 +40,28 @@ export function Calendar({ studentName, attendanceData, setAttendanceData, class
 		if (newStatus != "not-marked") {
 			console.log("in2")
 			const {data, error} = await supabaseClient.from('attendance_records')
-				.upsert([{date: `${currentYear}-${currentMonth + 1}-${day + 1}`, isPresent: newStatus === "present", class_id: classId, student_proxy_id: studentId}],
+				.upsert([{date: `${currentYear}-${currentMonth + 1}-${day}`, isPresent: newStatus === "present", class_id: classId, student_proxy_id: studentId}],
 					{onConflict: ['date', 'class_id', 'student_proxy_id']});
 			console.log(error)
 		} else {
 			const { data, error } = await supabaseClient.from('attendance_records')
 				.delete()
-				.match({ date: `${currentYear}-${currentMonth + 1}-${day + 1}`, class_id: classId, student_proxy_id: studentId })
+				.match({ date: `${currentYear}-${currentMonth + 1}-${day}`, class_id: classId, student_proxy_id: studentId })
 		}
 
 		setAttendanceData(prevData => {
-			const existingRecordIndex = prevData.findIndex(record => record.date === day  && record.month === currentMonth && record.year === currentYear);
+			const existingRecordIndex = prevData.findIndex(record => record.date === day - 1  && record.month === currentMonth && record.year === currentYear);
 
 			if (existingRecordIndex !== -1) {
 				const updatedData = [...prevData];
 				if (newStatus == "not-marked") {
 					return updatedData.filter((_, index) => index !== existingRecordIndex);
 				} else {
-					updatedData[existingRecordIndex] = {date: day, month: currentMonth, year: currentYear, status: newStatus}
+					updatedData[existingRecordIndex] = {date: day - 1, month: currentMonth, year: currentYear, status: newStatus}
 					return updatedData;
 				}
 			} else {
-				return [...prevData, { date: day, month: currentMonth, year: currentYear, status: newStatus }];
+				return [...prevData, { date: day - 1, month: currentMonth, year: currentYear, status: newStatus }];
 			}
 		});
 	};

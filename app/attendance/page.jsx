@@ -8,7 +8,6 @@ import { Calendar } from "@/components/page_components/attendancePage/Calendar";
 import { supabaseClient } from "@/components/util_function/supabaseCilent";
 import MarkAttendance from "@/components/page_components/attendancePage/MarkAttendance";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CircleCheckBig, ClipboardList } from "lucide-react";
 import { CircleUserRound, Users } from "lucide-react";
 
 const Page = () => {
@@ -105,7 +104,7 @@ const Page = () => {
 			<div className="flex flex-col min-h-screen">
 				<Header />
 				<main className="flex-1 bg-gray-100 p-10 pt-8">
-					<Tabs defaultValue="group">
+					<Tabs defaultValue="individual">
 						<TabsList>
 							<TabsTrigger value="individual" className="">Individual<CircleUserRound className='ml-2 w-4 h-4' /></TabsTrigger>
 							<TabsTrigger value="group" className="ml-4">Group/Batch<Users className='ml-2 w-4 h-4'/></TabsTrigger>
