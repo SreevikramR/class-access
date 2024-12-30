@@ -13,6 +13,14 @@ const LandingPage = () => {
 	const [hasInteracted, setHasInteracted] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const [loggedIn, setLoggedIn] = useState(false);
+	const [isDesktop, setIsDesktop] = useState(false);
+
+	useEffect(() => {
+		const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+		handleResize(); // Check on initial render
+		window.addEventListener('resize', handleResize);
+		return () => window.removeEventListener('resize', handleResize);
+	}, []);
 
 	const features = {
 		payments: {
@@ -466,216 +474,217 @@ const LandingPage = () => {
 						</div>
 					</div>
 				</div>
+				{ isDesktop &&
+					<div className="container mx-auto px-6 hidden md:block">
+						<motion.h2
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.8 }}
+							className="text-2xl md:text-3xl font-bold text-center mb-2 text-white"
+						>
+							Powerful Features for Modern Teaching Academies
+						</motion.h2>
 
-				<div className="container mx-auto px-6 hidden md:block">
-					<motion.h2
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8 }}
-						className="text-2xl md:text-3xl font-bold text-center mb-2 text-white"
-					>
-						Powerful Features for Modern Teaching Academies
-					</motion.h2>
+						{/* Interactive Hint */}
+						<AnimatePresence>
+							{!hasInteracted && (
+								<motion.div
+									initial={{ opacity: 0, y: -20 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: -20 }}
+									transition={{ duration: 0.5 }}
+									className="text-center mb-8 flex items-center justify-center text-white animate-pulse"
+								>
+									<MousePointerClick className="mr-2" />
+									<p>Click on any feature below to learn more</p>
+								</motion.div>
+							)}
+						</AnimatePresence>
 
-					{/* Interactive Hint */}
-					<AnimatePresence>
-						{!hasInteracted && (
+						<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12 mb-6 lg:mb-12">
+							{Object.keys(features).map((key) => (
+								<motion.button
+									key={key}
+									whileHover={{ scale: 1.05 }}
+									whileTap={{ scale: 0.95 }}
+									onClick={() => {
+										setActiveFeature(key);
+										setHasInteracted(true);
+									}}
+									className={`p-6 rounded-lg border-white border-2 text-left transition-all ${
+										activeFeature === key
+											? "bg-gray-800 text-white shadow-lg"
+											: "bg-white text-gray-800 hover:bg-gray-100 shadow-md"
+									}`}
+								>
+									<div className="flex items-center mb-4">
+										<div
+											className={`p-2 rounded-full ${activeFeature === key ? "bg-white" : "bg-[#1a202c]"}`}
+										>
+											{React.cloneElement(
+												features[key].icon,
+												{
+													className: `w-6 h-6 ${activeFeature === key ? "text-[#1a202c]" : "text-white"}`,
+												},
+											)}
+										</div>
+										<h3 className="font-semibold ml-3">
+											{features[key].title}
+										</h3>
+									</div>
+									<p className="text-sm">
+										{features[key].description.split(".")[0]}.
+									</p>
+								</motion.button>
+							))}
+						</div>
+
+						<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto mb-12">
+							{Object.keys(features2).map((key) => (
+								<motion.button
+									key={key}
+									whileHover={{ scale: 1.05 }}
+									whileTap={{ scale: 0.95 }}
+									onClick={() => {
+										setActiveFeature(key);
+										setHasInteracted(true);
+									}}
+									className={`p-6 rounded-lg border-2 border-white text-left transition-all ${
+										activeFeature === key
+											? "bg-gray-800 text-white shadow-lg"
+											: "bg-white text-gray-800 hover:bg-gray-100 shadow-md"
+									}`}
+								>
+									<div className="flex items-center mb-4">
+										<div
+											className={`p-2 rounded-full ${activeFeature === key ? "bg-white" : "bg-[#1a202c]"}`}
+										>
+											{React.cloneElement(
+												features2[key].icon,
+												{
+													className: `w-6 h-6 ${activeFeature === key ? "text-[#1a202c]" : "text-white"}`,
+												},
+											)}
+										</div>
+										<h3 className="font-semibold ml-3">
+											{features2[key].title}
+										</h3>
+									</div>
+									<p className="text-sm">
+										{features2[key].description.split(".")[0]}.
+									</p>
+								</motion.button>
+							))}
+						</div>
+
+						<AnimatePresence mode="wait">
 							<motion.div
-								initial={{ opacity: 0, y: -20 }}
+								key={activeFeature}
+								initial={{ opacity: 0, y: 20 }}
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0, y: -20 }}
 								transition={{ duration: 0.5 }}
-								className="text-center mb-8 flex items-center justify-center text-white animate-pulse"
+								className="bg-white rounded-xl shadow-lg p-8 border border-gray-200"
 							>
-								<MousePointerClick className="mr-2" />
-								<p>Click on any feature below to learn more</p>
+								<div className="grid md:grid-cols-2 gap-12 items-center">
+									<div>
+										<h3 className="text-2xl font-bold mb-4">
+											{features[activeFeature] &&
+												features[activeFeature].title}
+											{features2[activeFeature] &&
+												features2[activeFeature].title}
+										</h3>
+										<p className="text-gray-600 mb-6">
+											{features[activeFeature] &&
+												features[activeFeature].description}
+											{features2[activeFeature] &&
+												features2[activeFeature]
+													.description}
+										</p>
+										<div className="space-y-3">
+											{features[activeFeature] &&
+												features[
+													activeFeature
+												].benefits.map((benefit, index) => (
+													<motion.div
+														key={index}
+														initial={{
+															opacity: 0,
+															x: -20,
+														}}
+														animate={{
+															opacity: 1,
+															x: 0,
+														}}
+														transition={{
+															duration: 0.5,
+															delay: index * 0.1,
+														}}
+														className="flex items-center"
+													>
+														<Check
+															className="text-green-500 mr-2"
+															size={20}
+														/>
+														<span>{benefit}</span>
+													</motion.div>
+												))}
+											{features2[activeFeature] &&
+												features2[
+													activeFeature
+												].benefits.map((benefit, index) => (
+													<motion.div
+														key={index}
+														initial={{
+															opacity: 0,
+															x: -20,
+														}}
+														animate={{
+															opacity: 1,
+															x: 0,
+														}}
+														transition={{
+															duration: 0.5,
+															delay: index * 0.1,
+														}}
+														className="flex items-center"
+													>
+														<Check
+															className="text-green-500 mr-2"
+															size={20}
+														/>
+														<span>{benefit}</span>
+													</motion.div>
+												))}
+										</div>
+									</div>
+									<div>
+										{features[activeFeature] && (
+											<motion.img
+												initial={{ opacity: 0, scale: 0.8 }}
+												animate={{ opacity: 1, scale: 1 }}
+												transition={{ duration: 0.5 }}
+												src={features[activeFeature].image}
+												alt={features[activeFeature].title}
+												className="rounded-lg shadow-lg"
+											/>
+										)}
+										{features2[activeFeature] && (
+											<motion.img
+												initial={{ opacity: 0, scale: 0.8 }}
+												animate={{ opacity: 1, scale: 1 }}
+												transition={{ duration: 0.5 }}
+												src={features2[activeFeature].image}
+												alt={features2[activeFeature].title}
+												className="rounded-lg shadow-lg"
+											/>
+										)}
+									</div>
+								</div>
 							</motion.div>
-						)}
-					</AnimatePresence>
-
-					<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12 mb-6 lg:mb-12">
-						{Object.keys(features).map((key) => (
-							<motion.button
-								key={key}
-								whileHover={{ scale: 1.05 }}
-								whileTap={{ scale: 0.95 }}
-								onClick={() => {
-									setActiveFeature(key);
-									setHasInteracted(true);
-								}}
-								className={`p-6 rounded-lg border-white border-2 text-left transition-all ${
-									activeFeature === key
-										? "bg-gray-800 text-white shadow-lg"
-										: "bg-white text-gray-800 hover:bg-gray-100 shadow-md"
-								}`}
-							>
-								<div className="flex items-center mb-4">
-									<div
-										className={`p-2 rounded-full ${activeFeature === key ? "bg-white" : "bg-[#1a202c]"}`}
-									>
-										{React.cloneElement(
-											features[key].icon,
-											{
-												className: `w-6 h-6 ${activeFeature === key ? "text-[#1a202c]" : "text-white"}`,
-											},
-										)}
-									</div>
-									<h3 className="font-semibold ml-3">
-										{features[key].title}
-									</h3>
-								</div>
-								<p className="text-sm">
-									{features[key].description.split(".")[0]}.
-								</p>
-							</motion.button>
-						))}
+						</AnimatePresence>
 					</div>
-
-					<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto mb-12">
-						{Object.keys(features2).map((key) => (
-							<motion.button
-								key={key}
-								whileHover={{ scale: 1.05 }}
-								whileTap={{ scale: 0.95 }}
-								onClick={() => {
-									setActiveFeature(key);
-									setHasInteracted(true);
-								}}
-								className={`p-6 rounded-lg border-2 border-white text-left transition-all ${
-									activeFeature === key
-										? "bg-gray-800 text-white shadow-lg"
-										: "bg-white text-gray-800 hover:bg-gray-100 shadow-md"
-								}`}
-							>
-								<div className="flex items-center mb-4">
-									<div
-										className={`p-2 rounded-full ${activeFeature === key ? "bg-white" : "bg-[#1a202c]"}`}
-									>
-										{React.cloneElement(
-											features2[key].icon,
-											{
-												className: `w-6 h-6 ${activeFeature === key ? "text-[#1a202c]" : "text-white"}`,
-											},
-										)}
-									</div>
-									<h3 className="font-semibold ml-3">
-										{features2[key].title}
-									</h3>
-								</div>
-								<p className="text-sm">
-									{features2[key].description.split(".")[0]}.
-								</p>
-							</motion.button>
-						))}
-					</div>
-
-					<AnimatePresence mode="wait">
-						<motion.div
-							key={activeFeature}
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							exit={{ opacity: 0, y: -20 }}
-							transition={{ duration: 0.5 }}
-							className="bg-white rounded-xl shadow-lg p-8 border border-gray-200"
-						>
-							<div className="grid md:grid-cols-2 gap-12 items-center">
-								<div>
-									<h3 className="text-2xl font-bold mb-4">
-										{features[activeFeature] &&
-											features[activeFeature].title}
-										{features2[activeFeature] &&
-											features2[activeFeature].title}
-									</h3>
-									<p className="text-gray-600 mb-6">
-										{features[activeFeature] &&
-											features[activeFeature].description}
-										{features2[activeFeature] &&
-											features2[activeFeature]
-												.description}
-									</p>
-									<div className="space-y-3">
-										{features[activeFeature] &&
-											features[
-												activeFeature
-											].benefits.map((benefit, index) => (
-												<motion.div
-													key={index}
-													initial={{
-														opacity: 0,
-														x: -20,
-													}}
-													animate={{
-														opacity: 1,
-														x: 0,
-													}}
-													transition={{
-														duration: 0.5,
-														delay: index * 0.1,
-													}}
-													className="flex items-center"
-												>
-													<Check
-														className="text-green-500 mr-2"
-														size={20}
-													/>
-													<span>{benefit}</span>
-												</motion.div>
-											))}
-										{features2[activeFeature] &&
-											features2[
-												activeFeature
-											].benefits.map((benefit, index) => (
-												<motion.div
-													key={index}
-													initial={{
-														opacity: 0,
-														x: -20,
-													}}
-													animate={{
-														opacity: 1,
-														x: 0,
-													}}
-													transition={{
-														duration: 0.5,
-														delay: index * 0.1,
-													}}
-													className="flex items-center"
-												>
-													<Check
-														className="text-green-500 mr-2"
-														size={20}
-													/>
-													<span>{benefit}</span>
-												</motion.div>
-											))}
-									</div>
-								</div>
-								<div>
-									{features[activeFeature] && (
-										<motion.img
-											initial={{ opacity: 0, scale: 0.8 }}
-											animate={{ opacity: 1, scale: 1 }}
-											transition={{ duration: 0.5 }}
-											src={features[activeFeature].image}
-											alt={features[activeFeature].title}
-											className="rounded-lg shadow-lg"
-										/>
-									)}
-									{features2[activeFeature] && (
-										<motion.img
-											initial={{ opacity: 0, scale: 0.8 }}
-											animate={{ opacity: 1, scale: 1 }}
-											transition={{ duration: 0.5 }}
-											src={features2[activeFeature].image}
-											alt={features2[activeFeature].title}
-											className="rounded-lg shadow-lg"
-										/>
-									)}
-								</div>
-							</div>
-						</motion.div>
-					</AnimatePresence>
-				</div>
+				}
 			</div>
 
 			{/* CTA */}
