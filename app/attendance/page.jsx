@@ -116,8 +116,8 @@ const Page = () => {
 				<main className="flex-1 bg-gray-100 p-10 pt-8">
 					<Tabs defaultValue="individual" onValueChange={(value) => handleTabChange(value)}>
 						<TabsList>
-							<TabsTrigger value="individual" className="">Individual<CircleUserRound className='ml-2 w-4 h-4' /></TabsTrigger>
-							<TabsTrigger value="group" className="ml-4">Group Mode<Users className='ml-2 w-4 h-4'/></TabsTrigger>
+							<TabsTrigger value="individual" className="border-[1px] border-white data-[state=inactive]:border-gray-400">Individual<CircleUserRound className='ml-2 w-4 h-4' /></TabsTrigger>
+							<TabsTrigger value="group" className="ml-4 border-[1px] border-white data-[state=inactive]:border-gray-400">Group Mode<Users className='ml-2 w-4 h-4'/></TabsTrigger>
 						</TabsList>
 						<TabsContent value="group" className="w-full max-h-[50vh] p-1 pt-2">
 							<MarkAttendance />
