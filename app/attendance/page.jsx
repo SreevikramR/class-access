@@ -6,6 +6,10 @@ import AuthWrapper from "@/components/page_components/authWrapper";
 import { Sidebar } from "@/components/page_components/attendancePage/Sidebar";
 import { Calendar } from "@/components/page_components/attendancePage/Calendar";
 import { supabaseClient } from "@/components/util_function/supabaseCilent";
+import MarkAttendance from "@/components/page_components/attendancePage/MarkAttendance";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { CircleCheckBig, ClipboardList } from "lucide-react";
+import { CircleUserRound, Users } from "lucide-react";
 
 const Page = () => {
 	const [selectedClassId, setSelectedClassId] = useState("");
@@ -100,34 +104,45 @@ const Page = () => {
 		<AuthWrapper>
 			<div className="flex flex-col min-h-screen">
 				<Header />
-				<main className="flex-1 min-h-[80vh] bg-gray-100 p-10 pt-8">
-					<div className="flex h-[80vh] gap-6 p-6">
-						<Sidebar
-							selectedClassId={selectedClassId}
-							selectedStudent={selectedStudent}
-							setSelectedClassId={setSelectedClassId}
-							setSelectedStudent={setSelectedStudent}
-							classSelectValue={classSelectValue}
-							setClassSelectValue={setClassSelectValue}
-							classes={classes}
-							students={students}
-							attendanceRecords={attendanceData}
-						/>
-						<main className="flex-1 bg-white rounded-lg shadow-sm p-6">
-							<h1 className="text-xl font-semibold mb-6">
-								Attendance for {selectedStudent.first_name} {selectedStudent.last_name}
-							</h1>
-							<div className="flex justify-center">
-								<Calendar
-									studentName={selectedStudent}
-									attendanceData={attendanceData}
-									setAttendanceData={setAttendanceData}
-									classId={selectedClassId}
-									studentId={selectedStudent.id}
+				<main className="flex-1 bg-gray-100 p-10 pt-8">
+					<Tabs defaultValue="group">
+						<TabsList>
+							<TabsTrigger value="individual" className="">Individual<CircleUserRound className='ml-2 w-4 h-4' /></TabsTrigger>
+							<TabsTrigger value="group" className="ml-4">Group/Batch<Users className='ml-2 w-4 h-4'/></TabsTrigger>
+						</TabsList>
+						<TabsContent value="group" className="w-full max-h-[50vh] p-1 pt-2">
+							<MarkAttendance />
+						</TabsContent>
+						<TabsContent value="individual" className="p-1 pt-2">
+							<div className="h-[75vh] flex flex-row gap-6 w-full">
+								<Sidebar
+									selectedClassId={selectedClassId}
+									selectedStudent={selectedStudent}
+									setSelectedClassId={setSelectedClassId}
+									setSelectedStudent={setSelectedStudent}
+									classSelectValue={classSelectValue}
+									setClassSelectValue={setClassSelectValue}
+									classes={classes}
+									students={students}
+									attendanceRecords={attendanceData}
 								/>
+								<div className="flex-1 bg-white rounded-lg shadow-sm p-6">
+									<h1 className="text-xl font-semibold mb-6">
+										Attendance for {selectedStudent.first_name} {selectedStudent.last_name}
+									</h1>
+									<div className="flex justify-center">
+										<Calendar
+											studentName={selectedStudent}
+											attendanceData={attendanceData}
+											setAttendanceData={setAttendanceData}
+											classId={selectedClassId}
+											studentId={selectedStudent.id}
+										/>
+									</div>
+								</div>
 							</div>
-						</main>
-					</div>
+						</TabsContent>
+					</Tabs>
 				</main>
 				<Footer />
 			</div>

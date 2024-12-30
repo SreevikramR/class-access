@@ -24,9 +24,11 @@ const months = [
 const monthsShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 const ViewAttendance = () => {
+	const [classSelectOpen, setClassSelectOpen] = useState(false)
 	const [classSelectValue, setClassSelectValue] = useState("Select Class")
 	const [selectedClassId, setSelectedClassId] = useState(null)
 	const [classes, setClasses] = useState([])
+	const [students, setStudents] = useState([])
 	const [selectedStudent, setSelectedStudent] = useState(null)
 	const [attendanceRecords, setAttendanceRecords] = useState([])
 	const [paymentRecords, setPaymentRecords] = useState([]);
@@ -81,6 +83,7 @@ const ViewAttendance = () => {
 	}
 
 	useEffect(() => {
+		fetchClasses();
 		// Set previous month
 		let prevMonth = new Date().getMonth() - 1;
 		prevMonth = prevMonth < 0 ? 11 : prevMonth;
@@ -91,6 +94,57 @@ const ViewAttendance = () => {
 		fetchTeacherName()
 	}, []);
 
+	useEffect(() => {
+		if (selectedClassId) {
+			fetchStudents(selectedClassId);
+		}
+	}, [selectedClassId]);
+
+	useEffect(() => {
+		if (selectedClassId && selectedStudent) {
+			fetchAttendanceRecords(selectedClassId, selectedStudent.id);
+		}
+	}, [selectedStudent]);
+
+	const fetchClasses = async () => {
+		const {data, error} = await supabaseClient.from('classes').select('id, name');
+		if (error) {
+			console.error('Error fetching classes:', error);
+			return;
+		}
+		setClasses(data);
+	};
+
+	const fetchStudents = async (classId) => {
+		const {data: classInfo, error: classError} = await supabaseClient
+			.from('classes')
+			.select('student_proxy_ids')
+			.eq('id', classId)
+			.single();
+
+		if (classError) {
+			console.error('Error fetching class data:', classError);
+			return;
+		}
+
+		const studentIds = classInfo.student_proxy_ids;
+
+		const {data: studentsData, error: studentsError} = await supabaseClient
+			.from('student_proxies')
+			.select('id, first_name, last_name, email, status')
+			.in('id', studentIds);
+
+		if (studentsError) {
+			console.error('Error fetching students data:', studentsError);
+			return;
+		}
+
+		const updatedStudents = studentsData.map(student => ({
+			...student, first_name: student.first_name || student.email, last_name: student.last_name || ""
+		}));
+
+		setStudents(updatedStudents);
+	};
 	const fetchPaymentRecords = async (classId, studentId) => {
 		const {data, error} = await supabaseClient
 			.from('payments')
@@ -103,18 +157,84 @@ const ViewAttendance = () => {
 			return;
 		}
 
-		// const updatedDateData = data.map(record => {
-		// 	const date = new Date(record.date);
-		// 	const dayOfWeek = date.toLocaleString('default', { weekday: 'short' });
-		// 	const month = date.toLocaleString('default', { month: 'short' });
-		// 	const day = date.getDate();
-		// 	const year = date.getFullYear();
-		// 	const formattedDate = `${dayOfWeek}, ${day} ${month} ${year}`;
-		// 	return { ...record, date: formattedDate };
-		// });
+		const updatedDateData = data.map(record => {
+			const date = new Date(record.date);
+			const dayOfWeek = date.toLocaleString('default', { weekday: 'short' });
+			const month = date.toLocaleString('default', { month: 'short' });
+			const day = date.getDate();
+			const year = date.getFullYear();
+			const formattedDate = `${dayOfWeek}, ${day} ${month} ${year}`;
+			return { ...record, date: formattedDate };
+		});
 
-		setPaymentRecords(data);
+		setPaymentRecords(updatedDateData);
 	};
+	useEffect(() => {
+		if (selectedClassId && selectedStudent) {
+			fetchAttendanceRecords(selectedClassId, selectedStudent.id);
+			fetchPaymentRecords(selectedClassId, selectedStudent.id);
+		}
+	}, [selectedStudent]);
+
+	const fetchAttendanceRecords = async (classId, studentId) => {
+		const {data, error} = await supabaseClient
+			.from('attendance_records')
+			.select('date, isPresent')
+			.eq('class_id', classId)
+			.eq('student_proxy_id', studentId);
+
+		if (error) {
+			console.error('Error fetching attendance records:', error);
+			return;
+		}
+
+		const updatedDateData = data.map(record => {
+			const date = new Date(record.date);
+			const dayOfWeek = date.toLocaleString('default', {weekday: 'short'});
+			const month = date.toLocaleString('default', {month: 'short'});
+			const day = date.getDate();
+			const year = date.getFullYear();
+			const formattedDate = `${dayOfWeek}, ${day} ${month} ${year}`;
+			return {...record, date: formattedDate};
+		});
+
+		setAttendanceRecords(updatedDateData);
+	};
+
+	const handleClassSelect = (classId, className) => {
+		setClassSelectValue(className);
+		setSelectedClassId(classId);
+		setSelectedStudent(false)
+		setClassSelectOpen(false);
+	};
+
+
+	const handleStudentSelect = (student) => {
+		console.log(student)
+		setSelectedStudent(student);
+	};
+
+	function ClassSelectionCombobox() {
+		return (<PopoverContent className="w-[250px] p-0">
+			<Command>
+				<CommandInput placeholder="Search Class..."/>
+				<CommandEmpty>No Class found.</CommandEmpty>
+				<CommandGroup>
+					<CommandList>
+						{classes.map((classItem) => (<CommandItem
+							key={classItem.id}
+							value={classItem.id}
+							onSelect={() => handleClassSelect(classItem.id, classItem.name)}
+						>
+							<Check
+								className={"mr-2 h-4 w-4" + (classSelectValue === classItem.id ? " opacity-100" : " opacity-0")}/>
+							{classItem.name}
+						</CommandItem>))}
+					</CommandList>
+				</CommandGroup>
+			</Command>
+		</PopoverContent>)
+	}
 
 	const _paymentRecordRow = ({date, amount, notes}) => {
 		return (<TableRow className="bg-green-300 hover:bg-green-200">
@@ -135,10 +255,40 @@ const ViewAttendance = () => {
 			<div className="mb-2 flex items-center justify-between">
 				<h1 className="text-xl font-bold">Class</h1>
 			</div>
+			<Popover open={classSelectOpen} onOpenChange={setClassSelectOpen}>
+				<PopoverTrigger asChild>
+					<Button
+						variant={"outline"}
+						className="w-[250px] mr-2 justify-start text-left font-normal mb-6">
+						<ChevronsUpDown className="mr-2 h-4 w-4 shrink-0 opacity-50"/>
+						{classSelectValue}
+					</Button>
+				</PopoverTrigger>
+				<ClassSelectionCombobox/>
+			</Popover>
 			<div className="mb-4 flex items-center justify-between">
 				<h1 className="text-xl font-bold">Students</h1>
 			</div>
-
+			<div className="flex-1 overflow-auto">
+				<div className="space-y-2">
+					{students.map((student) => (<div
+						key={student.id}
+						onClick={() => handleStudentSelect(student)}
+						className={`flex items-center justify-between border-[1px] border-zinc-400 hover:bg-zinc-200 rounded-md px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${selectedStudent && selectedStudent.id === student.id ? 'bg-accent text-accent-foreground' : 'bg-muted'}`}
+					>
+						<div className="flex items-center gap-3">
+							<Avatar className="h-8 w-8 border">
+								<AvatarImage src="/placeholder-user.jpg"/>
+								<AvatarFallback>{student.first_name.charAt(0)}{student.last_name.charAt(0)}</AvatarFallback>
+							</Avatar>
+							<div>
+								{student.first_name === "Student" && student.last_name === "Invited" ? student.email : `${student.first_name} ${student.last_name}`}
+							</div>
+						</div>
+						<ChevronRightIcon className="h-4 w-4"/>
+					</div>))}
+				</div>
+			</div>
 		</div>
 		<div className="p-4">
 			<div className="mb-4 flex items-center justify-between">
