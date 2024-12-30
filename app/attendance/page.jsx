@@ -99,15 +99,25 @@ const Page = () => {
 		setClasses(data);
 	};
 
+	const handleTabChange = (newTab) => {
+		if (newTab == "group") {
+			setSelectedClassId("");
+			setSelectedStudent(false);
+			setAttendanceData([]);
+			setClassSelectValue("Select Class");
+			setStudents([]);
+		}
+	}
+
 	return (
 		<AuthWrapper>
 			<div className="flex flex-col min-h-screen">
 				<Header />
 				<main className="flex-1 bg-gray-100 p-10 pt-8">
-					<Tabs defaultValue="individual">
+					<Tabs defaultValue="individual" onValueChange={(value) => handleTabChange(value)}>
 						<TabsList>
 							<TabsTrigger value="individual" className="">Individual<CircleUserRound className='ml-2 w-4 h-4' /></TabsTrigger>
-							<TabsTrigger value="group" className="ml-4">Group/Batch<Users className='ml-2 w-4 h-4'/></TabsTrigger>
+							<TabsTrigger value="group" className="ml-4">Group Mode<Users className='ml-2 w-4 h-4'/></TabsTrigger>
 						</TabsList>
 						<TabsContent value="group" className="w-full max-h-[50vh] p-1 pt-2">
 							<MarkAttendance />
@@ -127,7 +137,7 @@ const Page = () => {
 								/>
 								<div className="flex-1 bg-white rounded-lg shadow-sm p-6">
 									<h1 className="text-xl font-semibold mb-6">
-										Attendance for {selectedStudent.first_name} {selectedStudent.last_name}
+										{selectedStudent && <span>Attendance for {selectedStudent.first_name} {selectedStudent.last_name}</span>}
 									</h1>
 									<div className="flex justify-center">
 										<Calendar
