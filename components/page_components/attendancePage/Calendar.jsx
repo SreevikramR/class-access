@@ -1,12 +1,14 @@
 "use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabaseClient } from "@/components/util_function/supabaseCilent";
+import { useToast } from "@/components/ui/use-toast"
 
 export function Calendar({ studentName, attendanceData, setAttendanceData, classId, studentId }) {
-	const [currentMonth, setCurrentMonth] = useState(11); // December
-	const [currentYear, setCurrentYear] = useState(2024);
+	const [currentMonth, setCurrentMonth] = useState(new Date().getMonth()); // December
+	const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
+	const { toast } = useToast()
 	const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 	const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
 	const monthName = new Date(currentYear, currentMonth).toLocaleString("default", {month: "long"});
@@ -42,11 +44,28 @@ export function Calendar({ studentName, attendanceData, setAttendanceData, class
 			const {data, error} = await supabaseClient.from('attendance_records')
 				.upsert([{date: `${currentYear}-${currentMonth + 1}-${day}`, isPresent: newStatus === "present", class_id: classId, student_proxy_id: studentId}],
 					{onConflict: ['date', 'class_id', 'student_proxy_id']});
-			console.log(error)
+			if (error) {
+				console.error('Error upserting attendance record:', error);
+				toast({
+					title: 'Error Marking Attendance',
+					description: 'Please reload the page and try again later',
+					variant: "destructive"
+				})
+				return;
+			}
 		} else {
 			const { data, error } = await supabaseClient.from('attendance_records')
 				.delete()
 				.match({ date: `${currentYear}-${currentMonth + 1}-${day}`, class_id: classId, student_proxy_id: studentId })
+			if (error) {
+				console.error('Error upserting attendance record:', error);
+				toast({
+					title: 'Error Marking Attendance',
+					description: 'Please reload the page and try again later',
+					variant: "destructive"
+				})
+				return;
+			}
 		}
 
 		setAttendanceData(prevData => {
