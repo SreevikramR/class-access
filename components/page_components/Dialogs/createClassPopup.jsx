@@ -265,6 +265,8 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 						description: `Error adding ${student.email}: ${errorText}`,
 						duration: 3000
 					});
+				} else {
+					umami.track('Student Added to Class');
 				}
 			}
 
@@ -274,7 +276,6 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 				console.log("Error updating teacher's class IDs");
 			}
 			if (addedAllStudents) {
-
 				toast({
 					className: "bg-green-500 border-black border-2",
 					title: "Class Successfully Added",
@@ -296,6 +297,7 @@ const CreateClassPopup = ({isOpen, setIsOpen}) => {
 			});
 			setLoading(false)
 		}
+		umami.track('Class Created');
 		setLoading(false)
 	};
 
