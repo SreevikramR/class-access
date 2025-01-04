@@ -2,7 +2,7 @@
 import React, {useEffect, useState} from "react";
 import {supabaseClient} from '@/components/util_function/supabaseCilent';
 import {useToast} from "@/components/ui/use-toast";
-import {CheckCircle, CircleArrowRight, Copy, EditIcon, PlusCircle, UserIcon, UserPlusIcon} from "lucide-react";
+import {CheckCircle, CircleArrowRight, Copy, Settings, PlusCircle, UserIcon, UserPlusIcon} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
@@ -14,6 +14,7 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/c
 import fetchTimeout from "@/components/util_function/fetch";
 import AuthWrapper from "@/components/page_components/authWrapper";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 // I am here
 
 
@@ -34,7 +35,7 @@ export default function ManageClass({params}) {
 	const [loading, setLoading] = useState(false);
 	const [teacherData, setTeacherData] = useState(null);
 	const [isEditClassOpen, setIsEditClassOpen] = useState(false);
-	
+
 	useEffect(() => {
 		fetchTeacherData();
 		fetchStudents();
@@ -391,7 +392,7 @@ export default function ManageClass({params}) {
 		useEffect(() => {
 			setUserTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)
 		}, [])
-		
+
 		function parseTime(timeString) {
 			if (!timeString) return {hour: "05", minute: "00", ampm: "PM"};
 			// Parse the time string
@@ -401,17 +402,17 @@ export default function ManageClass({params}) {
 			const [offsetHours, offsetMinutes] = offset.split(':').map(Number);
 			const totalOffsetMinutes = offsetHours * 60 + (offsetMinutes || 0);
 			const offsetSign = timeString.includes('+') ? 1 : -1;
-			
+
 			// Create a Date object for the current date in UTC
 			const utcDate = new Date();
 			utcDate.setUTCHours(hours, minutes, seconds, 0);
-			
+
 			// Convert to GMT by adjusting for the input offset
 			utcDate.setUTCMinutes(utcDate.getUTCMinutes() - offsetSign * totalOffsetMinutes);
-			
+
 			// Convert to local time
 			const localDate = new Date(utcDate.toLocaleString('en-US', {timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone}));
-			
+
 			// Format the output
 			const options = {
 				hour: 'numeric',
@@ -419,19 +420,19 @@ export default function ManageClass({params}) {
 				hour12: false,
 				timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
 			};
-			
+
 			let localTimeString = Intl.DateTimeFormat('en-US', options).format(localDate);
 			const [hours1, minutes1] = localTimeString.split(':');
 			let hour = parseInt(hours1, 10);
 			const minute = minutes1;
 			let ampm = hour >= 12 ? "PM" : "AM";
-			
+
 			if (hour > 12) {
 				hour -= 12;
 			} else if (hour === 0) {
 				hour = 12;
 			}
-			
+
 			return {
 				hour: hour.toString().padStart(2, '0'),
 				minute: minute,
@@ -489,10 +490,14 @@ export default function ManageClass({params}) {
 			}
 		};
 
+		const handleDeleteClass = async () => {
+			console.log("Deleting class")
+		}
+
 		return (<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent className="sm:max-w-[425px] lg:max-w-[32vw]">
 				<DialogHeader>
-					<DialogTitle>Edit Class</DialogTitle>
+					<DialogTitle>Class Settings</DialogTitle>
 					<DialogDescription>Modify the details of your class</DialogDescription>
 				</DialogHeader>
 				<form className="space-y-4">
@@ -581,8 +586,14 @@ export default function ManageClass({params}) {
 				</form>
 				<DialogFooter>
 					<div className='flex justify-between flex-wrap w-full mt-4'>
-						<Button className="border-slate-400 hover:border-black" variant="outline"
-						        onClick={onClose}>Cancel</Button>
+						<div>
+							<Button className="border-slate-400 hover:border-black" variant="outline"
+							        onClick={onClose}>Cancel
+							</Button>
+							<Button type="button" onClick={handleSubmit} className="ml-2" variant="destructive">
+								Delete Class
+							</Button>
+						</div>
 						<Button type="button" onClick={handleSubmit} className="gap-2">
 							Save Changes<CheckCircle className="h-5 w-5"/>
 						</Button>
@@ -884,8 +895,8 @@ export default function ManageClass({params}) {
 						<h1 className="text-3xl font-bold pb-1">{classData ? classData.name : 'Loading...'}</h1>
 						<Button size="sm" className="h-7 gap-1 flex items-center"
 							        onClick={() => setIsEditClassOpen(true)}>
-							<EditIcon className="w-3 h-3"/>
-							<span className="py-1">Edit Class</span>
+							<Settings className="w-4 h-4"/>
+							<span className="py-1">Class Settings</span>
 						</Button></div>
 					<div>
 						<p className="font-medium pt-4">{classData ? classData.description : 'No description available'}</p>
