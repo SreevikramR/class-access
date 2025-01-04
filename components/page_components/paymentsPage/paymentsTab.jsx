@@ -191,6 +191,7 @@ const PaymentsTab = () => {
 				variant: "destructive", title: "Error", description: "Error saving payment. Please try again.",
 			})
 		} else {
+			umami.track('Payment Saved');
 			toast({
 				title: "Success", description: "Payment saved successfully!",
 			})

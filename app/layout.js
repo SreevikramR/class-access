@@ -12,6 +12,7 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+
 	return (
 		<html lang="en">
 			<Analytics />
@@ -24,7 +25,7 @@ export default function RootLayout({ children }) {
             y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
             })(window, document, "clarity", "script", "n59t2k2m6w");`
 				}}/>
-				<script defer src="https://analytics-classaccess.vercel.app/script.js" data-website-id="8447d1f8-6a13-4992-aab5-095cdba64eeb"></script>
+				<script defer src="https://analytics-classaccess.vercel.app/script.js" data-website-id="8447d1f8-6a13-4992-aab5-095cdba64eeb" data-domains="classaccess.tech"></script>
 			</head>
 			<body className={inter.className}>
 				<SpeedInsights />

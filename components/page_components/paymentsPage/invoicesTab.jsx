@@ -179,6 +179,7 @@ const InvoicesTab = () => {
 				variant: "destructive", title: "Error", description: "Error sending email. Please try again later.",
 			})
 		}
+		umami.track('Invoice Created');
 
 		toast({
 			title: "Success", description: "Invoice created successfully!",
@@ -232,6 +233,7 @@ const InvoicesTab = () => {
 				variant: "destructive", title: "Error", description: "Error saving payment. Please try again.",
 			})
 		}
+		umami.track('Payment Saved');
 		setIsLoading(false)
 		fetchInvoices()
 		setInvoiceDetailsOpen(false)

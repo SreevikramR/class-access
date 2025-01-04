@@ -321,6 +321,7 @@ export default function Component({ params: { class_code } }) {
 		});
 		if (response.status === 200) {
 			setEnrolledClass(true)
+			umami.track('Enrolled in Class')
 		} else {
 			toast({
 				title: 'Failed to enroll',

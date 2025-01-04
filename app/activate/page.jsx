@@ -150,6 +150,7 @@ const ActivationPage = () => {
 				duration: 3000,
 			});
 			setStep(3);
+			umami.track('Student Account Activated')
 			setLoading(false);
 		} catch (error) {
 			console.error("Error saving student data:", error);
