@@ -105,6 +105,7 @@ const downloadDialogAsPDF = async ({ selectedInvoice, toast, dialogElementId }) 
         toast({
             variant: "success",
             title: "Success",
+            className: "bg-green-500",
             description: "Receipt downloaded successfully.",
         });
     } catch (error) {
