@@ -11,6 +11,95 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import fetchTimeout from '@/components/util_function/fetch'
 import { toast } from "@/components/ui/use-toast";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
+const downloadDialogAsPDF = async ({ selectedInvoice, toast, dialogElementId }) => {
+  if (!selectedInvoice) {
+      toast({
+          variant: "destructive",
+          title: "Error",
+          description: "No invoice selected to download.",
+      });
+      return;
+  }
+
+  try {
+      const pdf = new jsPDF();
+
+      // Header: Company Name and Logo
+      pdf.setFontSize(16);
+      pdf.setTextColor(40);
+      pdf.text("Class Access", 10, 20);
+      pdf.setFontSize(10);
+      pdf.text("Powered by Class Access", 10, 25);
+
+      // Divider
+      pdf.setDrawColor(0);
+      pdf.setLineWidth(0.5);
+      pdf.line(10, 30, 200, 30);
+
+      // Invoice Title and Metadata
+      pdf.setFontSize(12);
+      pdf.text("Invoice Receipt", 10, 40);
+      pdf.text(`Invoice ID: ${selectedInvoice.id || "N/A"}`, 10, 50);
+      pdf.text(`Date: ${selectedInvoice.invoiceDisplayDate || "N/A"}`, 10, 60);
+
+      // Student Information
+      pdf.setFontSize(12);
+      pdf.setTextColor(80);
+      pdf.text("Student Information:", 10, 70);
+      pdf.text(`Name: ${selectedInvoice.studentDisplayName || "N/A"}`, 10, 80);
+      pdf.text(
+          `Email: ${selectedInvoice.student_proxies?.email || "N/A"}`,
+          10,
+          90
+      );
+
+      // Invoice Details
+      pdf.setTextColor(80);
+      pdf.text("Invoice Details:", 10, 100);
+      pdf.text(`Status: ${selectedInvoice.status || "N/A"}`, 10, 110);
+      pdf.text(`Amount: ₹${selectedInvoice.amount || "0.00"}`, 10, 120);
+      pdf.text(`Title: ${selectedInvoice.title || "N/A"}`, 10, 130);
+      pdf.text(`Description: ${selectedInvoice.description || "N/A"}`, 10, 140);
+      pdf.text(
+          `Classes to Add: ${selectedInvoice.classes || "N/A"}`,
+          10,
+          150
+      );
+      pdf.text(
+          `Payment Link: classaccess.tech/pay?invoice_id=${selectedInvoice.id}`,
+          10,
+          160
+      );
+
+      // Footer
+      pdf.setFontSize(10);
+      pdf.setTextColor(120);
+      pdf.text("Thank you for using Class Access!", 10, 270);
+      pdf.text(
+          "All rights reserved © Class Access, 2025",
+          10,
+          275
+      );
+
+      // Save PDF
+      pdf.save(`Invoice_${selectedInvoice.id || "N/A"}.pdf`);
+
+      toast({
+          variant: "success",
+          title: "Success",
+          description: "Receipt downloaded successfully.",
+      });
+  } catch (error) {
+      toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to generate receipt. Please try again.",
+      });
+      console.error("Error generating PDF:", error);
+  }
+};
 
 const InvoicesTab = () => {
 	const [students, setStudents] = useState([])
@@ -361,7 +450,6 @@ const InvoicesTab = () => {
 		setInvoiceDetailsOpen(false)
 		setIsLoading(false)
 	}
-
 	async function handleMarkConfirmed() {
 		const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
 		const result = fetch('/api/system/payment_stats', {headers: {'Content-Type': 'application/json', 'jwt': jwt, 'payment_value': selectedInvoice.amount}, method: 'PUT'})
@@ -491,6 +579,13 @@ const InvoicesTab = () => {
 						<DialogFooter>
 							<div className="flex justify-between flex-wrap w-full">
 								<Button onClick={handleMarkPaid} className={"bg-green-600 hover:bg-green-800" + (isLoading ? " cursor-progress" : "")}>Mark Received</Button>
+								<Button     onClick={() =>
+                downloadDialogAsPDF({
+            selectedInvoice,
+            toast,
+            dialogElementId: "invoice-dialog-content",
+        })
+    } className={"bg-blue-600 hover:bg-blue-500"+(isLoading ? "cursor-progress" : "")}>Download Invoice</Button>
 								<Button onClick={resendInvoice} className={(isLoading ? "cursor-progress" : "")}>Resend Invoice</Button>
 							</div>
 						</DialogFooter>
