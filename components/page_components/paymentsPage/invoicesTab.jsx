@@ -11,109 +11,8 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import fetchTimeout from '@/components/util_function/fetch'
 import { toast } from "@/components/ui/use-toast";
-import { jsPDF } from "jspdf";
-const downloadDialogAsPDF = async ({ selectedInvoice, toast, dialogElementId }) => {
-    if (!selectedInvoice) {
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "No invoice selected to download.",
-        });
-        return;
-    }
-
-    try {
-        const pdf = new jsPDF();
-
-        // Header: Company Name and Logo
-        pdf.setFontSize(16);
-        pdf.setTextColor(40);
-        pdf.text("Class Access", 105, 15, { align: "center" });
-        pdf.setFontSize(10);
-        pdf.text("Powered by Class Access", 105, 20, { align: "center" });
-
-        // Divider
-        pdf.setDrawColor(200);
-        pdf.setLineWidth(0.5);
-        pdf.line(10, 25, 200, 25);
-
-        // Invoice Details Section
-        pdf.setFontSize(12);
-        pdf.setTextColor(40);
-        pdf.text("Invoice Details", 10, 35);
-        pdf.setFontSize(10);
-        pdf.setTextColor(80);
-        pdf.text(`Invoice ID: ${selectedInvoice.id || "N/A"}`, 10, 42);
-        pdf.text(`Date: ${selectedInvoice.invoiceDisplayDate || "N/A"}`, 10, 49);
-        pdf.text(`Status: ${selectedInvoice.status || "N/A"}`, 10, 56);
-
-        // Bill To Section
-        pdf.setFontSize(12);
-        pdf.setTextColor(40);
-        pdf.text("Bill To", 10, 70);
-        pdf.setFontSize(10);
-        pdf.setTextColor(80);
-        pdf.text(`Name: ${selectedInvoice.studentDisplayName || "N/A"}`, 10, 77);
-        pdf.text(`Email: ${selectedInvoice.student_proxies?.email || "N/A"}`, 10, 84);
-
-        // Divider
-        pdf.setDrawColor(200);
-        pdf.line(10, 90, 200, 90);
-
-        // Invoice Items Table Header
-        pdf.setFontSize(10);
-        pdf.setTextColor(40);
-        pdf.setFillColor(230, 230, 230);
-        pdf.rect(10, 95, 190, 8, "F");
-        pdf.text("Description", 12, 100);
-        pdf.text("Quantity", 90, 100);
-        pdf.text("Unit Price", 130, 100);
-        pdf.text("Amount", 170, 100);
-
-        // Invoice Items Table Content
-      let yPosition = 115;
-            pdf.setTextColor(80);
-            pdf.text(selectedInvoice.description || "N/A", 12, yPosition);
-            pdf.text(selectedInvoice.classes.toString() || "N/A", 90, yPosition);
-            pdf.text(`Rs. ${(selectedInvoice.amount/selectedInvoice.classes).toFixed(2) || "0.00" || "0.00"}`, 130, yPosition);
-            pdf.text(`Rs. ${selectedInvoice.amount || "0.00"}`, 170, yPosition);
-            yPosition += 8;
-
-        // Total Section
-        pdf.setFontSize(12);
-        pdf.setTextColor(40);
-        pdf.text("Subtotal:", 130, yPosition + 10);
-        pdf.text(`Rs. ${selectedInvoice.amount || "0.00"}`, 170, yPosition + 10);
-        pdf.text("Tax:", 130, yPosition + 18);
-        pdf.text(`Rs. ${selectedInvoice.tax || "0.00"}`, 170, yPosition + 18);
-        pdf.text("Total:", 130, yPosition + 26);
-        pdf.text(`Rs. ${selectedInvoice.amount || "0.00"}`, 170, yPosition + 26);
-
-        // Footer
-        pdf.setFontSize(10);
-        pdf.setTextColor(120);
-        pdf.text("Thank you for using Class Access!", 105, 280, { align: "center" });
-        pdf.text("All rights reserved © Class Access, 2025", 105, 285, { align: "center" });
-
-        // Save PDF
-        pdf.save(`Invoice_${selectedInvoice.id || "N/A"}.pdf`);
-
-        toast({
-            variant: "success",
-            title: "Success",
-            className: "bg-green-500",
-            description: "Receipt downloaded successfully.",
-        });
-    } catch (error) {
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to generate receipt. Please try again.",
-        });
-        console.error("Error generating PDF:", error);
-    }
-};
-
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import InvoicePDF from './InvoicePDF'; // point to the file you created
 
 const InvoicesTab = () => {
 	const [students, setStudents] = useState([])
@@ -135,7 +34,14 @@ const InvoicesTab = () => {
 
 	const [isLoading, setIsLoading] = useState(true)
 	const [invoices, setInvoices] = useState([])
-
+	async function handleDownload(selectedInvoice) {
+    const blob = await pdf(<InvoicePDF invoice={selectedInvoice} />).toBlob();
+    // Then create a temporary link to download the blob
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `Invoice_${selectedInvoice.id}.pdf`;
+    link.click();
+}
 	async function fetchInvoices() {
 		setIsLoading(true)
 
@@ -590,19 +496,39 @@ const InvoicesTab = () => {
 						</div>
 					</div>
 					{ selectedInvoice !== null && selectedInvoice.status == "Pending" &&
-						<DialogFooter>
-							<div className="flex justify-between flex-wrap w-full">
-								<Button onClick={handleMarkPaid} className={"bg-green-600 hover:bg-green-800" + (isLoading ? " cursor-progress" : "")}>Mark Received</Button>
-								<Button     onClick={() =>
-                downloadDialogAsPDF({
-            selectedInvoice,
-            toast,
-            dialogElementId: "invoice-dialog-content",
-        })
-    } className={"bg-blue-600 hover:bg-blue-500"+(isLoading ? "cursor-progress" : "")}>Download Invoice</Button>
-								<Button onClick={resendInvoice} className={(isLoading ? "cursor-progress" : "")}>Resend Invoice</Button>
-							</div>
-						</DialogFooter>
+					<DialogFooter>
+                  <div className="flex justify-between flex-wrap w-full">
+                    {/* Mark Received */}
+                    <Button
+                      onClick={handleMarkPaid}
+                      className={"bg-green-600 hover:bg-green-800" + (isLoading ? " cursor-progress" : "")}
+                    >
+                      Mark Received
+                    </Button>
+                
+                    {/* Download Invoice (React-PDF) */}
+                    {selectedInvoice && (
+                      <PDFDownloadLink
+                        document={<InvoicePDF invoice={selectedInvoice} />}
+                        fileName={`Invoice_${selectedInvoice.id}.pdf`}
+                      >
+                        {({ loading }) =>
+                          <Button className={"bg-blue-600 hover:bg-blue-500" + (isLoading ? " cursor-progress" : "")}>
+                            {loading ? "Generating PDF..." : "Download Invoice"}
+                          </Button>
+                        }
+                      </PDFDownloadLink>
+    )}
+
+    {/* Resend Invoice */}
+    <Button
+      onClick={resendInvoice}
+      className={(isLoading ? "cursor-progress" : "")}
+    >
+      Resend Invoice
+    </Button>
+  </div>
+</DialogFooter>
 					}
 					{ selectedInvoice !== null && selectedInvoice.status == "Student Confirmed" &&
 						<DialogFooter>
