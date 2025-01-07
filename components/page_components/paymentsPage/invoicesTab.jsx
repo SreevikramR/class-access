@@ -78,8 +78,8 @@ const downloadDialogAsPDF = async ({ selectedInvoice, toast, dialogElementId }) 
             pdf.setTextColor(80);
             pdf.text(item.description || "N/A", 12, yPosition);
             pdf.text(item.quantity?.toString() || "N/A", 90, yPosition);
-            pdf.text(`₹${item.unitPrice?.toFixed(2) || "0.00"}`, 130, yPosition);
-            pdf.text(`₹${item.amount?.toFixed(2) || "0.00"}`, 170, yPosition);
+            pdf.text(`Rs. ${selectedInvoice.amount || "0.00" || "0.00"}`, 130, yPosition);
+            pdf.text(`Rs. ${selectedInvoice.amount || "0.00"}`, 170, yPosition);
             yPosition += 8;
         });
 
@@ -87,11 +87,11 @@ const downloadDialogAsPDF = async ({ selectedInvoice, toast, dialogElementId }) 
         pdf.setFontSize(12);
         pdf.setTextColor(40);
         pdf.text("Subtotal:", 130, yPosition + 10);
-        pdf.text(`₹${selectedInvoice.subtotal || "0.00"}`, 170, yPosition + 10);
+        pdf.text(`₹${selectedInvoice.amount || "0.00"}`, 170, yPosition + 10);
         pdf.text("Tax:", 130, yPosition + 18);
         pdf.text(`₹${selectedInvoice.tax || "0.00"}`, 170, yPosition + 18);
         pdf.text("Total:", 130, yPosition + 26);
-        pdf.text(`₹${selectedInvoice.total || "0.00"}`, 170, yPosition + 26);
+        pdf.text(`₹${selectedInvoice.amount || "0.00"}`, 170, yPosition + 26);
 
         // Footer
         pdf.setFontSize(10);
