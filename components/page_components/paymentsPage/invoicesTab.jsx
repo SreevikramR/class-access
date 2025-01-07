@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import fetchTimeout from '@/components/util_function/fetch'
 import { toast } from "@/components/ui/use-toast";
-import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 const downloadDialogAsPDF = async ({ selectedInvoice, toast, dialogElementId }) => {
     if (!selectedInvoice) {
@@ -72,26 +71,23 @@ const downloadDialogAsPDF = async ({ selectedInvoice, toast, dialogElementId }) 
         pdf.text("Amount", 170, 100);
 
         // Invoice Items Table Content
-        let yPosition = 105;
-        const items = selectedInvoice.items || []; // Assuming `items` is an array of invoice line items
-        items.forEach((item) => {
+      let yPosition = 115;
             pdf.setTextColor(80);
-            pdf.text(item.description || "N/A", 12, yPosition);
-            pdf.text(item.quantity?.toString() || "N/A", 90, yPosition);
-            pdf.text(`Rs. ${selectedInvoice.amount || "0.00" || "0.00"}`, 130, yPosition);
+            pdf.text(selectedInvoice.description || "N/A", 12, yPosition);
+            pdf.text(selectedInvoice.classes.toString() || "N/A", 90, yPosition);
+            pdf.text(`Rs. ${(selectedInvoice.amount/selectedInvoice.classes).toFixed(2) || "0.00" || "0.00"}`, 130, yPosition);
             pdf.text(`Rs. ${selectedInvoice.amount || "0.00"}`, 170, yPosition);
             yPosition += 8;
-        });
 
         // Total Section
         pdf.setFontSize(12);
         pdf.setTextColor(40);
         pdf.text("Subtotal:", 130, yPosition + 10);
-        pdf.text(`₹${selectedInvoice.amount || "0.00"}`, 170, yPosition + 10);
+        pdf.text(`Rs. ${selectedInvoice.amount || "0.00"}`, 170, yPosition + 10);
         pdf.text("Tax:", 130, yPosition + 18);
-        pdf.text(`₹${selectedInvoice.tax || "0.00"}`, 170, yPosition + 18);
+        pdf.text(`Rs. ${selectedInvoice.tax || "0.00"}`, 170, yPosition + 18);
         pdf.text("Total:", 130, yPosition + 26);
-        pdf.text(`₹${selectedInvoice.amount || "0.00"}`, 170, yPosition + 26);
+        pdf.text(`Rs. ${selectedInvoice.amount || "0.00"}`, 170, yPosition + 26);
 
         // Footer
         pdf.setFontSize(10);

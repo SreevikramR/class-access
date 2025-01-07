@@ -34,7 +34,6 @@
     "cryptr": "^6.3.0",
     "date-fns": "^3.6.0",
     "googleapis": "^140.0.1",
-    "html2canvas": "^1.4.1",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^2.5.2",
     "libphonenumber-js": "^1.11.4",
