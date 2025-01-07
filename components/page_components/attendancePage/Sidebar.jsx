@@ -111,6 +111,7 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 			const url = URL.createObjectURL(pdfBlob);
 
 			// Open the PDF in a new tab
+			umami.track("Attendance PDF Exported")
 			window.open(url, "_blank");
 
 			// Clean up the Blob URL after use
