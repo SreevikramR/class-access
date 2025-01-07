@@ -16,6 +16,7 @@ export async function POST(request) {
 	const teacherName = request.headers.get('teacherName');
 	const pdfBase64 = (await request.json()).pdf
 	const fileName = request.headers.get('fileName');
+	const className = request.headers.get('className');
 	const controller = new AbortController()
 	const { signal } = controller;
 
@@ -24,9 +25,10 @@ export async function POST(request) {
 			"email": "no-reply@classaccess.tech",
 			"name": "Class Access"
 		},
-		"templateId": 8,
+		"templateId": 9,
 		"params": {
-			"teacher_name": teacherName
+			"teacher_name": teacherName,
+			"class_name": className,
 		},
 		"to": [
 			{

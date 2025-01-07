@@ -26,6 +26,7 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 	const [year, setYear] = useState(new Date().getFullYear());
 	const [month, setMonth] = useState(months[new Date().getMonth()]);
 	const [teacherName, setTeacherName] = useState("");
+	const [isGenerating, setIsGenerating] = useState(false);
 
 	async function fetchTeacherName() {
 		try {
@@ -61,8 +62,10 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 		fetchTeacherName();
 	}, []);
 
-	const generateReport = async () => {
+	const emailReport = async () => {
 		// Generate the PDF as a blob
+		if (isGenerating) return;
+		setIsGenerating(true);
 		const { data, error } = await supabaseClient
 			.from("attendance_records")
 			.select("date, isPresent")
@@ -71,6 +74,10 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 
 		if (error) {
 			console.error("Error fetching attendance records:", error);
+			toast({
+				variant: "destructive", title: "Error", description: "Error Exporting Attendance, Please try again later",
+			})
+			setIsGenerating(false);
 			return;
 		}
 
@@ -85,11 +92,8 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 				return { ...record, date: formattedDate };
 			});
 
-			console.log(updatedString);
-
 			// After ensuring updatedString is ready
-			const studentName =
-				selectedStudent.first_name + " " + selectedStudent.last_name;
+			const studentName = selectedStudent.first_name + " " + selectedStudent.last_name;
 			const today = new Date();
 			const dateString = today.getDate() + " " + months[today.getMonth()] + " " + today.getFullYear();
 			const recordsInYear = updatedString.filter((record) => new Date( record.year + "/" + (record.month + 1) + "/" + record.date).getFullYear() === year );
@@ -123,15 +127,16 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 				const controller = new AbortController()
 				const { signal } = controller;
 				const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
-				// const email = students.find(s => s.id === selectedStudent).email
+				const email = students.find(s => s.id === selectedStudent.id).email
 				const response = await fetchTimeout(`/api/emails/attendance_report`, 5000, {
 					signal, method: 'POST', headers: {
 						'Content-Type': 'application/json',
 						'jwt': jwt,
-						"email": "sreevikram.r@gmail.com",
+						"email": email,
 						"teacherName": `${teacherData[0].first_name} ${teacherData[0].last_name}`,
 						"teacherEmail": teacherData[0].email,
-						"fileName": `${newName}.pdf`
+						"fileName": `${newName}.pdf`,
+						"className": classSelectValue,
 					},
 					body: JSON.stringify({ pdf: base64data })
 				});
@@ -139,16 +144,77 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 					toast({
 						variant: "destructive", title: "Error", description: "Error sending email. Please try again later.",
 					})
+				} else {
+					toast({
+						className: "bg-green-500 border-black border-2",
+						title: "Attendance Report Emailed!",
+						duration: 3000
+					});
 				}
+				setIsGenerating(false);
 			}
-
-
-
 			// Open the PDF in a new tab
-			umami.track("Attendance PDF Exported")
-			window.open(url, "_blank");
-
+			umami.track("Attendance PDF Emailed")
 			// Clean up the Blob URL after use
+			URL.revokeObjectURL(url);
+		})();
+	};
+
+	const generatePDF = async () => {
+		// Generate the PDF as a blob
+		if (isGenerating) return;
+		setIsGenerating(true);
+		const { data, error } = await supabaseClient
+			.from("attendance_records")
+			.select("date, isPresent")
+			.eq("class_id", selectedClassId)
+			.eq("student_proxy_id", selectedStudent.id);
+
+		if (error) {
+			console.error("Error fetching attendance records:", error);
+			toast({
+				variant: "destructive", title: "Error", description: "Error Exporting Attendance, Please try again later",
+			})
+			setIsGenerating(false);
+			return;
+		}
+
+		(async () => {
+			const updatedString = data.map((record) => {
+				const date = new Date(record.date);
+				const dayOfWeek = date.toLocaleString("default", {weekday: "short"});
+				const month = date.toLocaleString("default", {month: "short"});
+				const day = date.getDate();
+				const year = date.getFullYear();
+				const formattedDate = `${dayOfWeek}, ${day} ${month} ${year}`;
+				return { ...record, date: formattedDate };
+			});
+
+			// After ensuring updatedString is ready
+			const studentName = selectedStudent.first_name + " " + selectedStudent.last_name;
+			const today = new Date();
+			const dateString = today.getDate() + " " + months[today.getMonth()] + " " + today.getFullYear();
+			const recordsInYear = updatedString.filter((record) => new Date( record.year + "/" + (record.month + 1) + "/" + record.date).getFullYear() === year );
+			const recordsInMonth = recordsInYear.filter((record) => monthsShort[new Date(record.date).getMonth()] === month.substring(0, 3));
+			const formattedName = studentName.toLowerCase() .replace(/\s+/g, "_");
+			const newName = `${formattedName}_${month.toLowerCase()}_${year}`;
+
+			const pdfBlob = await pdf(
+				<InvoicePDF
+					studentName={studentName}
+					className={classSelectValue}
+					invoiceDate={dateString}
+					reportMonth={month}
+					reportYear={year}
+					teacherName={teacherName}
+					attendanceRecords={recordsInMonth}
+					fileName={newName}
+				/>,
+			).toBlob();
+			const url = URL.createObjectURL(pdfBlob);
+			umami.track("Attendance PDF Exported")
+			setIsGenerating(false);
+			window.open(url, "_blank");
 			URL.revokeObjectURL(url);
 		})();
 	};
@@ -262,7 +328,7 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 								Export Attendance
 							</Button>
 						</PopoverTrigger>
-						<PopoverContent className="w-[280px] p-0" align="start">
+						<PopoverContent className="w-[300px] p-0" align="start">
 							<div className="grid gap-4 p-4">
 								<div className="grid gap-2">
 									<Label htmlFor="year">Year</Label>
@@ -302,9 +368,14 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 										</SelectContent>
 									</Select>
 								</div>
-								<Button onClick={generateReport}>
-									Generate Report
-								</Button>
+								<div className="flex flex-col gap-2">
+									<Button onClick={generatePDF} className={"border-2 bg-white hover:bg-gray-200 border-black text-black" + (isGenerating ? " cursor-progress" : "")}>
+										Download PDF
+									</Button>
+									<Button onClick={emailReport} className={"border-2 border-black hover:bg-gray-600" + (isGenerating ? " cursor-progress" : "")}>
+										Email to Student
+									</Button>
+								</div>
 							</div>
 						</PopoverContent>
 					</Popover>
