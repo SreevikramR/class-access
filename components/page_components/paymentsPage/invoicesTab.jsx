@@ -11,8 +11,9 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import fetchTimeout from '@/components/util_function/fetch'
 import { toast } from "@/components/ui/use-toast";
-import { PDFDownloadLink } from '@react-pdf/renderer';
+
 import InvoicePDF from './InvoicePDF'; // point to the file you created
+import { pdf } from '@react-pdf/renderer';
 
 const InvoicesTab = () => {
 	const [students, setStudents] = useState([])
@@ -35,12 +36,19 @@ const InvoicesTab = () => {
 	const [isLoading, setIsLoading] = useState(true)
 	const [invoices, setInvoices] = useState([])
 	async function handleDownload(selectedInvoice) {
+	// 1. Generate the Blob from your React-PDF component
+	try {
     const blob = await pdf(<InvoicePDF invoice={selectedInvoice} />).toBlob();
-    // Then create a temporary link to download the blob
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.download = `Invoice_${selectedInvoice.id}.pdf`;
-    link.click();
+    const blobUrl = URL.createObjectURL(blob);
+    window.open(blobUrl, '_blank');
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: "Failed to generate and open PDF. Please try again.",
+    });
+  }
 }
 	async function fetchInvoices() {
 		setIsLoading(true)
@@ -508,16 +516,12 @@ const InvoicesTab = () => {
                 
                     {/* Download Invoice (React-PDF) */}
                     {selectedInvoice && (
-                      <PDFDownloadLink
-                        document={<InvoicePDF invoice={selectedInvoice} />}
-                        fileName={`Invoice_${selectedInvoice.id}.pdf`}
-                      >
-                        {({ loading }) =>
-                          <Button className={"bg-blue-600 hover:bg-blue-500" + (isLoading ? " cursor-progress" : "")}>
-                            {loading ? "Generating PDF..." : "Download Invoice"}
-                          </Button>
-                        }
-                      </PDFDownloadLink>
+                      <Button
+                          onClick={() => handleDownload(selectedInvoice)}
+                          className={"bg-blue-600 hover:bg-blue-500" + (isLoading ? " cursor-progress" : "")}
+                        >
+                          Download Invoice
+                        </Button>
     )}
 
     {/* Resend Invoice */}
