@@ -5,13 +5,15 @@ import { Download } from "lucide-react";
 import { PopoverContent, Popover, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandList, CommandItem } from "@/components/ui/command";
 import { Check, ChevronsUpDown, ChevronRightIcon } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import InvoicePDF from "./InvoicePDF";
 import { pdf } from "@react-pdf/renderer";
 import { supabaseClient } from "@/components/util_function/supabaseCilent";
+import { toast } from "@/components/ui/use-toast";
+import fetchTimeout from "@/components/util_function/fetch";
 
 const months = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
 
@@ -109,6 +111,38 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 			).toBlob();
 			// Create a Blob URL for the PDF
 			const url = URL.createObjectURL(pdfBlob);
+
+			let reader = new FileReader();
+			reader.readAsArrayBuffer(pdfBlob);
+			reader.onloadend = async function () {
+			    let buffer = reader.result;
+			    let base64data = btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
+
+				const teacherUUID = (await supabaseClient.auth.getUser()).data.user.id
+				const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('email, first_name, last_name').eq('id', teacherUUID)
+				const controller = new AbortController()
+				const { signal } = controller;
+				const jwt = (await supabaseClient.auth.getSession()).data.session.access_token
+				// const email = students.find(s => s.id === selectedStudent).email
+				const response = await fetchTimeout(`/api/emails/attendance_report`, 5000, {
+					signal, method: 'POST', headers: {
+						'Content-Type': 'application/json',
+						'jwt': jwt,
+						"email": "sreevikram.r@gmail.com",
+						"teacherName": `${teacherData[0].first_name} ${teacherData[0].last_name}`,
+						"teacherEmail": teacherData[0].email,
+						"fileName": `${newName}.pdf`
+					},
+					body: JSON.stringify({ pdf: base64data })
+				});
+				if (response.status !== 200) {
+					toast({
+						variant: "destructive", title: "Error", description: "Error sending email. Please try again later.",
+					})
+				}
+			}
+
+
 
 			// Open the PDF in a new tab
 			umami.track("Attendance PDF Exported")
