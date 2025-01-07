@@ -14,92 +14,109 @@ import { toast } from "@/components/ui/use-toast";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 const downloadDialogAsPDF = async ({ selectedInvoice, toast, dialogElementId }) => {
-  if (!selectedInvoice) {
-      toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No invoice selected to download.",
-      });
-      return;
-  }
+    if (!selectedInvoice) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No invoice selected to download.",
+        });
+        return;
+    }
 
-  try {
-      const pdf = new jsPDF();
+    try {
+        const pdf = new jsPDF();
 
-      // Header: Company Name and Logo
-      pdf.setFontSize(16);
-      pdf.setTextColor(40);
-      pdf.text("Class Access", 10, 20);
-      pdf.setFontSize(10);
-      pdf.text("Powered by Class Access", 10, 25);
+        // Header: Company Name and Logo
+        pdf.setFontSize(16);
+        pdf.setTextColor(40);
+        pdf.text("Class Access", 105, 15, { align: "center" });
+        pdf.setFontSize(10);
+        pdf.text("Powered by Class Access", 105, 20, { align: "center" });
 
-      // Divider
-      pdf.setDrawColor(0);
-      pdf.setLineWidth(0.5);
-      pdf.line(10, 30, 200, 30);
+        // Divider
+        pdf.setDrawColor(200);
+        pdf.setLineWidth(0.5);
+        pdf.line(10, 25, 200, 25);
 
-      // Invoice Title and Metadata
-      pdf.setFontSize(12);
-      pdf.text("Invoice Receipt", 10, 40);
-      pdf.text(`Invoice ID: ${selectedInvoice.id || "N/A"}`, 10, 50);
-      pdf.text(`Date: ${selectedInvoice.invoiceDisplayDate || "N/A"}`, 10, 60);
+        // Invoice Details Section
+        pdf.setFontSize(12);
+        pdf.setTextColor(40);
+        pdf.text("Invoice Details", 10, 35);
+        pdf.setFontSize(10);
+        pdf.setTextColor(80);
+        pdf.text(`Invoice ID: ${selectedInvoice.id || "N/A"}`, 10, 42);
+        pdf.text(`Date: ${selectedInvoice.invoiceDisplayDate || "N/A"}`, 10, 49);
+        pdf.text(`Status: ${selectedInvoice.status || "N/A"}`, 10, 56);
 
-      // Student Information
-      pdf.setFontSize(12);
-      pdf.setTextColor(80);
-      pdf.text("Student Information:", 10, 70);
-      pdf.text(`Name: ${selectedInvoice.studentDisplayName || "N/A"}`, 10, 80);
-      pdf.text(
-          `Email: ${selectedInvoice.student_proxies?.email || "N/A"}`,
-          10,
-          90
-      );
+        // Bill To Section
+        pdf.setFontSize(12);
+        pdf.setTextColor(40);
+        pdf.text("Bill To", 10, 70);
+        pdf.setFontSize(10);
+        pdf.setTextColor(80);
+        pdf.text(`Name: ${selectedInvoice.studentDisplayName || "N/A"}`, 10, 77);
+        pdf.text(`Email: ${selectedInvoice.student_proxies?.email || "N/A"}`, 10, 84);
 
-      // Invoice Details
-      pdf.setTextColor(80);
-      pdf.text("Invoice Details:", 10, 100);
-      pdf.text(`Status: ${selectedInvoice.status || "N/A"}`, 10, 110);
-      pdf.text(`Amount: ₹${selectedInvoice.amount || "0.00"}`, 10, 120);
-      pdf.text(`Title: ${selectedInvoice.title || "N/A"}`, 10, 130);
-      pdf.text(`Description: ${selectedInvoice.description || "N/A"}`, 10, 140);
-      pdf.text(
-          `Classes to Add: ${selectedInvoice.classes || "N/A"}`,
-          10,
-          150
-      );
-      pdf.text(
-          `Payment Link: classaccess.tech/pay?invoice_id=${selectedInvoice.id}`,
-          10,
-          160
-      );
+        // Divider
+        pdf.setDrawColor(200);
+        pdf.line(10, 90, 200, 90);
 
-      // Footer
-      pdf.setFontSize(10);
-      pdf.setTextColor(120);
-      pdf.text("Thank you for using Class Access!", 10, 270);
-      pdf.text(
-          "All rights reserved © Class Access, 2025",
-          10,
-          275
-      );
+        // Invoice Items Table Header
+        pdf.setFontSize(10);
+        pdf.setTextColor(40);
+        pdf.setFillColor(230, 230, 230);
+        pdf.rect(10, 95, 190, 8, "F");
+        pdf.text("Description", 12, 100);
+        pdf.text("Quantity", 90, 100);
+        pdf.text("Unit Price", 130, 100);
+        pdf.text("Amount", 170, 100);
 
-      // Save PDF
-      pdf.save(`Invoice_${selectedInvoice.id || "N/A"}.pdf`);
+        // Invoice Items Table Content
+        let yPosition = 105;
+        const items = selectedInvoice.items || []; // Assuming `items` is an array of invoice line items
+        items.forEach((item) => {
+            pdf.setTextColor(80);
+            pdf.text(item.description || "N/A", 12, yPosition);
+            pdf.text(item.quantity?.toString() || "N/A", 90, yPosition);
+            pdf.text(`₹${item.unitPrice?.toFixed(2) || "0.00"}`, 130, yPosition);
+            pdf.text(`₹${item.amount?.toFixed(2) || "0.00"}`, 170, yPosition);
+            yPosition += 8;
+        });
 
-      toast({
-          variant: "success",
-          title: "Success",
-          description: "Receipt downloaded successfully.",
-      });
-  } catch (error) {
-      toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to generate receipt. Please try again.",
-      });
-      console.error("Error generating PDF:", error);
-  }
+        // Total Section
+        pdf.setFontSize(12);
+        pdf.setTextColor(40);
+        pdf.text("Subtotal:", 130, yPosition + 10);
+        pdf.text(`₹${selectedInvoice.subtotal || "0.00"}`, 170, yPosition + 10);
+        pdf.text("Tax:", 130, yPosition + 18);
+        pdf.text(`₹${selectedInvoice.tax || "0.00"}`, 170, yPosition + 18);
+        pdf.text("Total:", 130, yPosition + 26);
+        pdf.text(`₹${selectedInvoice.total || "0.00"}`, 170, yPosition + 26);
+
+        // Footer
+        pdf.setFontSize(10);
+        pdf.setTextColor(120);
+        pdf.text("Thank you for using Class Access!", 105, 280, { align: "center" });
+        pdf.text("All rights reserved © Class Access, 2025", 105, 285, { align: "center" });
+
+        // Save PDF
+        pdf.save(`Invoice_${selectedInvoice.id || "N/A"}.pdf`);
+
+        toast({
+            variant: "success",
+            title: "Success",
+            description: "Receipt downloaded successfully.",
+        });
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to generate receipt. Please try again.",
+        });
+        console.error("Error generating PDF:", error);
+    }
 };
+
 
 const InvoicesTab = () => {
 	const [students, setStudents] = useState([])
