@@ -41,6 +41,7 @@ const InvoicesTab = () => {
     const blob = await pdf(<InvoicePDF invoice={selectedInvoice} />).toBlob();
     const blobUrl = URL.createObjectURL(blob);
     window.open(blobUrl, '_blank');
+    setSelectedClass(null);
   } catch (error) {
     console.error("Error generating PDF:", error);
     toast({

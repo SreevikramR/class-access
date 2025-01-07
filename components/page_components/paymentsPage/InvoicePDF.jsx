@@ -11,17 +11,23 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     textAlign: 'center',
+    marginBottom: 4,
+  },
+  poweredBy: {
+    textAlign: 'center',
     marginBottom: 10,
+    color: 'gray',
   },
   section: {
     marginBottom: 10,
   },
   label: {
-    fontWeight: 'bold',
+    fontWeight: 'extraBold',
   },
 });
 
 const InvoicePDF = ({ invoice }) => {
+  // If invoice is not yet loaded, return a minimal Document
   if (!invoice) {
     return (
       <Document>
@@ -32,6 +38,7 @@ const InvoicePDF = ({ invoice }) => {
     );
   }
 
+  // Destructure the data from "invoice"
   const {
     id,
     status,
@@ -50,7 +57,7 @@ const InvoicePDF = ({ invoice }) => {
         {/* Header */}
         <View>
           <Text style={styles.title}>Class Access</Text>
-          <Text style={{ textAlign: 'center' }}>Powered by Class Access</Text>
+          <Text style={styles.poweredBy}>Powered by Class Access</Text>
         </View>
 
         {/* Divider */}
@@ -59,22 +66,37 @@ const InvoicePDF = ({ invoice }) => {
         {/* Invoice Details */}
         <View style={styles.section}>
           <Text style={[styles.label, { fontSize: 14 }]}>Invoice Details</Text>
-          <Text>Invoice ID: {id || "N/A"}</Text>
-          <Text>Date: {invoiceDisplayDate || "N/A"}</Text>
-          <Text>Status: {status || "N/A"}</Text>
+          <Text>
+            <Text style={styles.label}>Invoice ID: </Text>
+            {id || 'N/A'}
+          </Text>
+          <Text>
+            <Text style={styles.label}>Date: </Text>
+            {invoiceDisplayDate || 'N/A'}
+          </Text>
+          <Text>
+            <Text style={styles.label}>Status: </Text>
+            {status || 'N/A'}
+          </Text>
         </View>
 
         {/* Bill To */}
         <View style={styles.section}>
           <Text style={[styles.label, { fontSize: 14 }]}>Bill To</Text>
-          <Text>Name: {studentDisplayName || "N/A"}</Text>
-          <Text>Email: {student_proxies?.email || "N/A"}</Text>
+          <Text>
+            <Text style={styles.label}>Name: </Text>
+            {studentDisplayName || 'N/A'}
+          </Text>
+          <Text>
+            <Text style={styles.label}>Email: </Text>
+            {student_proxies?.email || 'N/A'}
+          </Text>
         </View>
 
         {/* Divider */}
         <View style={{ marginVertical: 10, borderBottom: 1 }} />
 
-        {/* Item header row */}
+        {/* Table Header Row */}
         <View style={{ flexDirection: 'row', backgroundColor: '#E6E6E6', padding: 5 }}>
           <Text style={{ width: '40%' }}>Description</Text>
           <Text style={{ width: '20%', textAlign: 'right' }}>Quantity</Text>
@@ -82,14 +104,16 @@ const InvoicePDF = ({ invoice }) => {
           <Text style={{ width: '20%', textAlign: 'right' }}>Amount</Text>
         </View>
 
-        {/* Item row */}
+        {/* Table Item Row */}
         <View style={{ flexDirection: 'row', padding: 5 }}>
-          <Text style={{ width: '40%' }}>{description || "N/A"}</Text>
+          <Text style={{ width: '40%' }}>{description || 'N/A'}</Text>
           <Text style={{ width: '20%', textAlign: 'right' }}>{classes || 1}</Text>
           <Text style={{ width: '20%', textAlign: 'right' }}>
             Rs. {((amount || 0) / (classes || 1)).toFixed(2)}
           </Text>
-          <Text style={{ width: '20%', textAlign: 'right' }}>Rs. {amount || 0}</Text>
+          <Text style={{ width: '20%', textAlign: 'right' }}>
+            Rs. {amount || 0}
+          </Text>
         </View>
 
         {/* Divider */}
