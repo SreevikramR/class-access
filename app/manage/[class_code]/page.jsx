@@ -1,22 +1,20 @@
 'use client'
-import React, {useEffect, useState} from "react";
-import {supabaseClient} from '@/components/util_function/supabaseCilent';
-import {useToast} from "@/components/ui/use-toast";
-import {CheckCircle, CircleArrowRight, Copy, Settings, PlusCircle, UserIcon, UserPlusIcon} from "lucide-react";
-import {Button} from "@/components/ui/button";
-import {Label} from "@/components/ui/label";
-import {Input} from "@/components/ui/input";
-import {Textarea} from "@/components/ui/textarea";
+import React, { useEffect, useState } from "react";
+import { supabaseClient } from '@/components/util_function/supabaseCilent';
+import { useToast} from "@/components/ui/use-toast";
+import { CheckCircle, CircleArrowRight, Copy, Settings, PlusCircle, UserIcon, UserPlusIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {Checkbox} from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 import Header from "@/components/page_components/header";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import fetchTimeout from "@/components/util_function/fetch";
 import AuthWrapper from "@/components/page_components/authWrapper";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-// I am here
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import DeleteClassPopUp from "@/components/page_components/managePage/DeleteClassPopUp";
 
 export default function ManageClass({params}) {
 	const [isOpenManage, setIsOpenManage] = useState(false);
@@ -29,12 +27,13 @@ export default function ManageClass({params}) {
 	const [numClasses, setNumClasses] = useState(0);
 	const [notes, setNotes] = useState("");
 	const [students, setStudents] = useState([]);
-	const {toast} = useToast();
+	const { toast } = useToast();
 	const classCode = params.class_code;
 	const [selectedStudent, setSelectedStudent] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [teacherData, setTeacherData] = useState(null);
 	const [isEditClassOpen, setIsEditClassOpen] = useState(false);
+	const [deleteConfirmPopUp, setDeleteConfirmPopUp] = useState(false);
 
 	useEffect(() => {
 		fetchTeacherData();
@@ -490,10 +489,6 @@ export default function ManageClass({params}) {
 			}
 		};
 
-		const handleDeleteClass = async () => {
-			console.log("Deleting class")
-		}
-
 		return (<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent className="sm:max-w-[425px] lg:max-w-[32vw]">
 				<DialogHeader>
@@ -590,7 +585,7 @@ export default function ManageClass({params}) {
 							<Button className="border-slate-400 hover:border-black" variant="outline"
 							        onClick={onClose}>Cancel
 							</Button>
-							<Button type="button" onClick={handleSubmit} className="ml-2" variant="destructive">
+							<Button type="button" onClick={handleDeleteClass} className="ml-2" variant="destructive">
 								Delete Class
 							</Button>
 						</div>
@@ -602,6 +597,11 @@ export default function ManageClass({params}) {
 			</DialogContent>
 		</Dialog>);
 	};
+
+	function handleDeleteClass() {
+		setIsEditClassOpen(false)
+		setDeleteConfirmPopUp(true)
+	}
 
 	const StudentDetailsPopUp = ({student, classId, onClose, onUpdate}) => {
 		const [classes, setClasses] = useState(0);
@@ -882,6 +882,7 @@ export default function ManageClass({params}) {
 					onUpdate={handleUpdate} // Refresh student data
 				/>)}
 			</Dialog>
+			<DeleteClassPopUp isOpen={deleteConfirmPopUp} setIsOpen={setDeleteConfirmPopUp} />
 			<Dialog open={isNewStudentOpen} onOpenChange={setIsNewStudentOpen}>
 				<DialogContent className="max-w-[40vw]">
 					{step === 0 && _newOrExisting()}

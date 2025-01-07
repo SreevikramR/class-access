@@ -12,7 +12,6 @@ import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} fro
 import {Input} from '@/components/ui/input';
 import {toast} from "@/components/ui/use-toast";
 
-
 const convertToLocalTime = (timeString) => {
 	try {
 		// Parse the time string
@@ -48,7 +47,8 @@ const convertToLocalTime = (timeString) => {
 		return 'Invalid Time';
 	}
 };
-const Dashboard = ({classInfo}) => {
+
+const Dashboard = () => {
 	const [isOpen, setIsOpen] = useState(false)
 	const [classes, setClasses] = useState([])
 	const [loading, setLoading] = useState(false)
@@ -58,6 +58,15 @@ const Dashboard = ({classInfo}) => {
 
 	useEffect(() => {
 		fetchClasses()
+		const shouldShowToast = sessionStorage.getItem('showToast') === 'true';
+		if (shouldShowToast) {
+			toast({
+				title: "Class Deleted!",
+				description: "The class was deleted successfully.",
+			});
+			sessionStorage.removeItem('showToast');
+		}
+
 	}, [])
 
 	useEffect(() => {

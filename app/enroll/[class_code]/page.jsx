@@ -9,6 +9,7 @@ import { supabaseClient } from "@/components/util_function/supabaseCilent"
 import fetchTimeout from "@/components/util_function/fetch"
 import { useToast } from "@/components/ui/use-toast"
 import LoadingOverlay from "@/components/page_components/loadingOverlay"
+import { useRouter } from "next/navigation"
 
 export default function Component({ params: { class_code } }) {
 	const [enrolledClass, setEnrolledClass] = useState(false)
@@ -22,6 +23,7 @@ export default function Component({ params: { class_code } }) {
 	const [loading, setLoading] = useState(false)
 	const [unactivated, setUnactivated] = useState(false)
 	const { toast } = useToast()
+	const router = useRouter()
 
 	useEffect(() => {
 		fetchUser()
@@ -139,7 +141,7 @@ export default function Component({ params: { class_code } }) {
 					})
 					setLoading(false)
 					setTimeout(() => {
-						window.location.href = '/login'
+						router.push('/login')
 					}, 5000)
 				} else {
 					const controller = new AbortController()
