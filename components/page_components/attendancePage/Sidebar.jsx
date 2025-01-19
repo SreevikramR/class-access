@@ -194,7 +194,7 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 			const studentName = selectedStudent.first_name + " " + selectedStudent.last_name;
 			const today = new Date();
 			const dateString = today.getDate() + " " + months[today.getMonth()] + " " + today.getFullYear();
-			const recordsInYear = updatedString.filter((record) => new Date( record.year + "/" + (record.month + 1) + "/" + record.date).getFullYear() === year );
+			const recordsInYear = updatedString.filter((record) => new Date(record.date).getFullYear() == year );
 			const recordsInMonth = recordsInYear.filter((record) => monthsShort[new Date(record.date).getMonth()] === month.substring(0, 3));
 			const formattedName = studentName.toLowerCase() .replace(/\s+/g, "_");
 			const newName = `${formattedName}_${month.toLowerCase()}_${year}`;
@@ -340,7 +340,7 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 										min={0}
 										max={10000}
 										onChange={(event) =>
-											setYear(event.value)
+											setYear(event.target.value)
 										}
 										className="w-full"
 									/>
