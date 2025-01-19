@@ -184,7 +184,7 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 				const date = new Date(record.date);
 				const dayOfWeek = date.toLocaleString("default", {weekday: "short"});
 				const month = date.toLocaleString("default", {month: "short"});
-				const day = date.getDate();
+				const day = date.getDate() + 1;
 				const year = date.getFullYear();
 				const formattedDate = `${dayOfWeek}, ${day} ${month} ${year}`;
 				return { ...record, date: formattedDate };
