@@ -52,13 +52,6 @@ export function Sidebar({ selectedClassId, setSelectedClassId, selectedStudent, 
 	}
 
 	useEffect(() => {
-		// Set previous month
-		let prevMonth = new Date().getMonth() - 1;
-		prevMonth = prevMonth < 0 ? 11 : prevMonth;
-		setMonth(months[prevMonth]);
-		if (prevMonth == 11) {
-			setYear(year - 1);
-		}
 		fetchTeacherName();
 	}, []);
 
