@@ -1,6 +1,20 @@
 // InvoicePDF.jsx
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet,Font } from '@react-pdf/renderer';
+
+Font.register({
+	family: "Roboto",
+	fonts: [
+		{
+			src: "https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Mu4mxP.ttf",
+			fontWeight: "normal",
+		},
+		{
+			src: "https://fonts.gstatic.com/s/roboto/v27/KFOlCnqEu92Fr1MmWUlfBBc9.ttf",
+			fontWeight: "bold",
+		},
+	],
+});
 
 const styles = StyleSheet.create({
   page: {
@@ -9,21 +23,27 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica',
   },
   title: {
-    fontSize: 18,
-    textAlign: 'center',
-    marginBottom: 4,
+		textAlign: "center",
+		fontSize: 20,
+		fontWeight: "bold"
   },
   poweredBy: {
-    textAlign: 'center',
-    marginBottom: 10,
-    color: 'gray',
+    paddingTop: 4,
+    textAlign: "center",
+		color: "#64748B",
   },
-  section: {
-    marginBottom: 10,
-  },
-  label: {
-    fontWeight: 'extraBold',
-  },
+ 	details: {
+    paddingTop: 20,
+		display: "flex",
+		flexDirection: "row",
+		marginBottom: 20,
+	},
+	detailsRow: {
+		display: "flex",
+		flexDirection: "column",
+		justifyContent: "space-between",
+		width: "100%",
+	},
 });
 
 const InvoicePDF = ({ invoice }) => {
@@ -59,42 +79,31 @@ const InvoicePDF = ({ invoice }) => {
           <Text style={styles.title}>Class Access</Text>
           <Text style={styles.poweredBy}>Powered by Class Access</Text>
         </View>
+{/* Bill To */}
+        <View style={styles.details}>
+				<View style={styles.detailsRow}>
+					<Text style={{ fontWeight: "bold", paddingBottom: 4 }}>
+						Student:
+					</Text>
+					<Text>{ studentDisplayName }</Text>
+				</View>
+				<View style={styles.detailsRow}>
+					<Text style={{ fontWeight: "bold", paddingBottom: 4 }}>
+						Description:
+					</Text>
+					<Text>{ description }</Text>
+				</View>
+			</View>
+			<View style={styles.details}>
+				<View style={styles.detailsRow}>
+					<Text style={{ fontWeight: "bold", paddingBottom: 4 }}>
+						Invoice Date:
+					</Text>
+					<Text>{ invoiceDisplayDate }</Text>
 
-        {/* Divider */}
-        <View style={{ marginVertical: 10, borderBottom: 1 }} />
+				</View>
+			</View>
 
-        {/* Invoice Details */}
-        <View style={styles.section}>
-          <Text style={[styles.label, { fontSize: 14 }]}>Invoice Details</Text>
-          <Text>
-            <Text style={styles.label}>Invoice ID: </Text>
-            {id || 'N/A'}
-          </Text>
-          <Text>
-            <Text style={styles.label}>Date: </Text>
-            {invoiceDisplayDate || 'N/A'}
-          </Text>
-          <Text>
-            <Text style={styles.label}>Status: </Text>
-            {status || 'N/A'}
-          </Text>
-        </View>
-
-        {/* Bill To */}
-        <View style={styles.section}>
-          <Text style={[styles.label, { fontSize: 14 }]}>Bill To</Text>
-          <Text>
-            <Text style={styles.label}>Name: </Text>
-            {studentDisplayName || 'N/A'}
-          </Text>
-          <Text>
-            <Text style={styles.label}>Email: </Text>
-            {student_proxies?.email || 'N/A'}
-          </Text>
-        </View>
-
-        {/* Divider */}
-        <View style={{ marginVertical: 10, borderBottom: 1 }} />
 
         {/* Table Header Row */}
         <View style={{ flexDirection: 'row', backgroundColor: '#E6E6E6', padding: 5 }}>
