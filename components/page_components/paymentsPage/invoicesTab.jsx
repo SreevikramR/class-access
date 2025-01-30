@@ -36,21 +36,18 @@ const InvoicesTab = () => {
 	const [isLoading, setIsLoading] = useState(true)
 	const [invoices, setInvoices] = useState([])
 	async function handleDownload(selectedInvoice) {
-	// 1. Generate the Blob from your React-PDF component
-	try {
-    const blob = await pdf(<InvoicePDF invoice={selectedInvoice} />).toBlob();
-    const blobUrl = URL.createObjectURL(blob);
-    window.open(blobUrl, '_blank');
-    setSelectedClass(null);
-  } catch (error) {
-    console.error("Error generating PDF:", error);
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: "Failed to generate and open PDF. Please try again.",
-    });
-  }
-}
+		const pdfBlob = await pdf(
+			<InvoicePDF
+				invoice={selectedInvoice}
+			/>,
+		).toBlob();
+		const url = URL.createObjectURL(pdfBlob);
+		umami.track("Invoice PDF Exported")
+		window.open(url, "_blank");
+		URL.revokeObjectURL(url);
+
+
+	}
 	async function fetchInvoices() {
 		setIsLoading(true)
 
@@ -142,32 +139,12 @@ const InvoicesTab = () => {
 		}
 	}, [selectedClass, classes])
 
-	async function createInvoice() {
-		if (!selectedClass || !selectedStudent || !invoiceTitle || !invoiceDescription || !invoiceClasses || !invoiceAmount) {
-			toast({
-				variant: "destructive", title: "Error", description: "Please fill all fields.",
-			})
-			return
-		}
-
-		if (isLoading) return
-		setIsLoading(true)
-		const { data, error } = await supabaseClient.from('invoices').insert({
-			status: 'Pending',
-			class_id: selectedClass,
-			student_proxy_id: selectedStudent,
-			amount: invoiceAmount,
-			date: new Date().toISOString(),
-			title: invoiceTitle,
-			description: invoiceDescription,
-			classes: invoiceClasses
-		}).select('id')
-
-		if (error) {
+	async function emailInvoice() {
+		const status = await createInvoice();
+		if (!status) {
 			toast({
 				variant: "destructive", title: "Error", description: "Error creating invoice. Please try again later.",
 			})
-			setIsLoading(false)
 			return
 		}
 
@@ -205,6 +182,35 @@ const InvoicesTab = () => {
 		resetForm()
 		setIsAddDialogOpen(false)
 		setIsLoading(false)
+	}
+
+	async function createInvoice() {
+		if (!selectedClass || !selectedStudent || !invoiceTitle || !invoiceDescription || !invoiceClasses || !invoiceAmount) {
+			toast({
+				variant: "destructive", title: "Error", description: "Please fill all fields.",
+			})
+			return
+		}
+		if (isLoading) return
+		setIsLoading(true)
+		const { data, error } = await supabaseClient.from('invoices').insert({
+			status: 'Pending',
+			class_id: selectedClass,
+			student_proxy_id: selectedStudent,
+			amount: invoiceAmount,
+			date: new Date().toISOString(),
+			title: invoiceTitle,
+			description: invoiceDescription,
+			classes: invoiceClasses
+		}).select('id')
+
+		if (error) {
+			toast({
+				variant: "destructive", title: "Error", description: "Error creating invoice. Please try again later.",
+			})
+			setIsLoading(false)
+			return false
+		}
 	}
 
 	useEffect(() => {
@@ -466,7 +472,7 @@ const InvoicesTab = () => {
 					</div>
 					<DialogFooter>
 						<div>
-							<Button onClick={createInvoice} className={(isLoading ? "cursor-progress" : "")}>Create Invoice</Button></div>
+							<Button onClick={emailInvoice} className={(isLoading ? "cursor-progress" : "")}>Create Invoice</Button></div>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
@@ -506,34 +512,34 @@ const InvoicesTab = () => {
 					</div>
 					{ selectedInvoice !== null && selectedInvoice.status == "Pending" &&
 					<DialogFooter>
-                  <div className="flex justify-between flex-wrap w-full">
-                    {/* Mark Received */}
-                    <Button
-                      onClick={handleMarkPaid}
-                      className={"bg-green-600 hover:bg-green-800" + (isLoading ? " cursor-progress" : "")}
-                    >
-                      Mark Received
-                    </Button>
-                
-                    {/* Download Invoice (React-PDF) */}
-                    {selectedInvoice && (
-                      <Button
-                          onClick={() => handleDownload(selectedInvoice)}
-                          className={"bg-blue-600 hover:bg-blue-500" + (isLoading ? " cursor-progress" : "")}
-                        >
-                          Download Invoice
-                        </Button>
-    )}
+	                  <div className="flex justify-between flex-wrap w-full">
+	                    {/* Mark Received */}
+	                    <Button
+	                      onClick={handleMarkPaid}
+	                      className={"bg-green-600 hover:bg-green-800" + (isLoading ? " cursor-progress" : "")}
+	                    >
+	                      Mark Received
+	                    </Button>
 
-    {/* Resend Invoice */}
-    <Button
-      onClick={resendInvoice}
-      className={(isLoading ? "cursor-progress" : "")}
-    >
-      Resend Invoice
-    </Button>
-  </div>
-</DialogFooter>
+	                    {/* Download Invoice (React-PDF) */}
+	                    {selectedInvoice && (
+	                      <Button
+	                          onClick={() => handleDownload(selectedInvoice)}
+	                          className={"bg-blue-600 hover:bg-blue-500" + (isLoading ? " cursor-progress" : "")}
+	                        >
+	                          Download Invoice
+	                        </Button>
+					    )}
+
+					    {/* Resend Invoice */}
+					    <Button
+					      onClick={resendInvoice}
+					      className={(isLoading ? "cursor-progress" : "")}
+					    >
+					      Resend Invoice
+					    </Button>
+					  </div>
+					</DialogFooter>
 					}
 					{ selectedInvoice !== null && selectedInvoice.status == "Student Confirmed" &&
 						<DialogFooter>
