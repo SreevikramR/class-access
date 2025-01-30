@@ -43,7 +43,7 @@ const InvoicesTab = () => {
 			/>,
 		).toBlob();
 		const url = URL.createObjectURL(pdfBlob);
-		// umami.track("Invoice PDF Exported")
+		umami.track("Invoice PDF Exported")
 		window.open(url, "_blank");
 		URL.revokeObjectURL(url);
 
