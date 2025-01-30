@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   page: {
     padding: 20,
     fontSize: 12,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Roboto',
   },
   title: {
 		textAlign: "center",
