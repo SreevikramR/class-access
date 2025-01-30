@@ -36,13 +36,14 @@ const InvoicesTab = () => {
 	const [isLoading, setIsLoading] = useState(true)
 	const [invoices, setInvoices] = useState([])
 	async function handleDownload(selectedInvoice) {
+		const { data: teacherData, error: teacherError } = await supabaseClient.from('teachers').select('email, first_name, last_name').eq('id', teacherID)
 		const pdfBlob = await pdf(
 			<InvoicePDF
-				invoice={selectedInvoice}
+				invoice={{... selectedInvoice, teacherName: `${teacherData[0].first_name} ${teacherData[0].last_name}`}}
 			/>,
 		).toBlob();
 		const url = URL.createObjectURL(pdfBlob);
-		umami.track("Invoice PDF Exported")
+		// umami.track("Invoice PDF Exported")
 		window.open(url, "_blank");
 		URL.revokeObjectURL(url);
 
@@ -165,7 +166,7 @@ const InvoicesTab = () => {
 				"description": invoiceDescription,
 				"amount": invoiceAmount,
 				"classes": invoiceClasses,
-				"invoiceId": data[0].id
+				"invoiceId": status[0].id
 			},
 		});
 
@@ -211,6 +212,7 @@ const InvoicesTab = () => {
 			setIsLoading(false)
 			return false
 		}
+		return data
 	}
 
 	useEffect(() => {
