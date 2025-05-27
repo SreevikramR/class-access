@@ -18,6 +18,14 @@
 
 Class Access is a comprehensive digital solution designed to help teaching academies and individual tutors manage their classes, students, payments, attendance, and communications efficiently, all in one place. This platform aims to streamline administrative tasks, allowing educators to focus more on teaching.
 
+### 🚀 Try Class Access Now!
+
+Experience Class Access firsthand with the demo account:
+* **Website:** [https://classaccess.tech](https://classaccess.tech)
+* **Email:** `demouser@example.com`
+* **Password:** `demouser`
+
+
 ## Table of Contents
 1.  [Tech Stack & Architecture](#tech-stack--architecture)
 2.  [Technical Features & Learning Experiences](#technical-features--learning-experiences)
