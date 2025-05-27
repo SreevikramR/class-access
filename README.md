@@ -252,7 +252,6 @@ Supabase's Row Level Security is integral to Class Access's data protection stra
     * For operations requiring broader data access or complex logic that cannot be easily expressed in RLS policies (e.g., initial student account creation triggered by a teacher's invitation, or system-wide administrative tasks), Next.js API routes are utilized.
     * These API routes first authenticate the calling user by verifying their JWT. If authorized, these routes can then use the `SUPABASE_SERVICE_KEY` (via the Supabase Admin SDK) to perform database operations. This temporarily bypasses RLS with full administrative privileges for that specific, controlled, and audited server-side action. This is essential for tasks like creating a new user in the `auth.users` table and then linking them to the `students` and `student_proxies` tables.
 
-**(You should elaborate here with more specific RLS policy examples for each critical table if you wish, e.g., `CREATE POLICY "Teachers can view their own student proxies" ON student_proxies FOR SELECT USING (auth.uid() = teacher_id);` and `CREATE POLICY "Students can view their own proxy records" ON student_proxies FOR SELECT USING (auth.uid() = student_id);`)**
 
 ---
 
