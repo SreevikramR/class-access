@@ -263,7 +263,7 @@ To get a local copy up and running, follow these simple steps.
 
 1.  **Clone the Repository:**
     ```bash
-    git clone [https://github.com/sreevikramr/class-access.git](https://github.com/sreevikramr/class-access.git)
+    git clone https://github.com/sreevikramr/class-access.git
     cd class-access
     ```
 
